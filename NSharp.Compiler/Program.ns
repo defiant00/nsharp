@@ -1,0 +1,54 @@
+use System
+use System.Diagnostics
+;use NSharp.Core
+;use NSharp.Language.Min
+
+ns NSharp.Compiler
+
+public class Program
+    private val EDIT_SETTINGS str = ".nsedit"
+    private val SAVE_SETTINGS str = ".nssave"
+    private val LANGUAGE_KEY str = "language"
+
+    static fn Main(args []str)
+        Console.WriteLine("N# Compiler v0.1.0")
+
+        var stopwatch = new Stopwatch()
+        stopwatch.Start()
+
+        if (args.Length < 2 or args[0] == "?" or args[0] == "help")
+            Console.WriteLine()
+            Console.WriteLine("Usage: nsc [command] [file(s)]")
+            Console.WriteLine()
+            Console.WriteLine("Commands:")
+            Console.WriteLine("    build [project paths] - tbd, build projects")
+            Console.WriteLine("    compile [files]       - compile the specified files")
+            Console.WriteLine("    edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
+            Console.WriteLine("    format [files]        - format the specified files per the .nsedit and .nssave settings")
+            Console.WriteLine("    save [files]          - save the specified files per the .nssave settings")
+            Console.WriteLine("    validate [files]      - validate the specified files' syntax")
+            ret
+        
+        if args[0].ToLower()
+            is "build"
+                Console.WriteLine("Build not yet supported")
+            is "compile"
+                ; Compile(args.Skip(1))
+            is "edit"
+                for i = 1, i < args.Length, i += 1
+                    ; Edit(args[i])
+            is "format"
+                for i = 1, i < args.Length, i += 1
+                    ; Format(args[i])
+            is "save"
+                for i = 1, i < args.Length, i += 1
+                    ; Save(args[i])
+            is "validate"
+                for i = 1, i < args.Length, i += 1
+                    ; Validate(args[i])
+            is _
+                Console.WriteLine("Unknown command '{args[0]}'")
+
+        Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
+    
+

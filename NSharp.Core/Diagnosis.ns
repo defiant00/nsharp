@@ -1,0 +1,10 @@
+ns NSharp.Core
+
+public enum Severity
+    Message
+    Warning
+    Error
+
+public class Diagnostic
+    public fn Severity Severity
+    public fn Message str = str.Empty

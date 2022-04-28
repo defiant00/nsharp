@@ -1,0 +1,66 @@
+ns NSharp.Core
+
+public enum BinaryOperatorType
+    None
+    Dot
+    NullDot
+    NullCoalesce
+    As
+    Add
+    Subtract
+    Multiply
+    Divide
+    Modulus
+    Equal
+    NotEqual
+    LessThan
+    GreaterThan
+    LessThanOrEqual
+    GreaterThanOrEqual
+    And
+    Or
+    BitwiseAnd
+    BitwiseOr
+    BitwiseXor
+    LeftShift
+    RightShift
+
+public static class BinaryOperatorHelpers
+    public static fn Precedence(operatorType BinaryOperatorType) int is operatorType ?
+        {
+            BinaryOperatorType.Dot is 12,
+            BinaryOperatorType.NullDot is 12,
+
+            BinaryOperatorType.As is 11,
+
+            BinaryOperatorType.Multiply is 10,
+            BinaryOperatorType.Divide is 10,
+            BinaryOperatorType.Modulus is 10,
+
+            BinaryOperatorType.Add is 9,
+            BinaryOperatorType.Subtract is 9,
+
+            BinaryOperatorType.LeftShift is 8,
+            BinaryOperatorType.RightShift is 8,
+
+            BinaryOperatorType.BitwiseAnd is 7,
+
+            BinaryOperatorType.BitwiseOr is 6,
+            BinaryOperatorType.BitwiseXor is 6,
+
+            BinaryOperatorType.LessThan is 5,
+            BinaryOperatorType.GreaterThan is 5,
+            BinaryOperatorType.LessThanOrEqual is 5,
+            BinaryOperatorType.GreaterThanOrEqual is 5,
+
+            BinaryOperatorType.Equal is 4,
+            BinaryOperatorType.NotEqual is 4,
+
+            BinaryOperatorType.And is 3,
+
+            BinaryOperatorType.Or is 2,
+
+            BinaryOperatorType.NullCoalesce is 1,
+
+            _ is -1,
+        }

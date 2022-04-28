@@ -1,0 +1,57 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "tocs",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "${workspaceFolder}/lib/nsc-legacy.dll",
+                "tocs",
+                "${workspaceFolder}/NSharp.Compiler/Program.ns",
+                "${workspaceFolder}/NSharp.Core/AssignmentOperator.ns",
+                "${workspaceFolder}/NSharp.Core/BinaryOperatorType.ns",
+                "${workspaceFolder}/NSharp.Core/Diagnosis.ns",
+                "${workspaceFolder}/NSharp.Core/Literal.ns",
+                "${workspaceFolder}/NSharp.Core/Modifier.ns"
+            ]
+        },
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/NSharp.Compiler/NSharp.Compiler.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "dependsOn": ["tocs"]
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/NSharp.Compiler/NSharp.Compiler.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/NSharp.Compiler/NSharp.Compiler.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
