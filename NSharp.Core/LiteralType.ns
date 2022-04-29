@@ -1,6 +1,6 @@
 ns NSharp.Core
 
-public enum Literal
+public enum LiteralType
     True
     False
     Null

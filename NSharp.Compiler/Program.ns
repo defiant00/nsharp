@@ -50,5 +50,3 @@ public class Program
                 Console.WriteLine("Unknown command '{args[0]}'")
 
         Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
-    
-

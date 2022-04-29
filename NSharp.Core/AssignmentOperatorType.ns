@@ -1,6 +1,6 @@
 ns NSharp.Core
 
-public enum AssignmentOperator
+public enum AssignmentOperatorType
     None
     Assign
     Add

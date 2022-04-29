@@ -8,12 +8,7 @@
             "args": [
                 "${workspaceFolder}/lib/nsc-legacy.dll",
                 "tocs",
-                "${workspaceFolder}/NSharp.Compiler/Program.ns",
-                "${workspaceFolder}/NSharp.Core/AssignmentOperator.ns",
-                "${workspaceFolder}/NSharp.Core/BinaryOperatorType.ns",
-                "${workspaceFolder}/NSharp.Core/Diagnosis.ns",
-                "${workspaceFolder}/NSharp.Core/Literal.ns",
-                "${workspaceFolder}/NSharp.Core/Modifier.ns"
+                "${workspaceFolder}/"
             ]
         },
         {
