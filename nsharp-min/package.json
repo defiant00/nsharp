@@ -1,0 +1,41 @@
+{
+    "name": "nsharp-min",
+    "displayName": "N# (Min)",
+    "description": "N# (Min) Support",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.66.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [
+            {
+                "id": "nsharp-min",
+                "aliases": [
+                    "N# (Min)",
+                    "nsharp-min"
+                ],
+                "extensions": [
+                    ".ns"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "nsharp-min",
+                "scopeName": "source.nsharp-min",
+                "path": "./syntaxes/nsharp-min.tmLanguage.generated.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "npx js-yaml syntaxes/nsharp-min.tmlanguage.yaml > syntaxes/nsharp-min.tmLanguage.generated.json"
+    },
+    "devDependencies": {
+        "js-yaml": "^4.1.0"
+    }
+}

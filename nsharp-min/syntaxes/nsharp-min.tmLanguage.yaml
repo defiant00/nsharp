@@ -1,0 +1,71 @@
+$schema: https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json
+name: nsharp-min
+scopeName: source.nsharp-min
+patterns:
+- include: '#all'
+repository:
+  all:
+    patterns:
+    - include: '#comments'
+    - include: '#strings'
+    - include: '#keywords'
+    - include: '#constants'
+    - include: '#names'
+  comments:
+    patterns:
+    - match: ;.*
+      name: comment.line.double-slash.nsharp-min
+    - match: ;;.*
+      name: comment.block.documentation.nsharp-min
+  strings:
+    patterns:
+    - begin: "'"
+      end: "'"
+      name: string.quoted.single.nsharp-min
+      patterns: [include: '#escaped']
+    - begin: '"'
+      end: '"'
+      name: string.quoted.double.nsharp-min
+      patterns: [include: '#escaped']
+    repository:
+      escaped:
+        match: \\.
+        name: constant.character.escape.nsharp-min
+  keywords:
+    patterns:
+    - match: \b(?:break|continue|if|else|for|in|bet|try|catch|fin|throw|ret)\b
+      name: keyword.control.nsharp-min
+    - match: \b(?:public|protected|private|internal|static|abstract|virtual|override|ext)\b
+      name: storage.modifier.nsharp-min
+    - match: \b(?:class|struct|enum|interface|del|fn|var|val|from)\b
+      name: storage.type.nsharp-min
+    - match: \b(?:base)\b
+      name: support.function.nsharp-min
+    - match: \b(?:ns|use|get|set)\b
+      name: keyword.other.nsharp-min
+    - match: \b(?:==|!=|<|>|<=|>=|and|or|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|is|as|_)\b
+      name: keyword.operator.nsharp-min
+    - match: \b(?:new)\b
+      name: keyword.operator.new.nsharp-min
+    - match: \b(?:str|char|bool|i8|i16|short|i32|int|i64|long|u8|byte|u16|ushort|u32|uint|u64|ulong|f32|float|f64|double|decimal)\b
+      name: support.type.primitive.nsharp-min
+    - match: \b(?:this)\b
+      name: variable.language.nsharp-min
+  constants:
+    patterns:
+    - match: \b(?:true|false|null)\b
+      name: constant.language.nsharp-min
+    - match: '[+-]?0x[0-9a-fA-F]+'
+      name: constant.numeric.hex.nsharp-min
+    - match: '[+-]?0b[01]+'
+      name: constant.numeric.binary.nsharp-min
+    - match: '[+-]?(?:\d+(?:\.\d*)?|\.\d+)'
+      name: constant.numeric.decimal.nsharp-min
+    - match: '[+-]?\d+'
+      name: constant.numeric.integer.nsharp-min
+  names:
+    patterns:
+    - match: \b[a-zA-Z_]\w*(?=\()
+      name: entity.name.function.nsharp-min
+    - match: \b[a-zA-Z_]\w*\b
+      name: variable.other.nsharp-min
