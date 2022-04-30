@@ -8,6 +8,7 @@ public interface ISyntaxTreeVisitor
     public fn Visit(item AnonymousFunction)
     public fn Visit(item Argument)
     public fn Visit(item Ast.Array)
+    public fn Visit(item ArrayLiteral)
     public fn Visit(item Assignment)
     public fn Visit(item BinaryOperator)
     public fn Visit(item Break)
