@@ -37,7 +37,7 @@ repository:
       name: keyword.control.nsharp-min
     - match: \b(?:public|protected|private|internal|static|abstract|virtual|override|ext)\b
       name: storage.modifier.nsharp-min
-    - match: \b(?:class|struct|enum|interface|del|fn|var|val|from)\b
+    - match: \b(?:class|struct|enum|interface|del|fn|var|val|has)\b
       name: storage.type.nsharp-min
     - match: \b(?:base)\b
       name: support.function.nsharp-min
