@@ -21,7 +21,7 @@ public abstract class Statement has ISyntaxTreeItem
 
 
 public class AnonymousFunction is Expression
-    public fn ReturnType Expression?
+    public fn ReturnType ?Expression
     public fn Parameters List{Parameter} = new List{Parameter}()
     public fn Statements List{Statement} = new List{Statement}()
 
@@ -31,7 +31,7 @@ public class AnonymousFunction is Expression
 
 
 public class Argument is Expression
-    public fn Name str?
+    public fn Name ?str
     public fn Value Expression
 
     public fn new(position Position, value Expression) base(position) is Value = value
@@ -89,8 +89,8 @@ public class Case is Statement
 
 
 public class Catch is Statement
-    public fn Type Expression?
-    public fn Name str?
+    public fn Type ?Expression
+    public fn Name ?str
     public fn Statements List{Statement} = new List{Statement}()
 
     public fn new(position Position) base(position) is ; empty
@@ -109,7 +109,7 @@ public class Character is Expression
 public class Class is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
-    public fn Parent Class?
+    public fn Parent ?Class
     public fn Interfaces List{Expression} = new List{Expression}()
     public fn Statements List{Statement} = new List{Statement}()
 
@@ -153,7 +153,7 @@ public class Constant is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
     public fn Type Expression
-    public fn Value Expression?
+    public fn Value ?Expression
 
     public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
         Modifiers = modifiers
@@ -199,7 +199,7 @@ public class CurrentObjectInstance is Expression
 
 public class DelegateDefinition is Statement
     public fn Modifiers List{Modifier}
-    public fn ReturnType Expression?
+    public fn ReturnType ?Expression
     public fn Name str
     public fn Parameters List{Parameter} = new List{Parameter}()
 
@@ -230,8 +230,8 @@ public class Enumeration is Statement
 
 public class EnumerationItem is Statement
     public fn Name str
-    public fn Value int?
-    public fn Comment Comment?
+    public fn Value ?int
+    public fn Comment ?Comment
 
     public fn new(position Position, name str) base(position) is Name = name
 
@@ -266,7 +266,7 @@ public class Field is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
     public fn Type Expression
-    public fn Value Expression?
+    public fn Value ?Expression
 
     public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
         Modifiers = modifiers
@@ -286,10 +286,10 @@ public class File is Statement
 
 
 public class For is Statement
-    public fn LocalName str?
-    public fn Init Expression?
-    public fn Condition Expression?
-    public fn Post Statement?
+    public fn LocalName ?str
+    public fn Init ?Expression
+    public fn Condition ?Expression
+    public fn Post ?Statement
     public fn Statements List{Statement} = new List{Statement}()
 
     public fn new(position Position) base(position) is ; empty
@@ -330,8 +330,8 @@ public class Identifier is Expression
 
 
 public class If is Statement
-    public fn LocalName str?
-    public fn LocalExpr Expression?
+    public fn LocalName ?str
+    public fn LocalExpr ?Expression
     public fn Condition Expression
     public fn Statements List{Statement} = new List{Statement}()
     public fn ElseStatements List{Statement} = new List{Statement}()
@@ -376,7 +376,7 @@ public class Interface is Statement
 public class Is is Expression
     public fn Expr Expression
     public fn Type Expression
-    public fn Name str?
+    public fn Name ?str
 
     public fn new(position Position, expr Expression, type Expression) base(position)
         Expr = expr
@@ -408,8 +408,8 @@ public class LocalConstant is Statement
 
 public class LocalVariable is Statement
     public fn Name str
-    public fn Type Expression?
-    public fn Value Expression?
+    public fn Type ?Expression
+    public fn Value ?Expression
 
     public fn new(position Position, name str) base(position) is Name = name
 
@@ -427,7 +427,7 @@ public class MethodCall is Expression
 
 public class MethodDefinition is Statement
     public fn Modifiers List{Modifier}
-    public fn ReturnType Expression?
+    public fn ReturnType ?Expression
     public fn Name str
     public fn Parameters List{Parameter} = new List{Parameter}()
     public fn Statements List{Statement} = new List{Statement}()
@@ -441,7 +441,7 @@ public class MethodDefinition is Statement
 
 public class MethodSignature is Statement
     public fn Modifiers List{Modifier}
-    public fn ReturnType Expression?
+    public fn ReturnType ?Expression
     public fn Name str
     public fn Parameters List{Parameter} = new List{Parameter}()
 
@@ -454,7 +454,7 @@ public class MethodSignature is Statement
 
 public class Modifier is Expression
     public fn Type ModifierType
-    public fn Argument Expression?
+    public fn Argument ?Expression
 
     public fn new(position Position, type ModifierType) base(position) is Type = type
 
@@ -488,7 +488,7 @@ public class Number is Expression
 public class Parameter is Expression
     public fn Name str
     public fn Type Expression
-    public fn Value Expression?
+    public fn Value ?Expression
 
     public fn new(position Position, name str, type Expression) base(position)
         Name = name
@@ -501,7 +501,7 @@ public class Property is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
     public fn Type Expression
-    public fn Value Expression?
+    public fn Value ?Expression
     public fn GetSpecified bool = true
     public fn SetSpecified bool = true
     public fn SetParameterName str = str.Empty
@@ -532,7 +532,7 @@ public class PropertySignature is Statement
 
 
 public class Return is Statement
-    public fn Value Expression?
+    public fn Value ?Expression
 
     public fn new(position Position) base(position) is ; empty
 
@@ -577,8 +577,8 @@ public class Struct is Statement
 
 
 public class Switch is Statement
-    public fn LocalName str?
-    public fn LocalExpr Expression?
+    public fn LocalName ?str
+    public fn LocalExpr ?Expression
     public fn Expr Expression
     public fn Statements List{Statement} = new List{Statement}()
 
