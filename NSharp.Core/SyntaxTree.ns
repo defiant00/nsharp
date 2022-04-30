@@ -109,6 +109,7 @@ public class Character is Expression
 public class Class is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Parent ?Class
     public fn Interfaces List{Expression} = new List{Expression}()
     public fn Statements List{Statement} = new List{Statement}()
@@ -201,6 +202,7 @@ public class DelegateDefinition is Statement
     public fn Modifiers List{Modifier}
     public fn ReturnType ?Expression
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Parameters List{Parameter} = new List{Parameter}()
 
     public fn new(position Position, modifiers List{Modifier}, name str) base(position)
@@ -363,6 +365,7 @@ public class Indexer is Expression
 public class Interface is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Interfaces List{Expression} = new List{Expression}()
     public fn Statements List{Statement} = new List{Statement}()
 
@@ -429,6 +432,7 @@ public class MethodDefinition is Statement
     public fn Modifiers List{Modifier}
     public fn ReturnType ?Expression
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Parameters List{Parameter} = new List{Parameter}()
     public fn Statements List{Statement} = new List{Statement}()
 
@@ -443,6 +447,7 @@ public class MethodSignature is Statement
     public fn Modifiers List{Modifier}
     public fn ReturnType ?Expression
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Parameters List{Parameter} = new List{Parameter}()
 
     public fn new(position Position, modifiers List{Modifier}, name str) base(position)
@@ -566,6 +571,7 @@ public class StringLiteral is Expression
 public class Struct is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
+    public fn GenericNames List{string} = new List{String}()
     public fn Interfaces List{Expression} = new List{Expression}()
     public fn Statements List{Statement} = new List{Statement}()
 
