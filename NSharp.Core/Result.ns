@@ -1,0 +1,18 @@
+ns NSharp.Core
+
+public abstract class Result
+    public fn FileName str
+    public fn Diagnostics List{Diagnostic} = new List{Diagnostic}()
+
+    public fn new(fileName str)
+        FileName = fileName
+
+
+public class LoadResult is Result
+    public fn Ast Ast.File?
+    public fn new(fileName str) base(fileName) is ; empty
+
+
+public class SaveResult is Result
+    public fn Success bool
+    public fn new(fileName str) base(fileName) is ; empty

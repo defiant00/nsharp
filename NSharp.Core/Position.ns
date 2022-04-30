@@ -1,0 +1,7 @@
+ns NSharp.Core
+
+public struct Position
+    public fn Line int
+    public fn Column int
+
+    public override fn ToString() str is "({Line}, {Column})"

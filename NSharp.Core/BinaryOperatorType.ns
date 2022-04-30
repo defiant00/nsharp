@@ -26,7 +26,7 @@ public enum BinaryOperatorType
     RightShift
 
 public static class BinaryOperatorHelpers
-    public static ext{BinaryOperatorType} fn Precedence() int is this ?
+    public static ext{BinaryOperatorType} fn Precedence() int is this if
         {
             BinaryOperatorType.Dot is 12,
             BinaryOperatorType.NullDot is 12,

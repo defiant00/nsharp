@@ -1,0 +1,628 @@
+ns NSharp.Core.Ast
+
+public interface ISyntaxTreeItem
+    public fn Position Position
+
+
+public abstract class Expression has ISyntaxTreeItem
+    public fn Position Position
+
+    public fn new(position Position) is Position = position
+
+    public virtual fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public abstract class Statement has ISyntaxTreeItem
+    public fn Position Position
+
+    public fn new(position Position) is Position = position
+
+    public virtual fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class AnonymousFunction is Expression
+    public fn ReturnType Expression?
+    public fn Parameters List{Parameter} = new List{Parameter}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Argument is Expression
+    public fn Name str?
+    public fn Value Expression
+
+    public fn new(position Position, value Expression) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Array is Expression
+    public fn Type Expression
+
+    public fn new(position Position, type Expression) base(position) is Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Assignment is Statement
+    public fn Left Expression
+    public fn Operator AssignmentOperatorType
+    public fn Right Expression
+
+    public fn new(position Position, left Expression, op AssignmentOperatorType, right Expression) base(position)
+        Left = left
+        Operator = op
+        Right = right
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class BinaryOperator is Expression
+    public fn Left Expression
+    public fn Operator BinaryOperatorType
+    public fn Right Expression
+
+    public fn new(position Position, left Expression, op BinaryOperatorType, right Expression) base(position)
+        Left = left
+        Operator = op
+        Right = right
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Break is Statement
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Case is Statement
+    public fn Value Expression
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, value Expression) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Catch is Statement
+    public fn Type Expression?
+    public fn Name str?
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Character is Expression
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Class is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Parent Class?
+    public fn Interfaces List{Expression} = new List{Expression}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Comment is Statement
+    public fn Value str
+    public fn IsDocumentation bool
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Condition is Expression
+    public fn Value Expression
+    public fn Result Expression
+
+    public fn new(position Position, value Expression, result Expression) base(position)
+        Value = value
+        Result = result
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Conditional is Expression
+    public fn Value Expression
+    public fn Conditions List{Condition} = new List{Condition}()
+
+    public fn new(position Position, value Expression) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Constant is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Type Expression
+    public fn Value Expression?
+
+    public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
+        Modifiers = modifiers
+        Name = name
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ConstructorCall is Expression
+    public fn Expr Expression
+    public fn Arguments List{Argument} = new List{Argument}()
+    public fn InitProperties List{str} = new List{str}()
+    public fn InitValues List{Expression} = new List{Expression}()
+
+    public fn new(position Position, expr Expression) base(position) is Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ConstructorDefinition is Statement
+    public fn Modifiers List{Modifier}
+    public fn Parameters List{Parameter} = new List{Parameter}()
+    public fn BaseArguments List{Expression} = new List{Expression}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}) base(position) is Modifiers = modifiers
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Continue is Statement
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class CurrentObjectInstance is Expression
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class DelegateDefinition is Statement
+    public fn Modifiers List{Modifier}
+    public fn ReturnType Expression?
+    public fn Name str
+    public fn Parameters List{Parameter} = new List{Parameter}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Discard is Expression
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Enumeration is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Values List{EnumerationItem} = new List{EnumerationItem}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class EnumerationItem is Statement
+    public fn Name str
+    public fn Value int?
+    public fn Comment Comment?
+
+    public fn new(position Position, name str) base(position) is Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ErrorExpression is Expression
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ErrorStatement is Statement
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ExpressionStatement is Statement
+    public fn Expr Expression
+
+    public fn new(position Position, expr Expression) base(position) is Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Field is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Type Expression
+    public fn Value Expression?
+
+    public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
+        Modifiers = modifiers
+        Name = name
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class File is Statement
+    public fn Name str
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(name str) base(new Position()) is Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class For is Statement
+    public fn LocalName str?
+    public fn Init Expression?
+    public fn Condition Expression?
+    public fn Post Statement?
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class ForEach is Statement
+    public fn LocalName str
+    public fn Expr Expression
+    public fn Statements List{Statement} = new List{Statement}()
+    public fn BetweenStatements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, localName str, expr Expression) base(position)
+        LocalName = localName
+        Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Generic is Expression
+    public fn Expr Expression
+    public fn Arguments List{Expression} = new List{Expression}()
+
+    public fn new(position Position, expr Expression, arg Expression) base(position)
+        Expr = expr
+        Arguments.Add(arg)
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Identifier is Expression
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class If is Statement
+    public fn LocalName str?
+    public fn LocalExpr Expression?
+    public fn Condition Expression
+    public fn Statements List{Statement} = new List{Statement}()
+    public fn ElseStatements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, condition Expression) base(position) is Condition = condition
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Import is Statement
+    public fn NameParts List{str} = new List{str}()
+
+    public fn new(position Position, namePart str) base(position) is NameParts.Add(namePart)
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Indexer is Expression
+    public fn Expr Expression
+    public fn Arguments List{Expression} = new List{Expression}()
+
+    public fn new(position Position, expr Expression, arg Expression) base(position)
+        Expr = expr
+        Arguments.Add(arg)
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Interface is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Interfaces List{Expression} = new List{Expression}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Is is Expression
+    public fn Expr Expression
+    public fn Type Expression
+    public fn Name str?
+
+    public fn new(position Position, expr Expression, type Expression) base(position)
+        Expr = expr
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class LiteralToken is Expression
+    public fn Token LiteralType
+
+    public fn new(position Position, token LiteralType) base(position) is Token = token
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class LocalConstant is Statement
+    public fn Name str
+    public fn Type Expression
+    public fn Value Expression
+
+    public fn new(position Position, name str, type Expression, value Expression) base(position)
+        Name = name
+        Type = type
+        Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class LocalVariable is Statement
+    public fn Name str
+    public fn Type Expression?
+    public fn Value Expression?
+
+    public fn new(position Position, name str) base(position) is Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class MethodCall is Expression
+    public fn Expr Expression
+    public fn Arguments List{Expression} = new List{Expression}()
+
+    public fn new(position Position, expr Expression) base(position) is Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class MethodDefinition is Statement
+    public fn Modifiers List{Modifier}
+    public fn ReturnType Expression?
+    public fn Name str
+    public fn Parameters List{Parameter} = new List{Parameter}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class MethodSignature is Statement
+    public fn Modifiers List{Modifier}
+    public fn ReturnType Expression?
+    public fn Name str
+    public fn Parameters List{Parameter} = new List{Parameter}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Modifier is Expression
+    public fn Type ModifierType
+    public fn Argument Expression?
+
+    public fn new(position Position, type ModifierType) base(position) is Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Namespace is Statement
+    public fn NameParts List{str} = new List{str}()
+
+    public fn new(position Position, namePart str) base(position) is NameParts.Add(namePart)
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Nullable is Expression
+    public fn Type Expression
+
+    public fn new(position Position, type Expression) base(position) is Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Number is Expression
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Parameter is Expression
+    public fn Name str
+    public fn Type Expression
+    public fn Value Expression?
+
+    public fn new(position Position, name str, type Expression) base(position)
+        Name = name
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Property is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Type Expression
+    public fn Value Expression?
+    public fn GetSpecified bool = true
+    public fn SetSpecified bool = true
+    public fn SetParameterName str = str.Empty
+    public fn GetStatements List{Statement} = new List{Statement}()
+    public fn SetStatements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
+        Modifiers = modifiers
+        Name = name
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class PropertySignature is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Type Expression
+    public fn GetSpecified bool = true
+    public fn SetSpecified bool = true
+
+    public fn new(position Position, modifiers List{Modifier}, name str, type Expression) base(position)
+        Modifiers = modifiers
+        Name = name
+        Type = type
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Return is Statement
+    public fn Value Expression?
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Space is Statement
+    public fn Size int
+
+    public fn new(position Position, size int) base(position) is Size = size
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class String is Expression
+    public fn Lines List{List{Expression}} = new List{List{Expression}}()
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class StringLiteral is Expression
+    public fn Value str
+
+    public fn new(position Position, value str) base(position) is Value = value
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Struct is Statement
+    public fn Modifiers List{Modifier}
+    public fn Name str
+    public fn Interfaces List{Expression} = new List{Expression}()
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, modifiers List{Modifier}, name str) base(position)
+        Modifiers = modifiers
+        Name = name
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Switch is Statement
+    public fn LocalName str?
+    public fn LocalExpr Expression?
+    public fn Expr Expression
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, expr Expression) base(position) is Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Throw is Statement
+    public fn Exception Expression
+
+    public fn new(position Position, exception Expression) base(position) is Exception = exception
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Try is Statement
+    public fn Statements List{Statement} = new List{Statement}()
+    public fn Catches List{Catch} = new List{Catch}()
+    public fn FinallyStatements List{Statement} = new List{Statement}()
+
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class UnaryOperator is Expression
+    public fn Operator UnaryOperatorType
+    public fn Expr Expression
+
+    public fn new(position Position, op UnaryOperatorType, expr Expression) base(position)
+        Operator = op
+        Expr = expr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
+public class Using is Statement
+    public fn LocalName str
+    public fn LocalExpr Expression
+    public fn Statements List{Statement} = new List{Statement}()
+
+    public fn new(position Position, localName str, localExpr Expression) base(position)
+        LocalName = localName
+        LocalExpr = localExpr
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
