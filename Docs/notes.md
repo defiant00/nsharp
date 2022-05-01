@@ -4,7 +4,7 @@
 * Events
 * Generic constraints
 * Parameter decorators (out, ref, params, etc)
-* single line anonymous functions parsing as an expression or statement based off of the resolved return type instead of just whether the return type was explicitly specified so you can `fn(x) is x * x` and it'll resolve as `return x * x` instead of an expression statement with no return
+* properly parse anonymous functions as an expression or statement instead of assuming an expression
 
 ## Items
 

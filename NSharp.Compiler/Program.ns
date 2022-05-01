@@ -1,6 +1,6 @@
 use System.Diagnostics
 use NSharp.Core
-; use NSharp.Language.Min
+use NSharp.Language.Min
 
 ns NSharp.Compiler
 
@@ -164,7 +164,7 @@ public static class Program
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
             Console.WriteLine("{diagnostic.Severity}: {diagnostic.Message}")
-        if diagnostics.All(fn(d) bool is d.Severity != Severity.Error)
+        if diagnostics.All(fn(d) is d.Severity != Severity.Error)
             Console.WriteLine("Compile successful")
 
     private static fn GetLanguage(settingsFileName str, startingPath str) ILanguage

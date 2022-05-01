@@ -1,0 +1,22 @@
+use NSharp.Core
+use NSharp.Core.Ast
+; use NSharp.Language.Min.Compiler
+
+ns NSharp.Language.Min
+
+public class Min has ILanguage
+    private fn Settings Settings
+
+    public fn new(settings Dictionary{str, str}) is Settings = new Settings(settings)
+
+    public fn Load(fileName str) LoadResult
+        var result = new LoadResult(fileName)
+        ; var parser = new Parser()
+        ; result.Ast = parser.Parse(fileName).Result as Core.Ast.File
+        ret result
+
+    public fn Save(fileName str, item ISyntaxTreeItem) SaveResult
+        var result = new SaveResult(fileName)
+        ; var code str = new Decompiler(Settings).Decompile(item)
+        ; System.IO.File.WriteAllText(fileName, code)
+        ret result
