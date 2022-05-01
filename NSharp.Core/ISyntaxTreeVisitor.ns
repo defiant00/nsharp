@@ -38,6 +38,7 @@ public interface ISyntaxTreeVisitor
     public fn Visit(item Generic)
     public fn Visit(item Identifier)
     public fn Visit(item If)
+    public fn Visit(item ImplicitConstructorCall)
     public fn Visit(item Import)
     public fn Visit(item Indexer)
     public fn Visit(item Interface)

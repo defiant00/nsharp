@@ -1,0 +1,21 @@
+ns NSharp.Compiler
+
+public static class Settings
+    private static var Delimiters []char = [' ', '\t']
+
+    public static fn Load(fileName str) Dictionary{str, str}
+        var settings Dictionary{str, str} = new Dictionary{str, str}()
+        use reader = new StreamReader(fileName)
+        for line = reader.ReadLine()?.Trim(), line != null, line = reader.ReadLine()?.Trim()
+            var index int = line.IndexOfAny(Delimiters)
+            var key str = line
+            var value str = str.Empty
+            if index > -1
+                key = line.Substring(0, index)
+                value = line.Substring(index + 1).TrimStart()
+                if value.Length > 1 and value.StartsWith('"') and value.EndsWith('"')
+                    ; TODO - this might be the wrong length
+                    value = value.Substring(1, value.Length - 2)
+            if key.Length > 0
+                settings[key] = value
+        ret settings
