@@ -1,0 +1,4 @@
+ns NSharp.Language.Min
+
+public static class Constants
+    public val LITERAL_INDICATOR char = '`'

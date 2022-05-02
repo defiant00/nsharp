@@ -1,0 +1,4 @@
+ns NSharp.Language.Min.Decompiler
+
+public class Decompiler
+    ; empty
