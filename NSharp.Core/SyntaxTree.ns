@@ -311,7 +311,6 @@ public class ForEach is Statement
     public fn LocalName str
     public fn Expr Expression
     public fn Statements List{Statement} = new()
-    public fn BetweenStatements List{Statement} = new()
 
     public fn new(position Position, localName str, expr Expression) base(position)
         LocalName = localName
