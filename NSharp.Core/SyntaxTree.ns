@@ -2,6 +2,7 @@ ns NSharp.Core.Ast
 
 public interface ISyntaxTreeItem
     public fn Position Position
+    public fn Accept(visitor ISyntaxTreeVisitor)
 
 
 public abstract class Expression has ISyntaxTreeItem

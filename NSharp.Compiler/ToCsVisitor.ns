@@ -53,6 +53,15 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Indent -= 1
         WriteLineIndented("}")
     
+    private fn JoinItems(items IEnumerable{ISyntaxTreeItem})
+        var first = true
+        for item in items
+            if first
+                first = false
+            else
+                Write(", ")
+            item.Accept(this)
+    
     private fn Escape(value str) str is new StringBuilder(value)
         .Replace("{{", "{{{{")
         .Replace("}}", "}}}}")
@@ -75,10 +84,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item AnonymousFunction)
         Write("(")
-        for param in item.Parameters
-            param.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Parameters)
         Write(") => ")
         Indent += 1
         if item.Statements.Count == 1 and item.Statements[0] is ExpressionStatement es
@@ -99,10 +105,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item ArrayLiteral)
         Write("{{")
-        for value in item.Values
-            value.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Values)
         Write("}")
 
     public fn Visit(item Assignment)
@@ -211,10 +214,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                 intf.Accept(this)
         else if item.Interfaces.Any()
             Write(" : ")
-            for intf in item.Interfaces
-                intf.Accept(this)
-            bet
-                Write(", ")
+            JoinItems(item.Interfaces)
         WriteLine()
         WriteStatementBlock(item.Statements)
 
@@ -264,10 +264,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Write("new ")
         item.Expr.Accept(this)
         Write("(")
-        for argument in item.Arguments
-            argument.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Arguments)
         Write(")")
         if item.InitNames.Any()
             Write("{{")
@@ -281,17 +278,11 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item ConstructorDefinition)
         WriteModifiersIndented(item.Modifiers)
         Write(" {CurrentObject}(")
-        for parameter in item.Parameters
-            parameter.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Parameters)
         Write(")")
         if item.BaseArguments.Any()
             Write(" : base(")
-            for argument in item.BaseArguments
-                argument.Accept(this)
-            bet
-                Write(", ")
+            JoinItems(item.BaseArguments)
             Write(")")
         WriteLine()
         WriteStatementBlock(item.Statements)
@@ -311,10 +302,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         if item.GenericNames.Any()
             Write("<{str.Join(", ", item.GenericNames)}>")
         Write("(")
-        for parameter in item.Parameters
-            parameter.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Parameters)
         WriteLine(");")
 
     public fn Visit(item Discard) is Write("_")
@@ -386,7 +374,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             WriteStatementBlock(item.Statements)
 
     public fn Visit(item ForEach)
-        WriteIndented("foreach (var {item.Name} in ")
+        WriteIndented("foreach (var {item.LocalName} in ")
         item.Expr.Accept(this)
         WriteLine(")")
         WriteLineIndented("{{")
@@ -396,10 +384,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Generic)
         item.Expr.Accept(this)
         Write("<")
-        for argument in item.Arguments
-            argument.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Arguments)
         Write(">")
 
     public fn Visit(item Identifier) is Write(item.Value)
@@ -423,10 +408,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item ImplicitConstructorCall)
         Write("new(")
-        for argument in item.Arguments
-            argument.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Arguments)
         Write(")")
         if item.InitNames.Any()
             Write("{{")
@@ -442,10 +424,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Indexer)
         item.Expr.Accept(this)
         Write("[")
-        for argument in item.Arguments
-            argument.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Arguments)
         Write("]")
 
     public fn Visit(item Interface)
@@ -455,10 +434,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write("<{str.Join(", ", item.GenericNames)}>")
         if item.Interfaces.Any()
             Write(": ")
-            for intf in item.Interfaces
-                intf.Accept(this)
-            bet
-                Write(", ")
+            JoinItems(item.Interfaces)
         WriteLine()
         WriteStatementBlock(item.Statements)
 
@@ -501,10 +477,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item MethodCall)
         item.Expr.Accept(this)
         Write("(")
-        for argument in item.Arguments
-            argument.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Arguments)
         Write(")")
 
     public fn Visit(item MethodDefinition)
@@ -547,10 +520,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         if item.GenericNames.Any()
             Write("<{str.Join(", ", item.GenericNames)}>")
         Write("(")
-        for parameter in item.Parameters
-            parameter.Accept(this)
-        bet
-            Write(", ")
+        JoinItems(item.Parameters)
         WriteLine(");")
 
     public fn Visit(item Modifier) is Write("/* modifier */")
@@ -623,7 +593,12 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Core.Ast.String)
         Write("$\"")
 
+        var first = true
         for line in item.Lines
+            if first
+                first = false
+            else
+                Write("{{System.Environment.NewLine}}")
             for expr in line
                 var curlies = !(expr is StringLiteral)
                 if curlies
@@ -631,8 +606,6 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                 expr.Accept(this)
                 if curlies
                     Write(")}")
-        bet
-            Write("{System.Environment.NewLine}")
         
         Write("\"")
 
@@ -647,10 +620,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write("<{str.Join(", ", item.GenericNames)}>")
         if item.Interfaces.Any()
             Write(" : ")
-            for intf in item.Interfaces
-                intf.Accept(this)
-            bet
-                Write(", ")
+            JoinItems(item.Interfaces)
         WriteLine()
         WriteStatementBlock(item.Statements)
 

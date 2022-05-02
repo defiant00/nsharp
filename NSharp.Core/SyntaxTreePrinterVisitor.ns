@@ -1,0 +1,505 @@
+ns NSharp.Core.Ast
+
+public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
+    private fn Indent int
+
+    private fn Write(line str) is Console.Write(line)
+    private fn WriteLine() is Console.WriteLine()
+    private fn WriteLine(line str) is Console.WriteLine(line)
+
+    private fn WriteIndented(line str)
+        for i = 0, i < Indent, i += 1
+            Console.Write("  ")
+        Console.Write(line)
+
+    private fn WriteLineIndented(line str)
+        for i = 0, i < Indent, i += 1
+            Console.Write("  ")
+        Console.WriteLine(line)
+
+    private fn WriteModifiers(modifiers List{Modifier})
+        for mod in modifiers
+            mod.Accept(this)
+            Write(" ")
+    
+    private fn WriteStatementBlock(statements List{Statement})
+        Indent += 1
+        for statement in statements
+            statement.Accept(this)
+        Indent -= 1
+    
+    private fn JoinItems(items IEnumerable{ISyntaxTreeItem})
+        var first = true
+        for item in items
+            if first
+                first = false
+            else
+                Write(", ")
+            item.Accept(this)
+
+    public fn Visit(item Expression) is WriteLineIndented("[{item}]")
+
+    public fn Visit(item Statement) is WriteLineIndented("[{item}]")
+
+    public fn Visit(item AnonymousFunction)
+        WriteLine()
+        Indent += 1
+        WriteIndented("Anonymous function: ")
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" (")
+        JoinItems(item.Parameters)
+        WriteLine(")")
+
+        WriteStatementBlock(item.Statements)
+
+        Indent -= 1
+
+    public fn Visit(item Argument)
+        if item.Name != null
+            Write("{item.Name} = ")
+        item.Value.Accept(this)
+
+    public fn Visit(item Array)
+        Write("Array(")
+        item.Type.Accept(this)
+        Write(")")
+
+    public fn Visit(item ArrayLiteral)
+        Write("[")
+        JoinItems(item.Values)
+        Write("]")
+
+    public fn Visit(item Assignment)
+        WriteIndented("Assignment: ")
+        item.Left.Accept(this)
+        Write(" Assign.{item.Operator} ")
+        item.Right.Accept(this)
+        WriteLine()
+
+    public fn Visit(item BinaryOperator)
+        Write("(")
+        item.Left.Accept(this)
+        Write(" {item.Operator} ")
+        item.Right.Accept(this)
+        Write(")")
+
+    public fn Visit(item Break) is WriteLineIndented("Break")
+
+    public fn Visit(item Case)
+        WriteIndented("Case: ")
+        item.Value.Accept(this)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Catch)
+        WriteIndented("Catch: ")
+        item.Type?.Accept(this)
+        if item.Name != null
+            Write(" {item.Name}")
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Character) is Write("'{item.Value}'")
+
+    public fn Visit(item Class)
+        WriteIndented("Class: ")
+        WriteModifiers(item.Modifiers)
+        Write(item.Name)
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        if item.Parent != null
+            Write(" inherits ")
+            item.Parent.Accept(this)
+        if item.Interfaces.Any()
+            Write(" implements ")
+            JoinItems(item.Interfaces)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Comment) is WriteLineIndented("Comment{(item.IsDocumentation ? " (doc)", "")}: {item.Value}")
+
+    public fn Visit(item Condition)
+        item.Value.Accept(this)
+        Write(" => ")
+        item.Result.Accept(this)
+
+    public fn Visit(item Conditional)
+        item.Value.Accept(this)
+        WriteLine(" ?")
+        WriteLineIndented("{{")
+        Indent += 1
+        for cond in item.Conditions
+            WriteIndented("")
+            cond.Accept(this)
+            WriteLine()
+        Indent -= 1
+        WriteLineIndented("}")
+
+    public fn Visit(item Constant)
+        WriteIndented("Constant: ")
+        WriteModifiers(item.Modifiers)
+        item.Type.Accept(this)
+        Write(" {item.Name}")
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+        WriteLine()
+
+    public fn Visit(item ConstructorCall)
+        Write("new ")
+        item.Expr.Accept(this)
+        Write("(")
+        JoinItems(item.Arguments)
+        Write(")")
+        if item.InitNames.Any()
+            Write(" {{")
+            Indent += 1
+            for i = 0, i < item.InitNames.Count, i += 1
+                if i > 0
+                    Write(", ")
+                Write("{item.InitNames[i]} = ")
+                item.InitValues[i].Accept(this)
+            Indent -= 1
+            Write("}")
+
+    public fn Visit(item ConstructorDefinition)
+        WriteIndented("Constructor: ")
+        WriteModifiers(item.Modifiers)
+        Write(".ctor(")
+        JoinItems(item.Parameters)
+        Write(")")
+        if item.BaseArguments.Any()
+            Write(" base(")
+            JoinItems(item.BaseArguments)
+            Write(")")
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Continue) is WriteLineIndented("Continue")
+
+    public fn Visit(item CurrentObjectInstance) is Write("[this]")
+
+    public fn Visit(item DelegateDefinition)
+        WriteIndented("Delegate: ")
+        WriteModifiers(item.Modifiers)
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" {item.Name}")
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        Write("(")
+        JoinItems(item.Parameters)
+        WriteLine(")")
+
+    public fn Visit(item Discard) is Write("[discard]")
+
+    public fn Visit(item Enumeration)
+        WriteLineIndented("Enum: ")
+        WriteModifiers(item.Modifiers)
+        Write(item.Name)
+        Indent += 1
+        for value in item.Values
+            value.Accept(this)
+        Indent -= 1
+
+    public fn Visit(item EnumerationItem)
+        WriteIndented("{item.Name}{(item.Value != null ? " = {item.Value}", "")}")
+        if item.Comment != null
+            var prev = Indent
+            Indent = 1
+            item.Comment.Accept(this)
+            Indent = prev
+        else
+            WriteLine()
+
+    public fn Visit(item ErrorExpression) is Write("Error: {item.Value}")
+
+    public fn Visit(item ErrorStatement) is WriteLineIndented("Error: {item.Value}")
+
+    public fn Visit(item ExpressionStatement)
+        WriteIndented("Expression Statement: ")
+        item.Expr.Accept(this)
+        WriteLine()
+
+    public fn Visit(item Field)
+        WriteIndented("Field: ")
+        WriteModifiers(item.Modifiers)
+        item.Type.Accept(this)
+        Write(" {item.Name}")
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+        WriteLine()
+
+    public fn Visit(item File)
+        WriteLineIndented("File: {item.Name}")
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item For)
+        WriteLineIndented("For")
+        if item.Init != null
+            WriteIndented("Init: {item.LocalName} = ")
+            item.Init.Accept(this)
+            WriteLine()
+        if item.Condition != null
+            WriteIndented("Condition: ")
+            item.Condition.Accept(this)
+            WriteLine()
+        if item.Post != null
+            WriteLineIndented("Post")
+            Indent += 1
+            item.Post.Accept(this)
+            Indent -= 1
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item ForEach)
+        WriteIndented("ForEach {item.LocalName} in ")
+        item.Expr.Accept(this)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Generic)
+        item.Expr.Accept(this)
+        Write("{{")
+        JoinItems(item.Arguments)
+        Write("}")
+
+    public fn Visit(item Identifier) is Write(item.Value)
+
+    public fn Visit(item If)
+        WriteIndented("If ")
+        if item.LocalName != null and item.LocalExpr != null
+            Write("{item.LocalName} = ")
+            item.LocalExpr.Accept(this)
+            Write(", ")
+        item.Condition.Accept(this)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+        if item.ElseStatements.Any()
+            WriteLineIndented("Else")
+            WriteStatementBlock(item.ElseStatements)
+
+    public fn Visit(item ImplicitConstructorCall)
+        Write("new(")
+        JoinItems(item.Arguments)
+        Write(")")
+        if item.InitNames.Any()
+            Write("{{")
+            for i = 0, i < item.InitNames.Count, i += 1
+                if i > 0
+                    Write(", ")
+                Write("{item.InitNames[i]} = ")
+                item.InitValues[i].Accept(this)
+            Write("}")
+
+    public fn Visit(item Import) is WriteLineIndented("Import: {str.Join(".", item.NameParts)}")
+
+    public fn Visit(item Indexer)
+        Write("(")
+        item.Expr.Accept(this)
+        Write("[")
+        JoinItems(item.Arguments)
+        Write("])")
+
+    public fn Visit(item Interface)
+        WriteIndented("Interface: ")
+        WriteModifiers(item.Modifiers)
+        Write(item.Name)
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        if item.Interfaces.Any()
+            Write(" is ")
+            JoinItems(item.Interfaces)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Is)
+        item.Expr.Accept(this)
+        Write(" is ")
+        item.Type.Accept(this)
+        if item.Name != null
+            Write(" {item.Name}")
+
+    public fn Visit(item LiteralToken) is Console.Write(item.Token)
+
+    public fn Visit(item LocalConstant)
+        WriteIndented("Const: ")
+        item.Type.Accept(this)
+        Write(" {item.Name} = ")
+        item.Value.Accept(this)
+        WriteLine()
+
+    public fn Visit(item LocalVariable)
+        WriteIndented("Var: ")
+        if item.Type == null
+            Write("var")
+        else
+            item.Type.Accept(this)
+        Write(" {item.Name}")
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+        WriteLine()
+
+    public fn Visit(item MethodCall)
+        item.Expr.Accept(this)
+        Write("(")
+        JoinItems(item.Arguments)
+        Write(")")
+
+    public fn Visit(item MethodDefinition)
+        WriteIndented("Method: ")
+        WriteModifiers(item.Modifiers)
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" {item.Name}")
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        Write("(")
+        JoinItems(item.Parameters)
+        WriteLine(")")
+
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item MethodSignature)
+        WriteIndented("Method Sig: ")
+        WriteModifiers(item.Modifiers)
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" {item.Name}")
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        Write("(")
+        JoinItems(item.Parameters)
+        WriteLine(")")
+
+    public fn Visit(item Modifier)
+        Write(item.Type.ToString())
+        if item.Argument != null
+            Write("{{")
+            item.Argument.Accept(this)
+            Write("}")
+
+    public fn Visit(item Namespace) is WriteLineIndented("Namespace: {str.Join(".", item.NameParts)}")
+
+    public fn Visit(item Nullable)
+        Write("Nullable(")
+        item.Type.Accept(this)
+        Write(")")
+
+    public fn Visit(item Number) is Write(item.Value)
+
+    public fn Visit(item Parameter)
+        item.Type?.Accept(this)
+        Write(" {item.Name}")
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+
+    public fn Visit(item Property)
+        WriteIndented("Property: ")
+        WriteModifiers(item.Modifiers)
+        item.Type.Accept(this)
+        Write(" {item.Name}{(item.GetSpecified ? " get", "")}{(item.SetSpecified ? " set", "")}")
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+        WriteLine()
+        if item.GetStatements.Any()
+            Indent += 1
+            WriteLineIndented("get")
+            WriteStatementBlock(item.GetStatements)
+            Indent -= 1
+        if item.SetStatements.Any()
+            Indent += 1
+            WriteLineIndented("set({item.SetParameterName})")
+            WriteStatementBlock(item.SetStatements)
+            Indent -= 1
+
+    public fn Visit(item PropertySignature)
+        WriteIndented("Property Sig: ")
+        WriteModifiers(item.Modifiers)
+        item.Type.Accept(this)
+        WriteLine(" {item.Name}{(item.GetSpecified ? " get", "")}{(item.SetSpecified ? " set", "")}")
+
+    public fn Visit(item Return)
+        WriteIndented("Return: ")
+        if item.Value != null
+            item.Value.Accept(this)
+        WriteLine()
+
+    public fn Visit(item Space) is WriteLineIndented("Space: {item.Size}")
+
+    public fn Visit(item String)
+        Write("\"")
+        var first = true
+        for line in item.Lines
+            if first
+                first = false
+            else
+                WriteLine()
+            for expr in line
+                if !(expr is StringLiteral)
+                    Write("{{")
+                    expr.Accept(this)
+                    Write("}")
+                else
+                    expr.Accept(this)
+        Write("\"")
+
+    public fn Visit(item StringLiteral) is Write(item.Value)
+
+    public fn Visit(item Struct)
+        WriteIndented("Struct: ")
+        WriteModifiers(item.Modifiers)
+        Write(item.Name)
+        if item.GenericNames.Any()
+            Write("<{str.Join(", ", item.GenericNames)}>")
+        if item.Interfaces.Any()
+            Write(" implements ")
+            JoinItems(item.Interfaces)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Switch)
+        WriteIndented("Switch: ")
+        if item.LocalName != null and item.LocalExpr != null
+            Write("{item.LocalName} = ")
+            item.LocalExpr.Accept(this)
+            Write(", ")
+        item.Expr.Accept(this)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
+
+    public fn Visit(item Throw)
+        WriteIndented("Throw: ")
+        item.Exception.Accept(this)
+        WriteLine()
+
+    public fn Visit(item Try)
+        WriteLineIndented("Try: ")
+        WriteStatementBlock(item.Statements)
+        for cat in item.Catches
+            cat.Accept(this)
+        if item.FinallyStatements.Any()
+            WriteLineIndented("Finally:")
+            WriteStatementBlock(item.FinallyStatements)
+
+    public fn Visit(item UnaryOperator)
+        Write("({item.Operator})")
+        item.Expr.Accept(this)
+
+    public fn Visit(item Using)
+        WriteIndented("Using: {item.LocalName} = ")
+        item.LocalExpr.Accept(this)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
