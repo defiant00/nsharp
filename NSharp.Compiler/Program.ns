@@ -122,22 +122,21 @@ public static class Program
         var loadResult = loadLang.Load(file)
         HandleResult(loadResult)
         if loadResult.Ast != null
-            ; TODO - verify the substring
             HandleResult(saveLang.Save(file.Substring(0, file.Length - 5), loadResult.Ast))
 
     private static fn ToCs(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
-        if !file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-            throw new Exception("File '{file}' does not end with .ns")
+        ; if !File.Exists(file)
+        ;     throw new Exception("File '{file}' does not exist.")
+        ; if !file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
+        ;     throw new Exception("File '{file}' does not end with .ns")
 
-        var loadLang = GetLanguage(SAVE_SETTINGS, file)
+        ; var loadLang = GetLanguage(SAVE_SETTINGS, file)
 
-        var loadResult = loadLang.Load(file)
-        HandleResult(loadResult)
-        if loadResult.Ast != null
-            use visitor = new ToCsVisitor("{file}.cs")
-            loadResult.Ast.Accept(visitor)
+        ; var loadResult = loadLang.Load(file)
+        ; HandleResult(loadResult)
+        ; if loadResult.Ast != null
+        ;     use visitor = new ToCsVisitor("{file}.cs")
+        ;     loadResult.Ast.Accept(visitor)
 
     private static fn Validate(file str)
         if !File.Exists(file)

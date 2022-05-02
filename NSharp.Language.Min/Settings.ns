@@ -1,24 +1,12 @@
 ns NSharp.Language.Min
 
 public class Settings
-    private val ALL_PARENS str = "allparens"
-    private val ALL_PAREN_GENERICS str = "allparengenerics"
-    private val INDENTATION str = "indentation"
-    private val NO_INDENT_MULTILINE str = "no_indentmultiline"
-    private val PARAM_MULTILINE str = "parammultiline"
+    private val INDENT str = "indent"
     private val CTYPES str = "ctypes"
 
-    public fn AllParens bool
-    public fn AllParenGenerics bool
-    public fn Indentation str
-    public fn NoIndentMultiline bool
-    public fn ParamMultiline bool
+    public fn Indent str
     public fn CTypes bool
 
     public fn new(settings Dictionary{str, str})
-        AllParens = settings.ContainsKey(ALL_PARENS)
-        AllParenGenerics = settings.ContainsKey(ALL_PAREN_GENERICS)
-        Indentation = settings.ContainsKey(INDENTATION) ? settings[INDENTATION], "    "
-        NoIndentMultiline = settings.ContainsKey(NO_INDENT_MULTILINE)
-        ParamMultiline = settings.ContainsKey(PARAM_MULTILINE)
+        Indent = settings.ContainsKey(INDENT) ? settings[INDENT], "    "
         CTypes = settings.ContainsKey(CTYPES)

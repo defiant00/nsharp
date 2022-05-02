@@ -1,6 +1,6 @@
 ## TODO
 
-* Strings and chars unescape on parse, escape on output
+* Chars unescape on parse, escape on output
 * Events
 * Generic constraints
 * Parameter decorators (out, ref, params, etc)
