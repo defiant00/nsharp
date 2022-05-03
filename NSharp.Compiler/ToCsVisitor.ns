@@ -192,7 +192,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         if item.Statements.Any()
             Indent += 1
             WriteStatementBlock(item.Statements)
-            WriteLineIndented("break;")
+            if !(item.Statements[item.Statements.Count - 1] is Return)
+                WriteLineIndented("break;")
             Indent -= 1
 
     public fn Visit(item Catch)
@@ -561,13 +562,13 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         if item.GetStatements.Any()
             WriteLineIndented("get")
             WriteStatementBlock(item.GetStatements)
-        else if item.GetSpecified
+        else if item.GetSpecified and !item.SetStatements.Any()
             WriteLineIndented("get;")
         
         if item.SetStatements.Any()
             WriteLineIndented("set")
             WriteStatementBlock(item.SetStatements)
-        else if item.SetSpecified
+        else if item.SetSpecified and !item.GetStatements.Any()
             WriteLineIndented("set;")
         
         Indent -= 1
