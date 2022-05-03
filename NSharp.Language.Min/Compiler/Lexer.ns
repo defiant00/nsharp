@@ -251,7 +251,7 @@ public class Lexer
             Emit(TokenType.Literal)
         else
             var tokenType TokenType
-            var found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+            var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Emit(found ? tokenType, TokenType.Literal)
         ret LexStatement
 
@@ -273,10 +273,10 @@ public class Lexer
         AcceptRun(OPERATOR_CHARACTERS)
         var initialIndex = LineCurrentIndex
         var tokenType TokenType
-        var found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+        var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
         for !found and LineCurrentIndex > LineStartIndex
             Backup()
-            found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+            found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
         if LineCurrentIndex > LineStartIndex
             Emit(tokenType)
             ret LexStatement

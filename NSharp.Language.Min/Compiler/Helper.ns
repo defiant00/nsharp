@@ -3,7 +3,7 @@ use NSharp.Core
 
 ns NSharp.Language.Min.Compiler
 
-public static class Helpers
+public static class Helper
     public static ext{str} fn Unescape() str
         var sb = new StringBuilder(this)
 

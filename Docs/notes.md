@@ -4,6 +4,7 @@
 * Events
 * Generic constraints
 * Parameter decorators (out, ref, params, etc)
+* throw as an expression? need to be able to throw as part of a ?? or conditional
 * properly parse anonymous functions as an expression or statement instead of assuming an expression
 
 ## Items

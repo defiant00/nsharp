@@ -1,0 +1,102 @@
+use NSharp.Core
+
+ns NSharp.Language.Min.Compiler
+
+public static class TokenHelper
+    public static ext{TokenType} fn IsAssignment() bool is this > TokenType.Assignment_Start and this < TokenType.Assignment_End
+    public static ext{TokenType} fn IsLineContinuationHeld() bool is this > TokenType.Line_Continuation_Held_Start and this < TokenType.Line_Continuation_Held_End
+    public static ext{TokenType} fn IsLineContinuationPostfix() bool is this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
+    public static ext{TokenType} fn IsLineContinuationPrefix() bool is this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
+    public static ext{TokenType} fn IsArgumentModifier() bool is this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
+    public static ext{TokenType} fn IsModifier() bool is this > TokenType.Modifier_Start and this < TokenType.Modifier_End
+    public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
+    public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
+
+    ; TODO - throw the exception
+    public static ext{TokenType} fn ToModifier() ModifierType is this ?
+        {
+            TokenType.Public is ModifierType.Public,
+            TokenType.Protected is ModifierType.Protected,
+            TokenType.Internal is ModifierType.Internal,
+            TokenType.Private is ModifierType.Private,
+            TokenType.Static is ModifierType.Static,
+            TokenType.Abstract is ModifierType.Abstract,
+            TokenType.Virtual is ModifierType.Virtual,
+            TokenType.Override is ModifierType.Override,
+            TokenType.Extension is ModifierType.Extension,
+            _ is new Exception("Could not match token type {this} to a modifier."),
+        }
+
+    ; TODO - throw the exception
+    public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType is this ?
+        {
+            TokenType.Out is ArgumentModifierType.Out,
+            TokenType.Reference is ArgumentModifierType.Reference,
+            _ is new Exception("Could not match token type {this} to an argument modifier."),
+        }
+
+    public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?
+        {
+            TokenType.Subtract is UnaryOperatorType.Negate,
+            TokenType.Not is UnaryOperatorType.Not,
+            TokenType.BitwiseNot is UnaryOperatorType.BitwiseNot,
+            _ is UnaryOperatorType.None,
+        }
+
+    public static ext{TokenType} fn ToBinaryOperator() BinaryOperatorType is this ?
+        {
+            TokenType.Dot is BinaryOperatorType.Dot,
+            TokenType.NullDot is BinaryOperatorType.NullDot,
+
+            TokenType.As is BinaryOperatorType.As,
+
+            TokenType.Multiply is BinaryOperatorType.Multiply,
+            TokenType.Divide is BinaryOperatorType.Divide,
+            TokenType.Modulus is BinaryOperatorType.Modulus,
+
+            TokenType.Add is BinaryOperatorType.Add,
+            TokenType.Subtract is BinaryOperatorType.Subtract,
+
+            TokenType.LeftShift is BinaryOperatorType.LeftShift,
+            TokenType.RightShift is BinaryOperatorType.RightShift,
+
+            TokenType.BitwiseAnd is BinaryOperatorType.BitwiseAnd,
+
+            TokenType.BitwiseOr is BinaryOperatorType.BitwiseOr,
+            TokenType.BitwiseXor is BinaryOperatorType.BitwiseXor,
+
+            TokenType.LessThan is BinaryOperatorType.LessThan,
+            TokenType.GreaterThan is BinaryOperatorType.GreaterThan,
+            TokenType.LessThanOrEqual is BinaryOperatorType.LessThanOrEqual,
+            TokenType.GreaterThanOrEqual is BinaryOperatorType.GreaterThanOrEqual,
+
+            TokenType.Equal is BinaryOperatorType.Equal,
+            TokenType.NotEqual is BinaryOperatorType.NotEqual,
+
+            TokenType.And is BinaryOperatorType.And,
+
+            TokenType.Or is BinaryOperatorType.Or,
+
+            TokenType.NullCoalesce is BinaryOperatorType.NullCoalesce,
+
+            _ is BinaryOperatorType.None,
+        }
+
+    public static ext{Token} fn Precedence() int is this.Type.ToBinaryOperator().Precedence()
+
+    public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType is this ?
+        {
+            TokenType.Assign is AssignmentOperatorType.Assign,
+            TokenType.AddAssign is AssignmentOperatorType.Add,
+            TokenType.SubtractAssign is AssignmentOperatorType.Subtract,
+            TokenType.MultiplyAssign is AssignmentOperatorType.Multiply,
+            TokenType.DivideAssign is AssignmentOperatorType.Divide,
+            TokenType.ModulusAssign is AssignmentOperatorType.Modulus,
+            TokenType.BitwiseAndAssign is AssignmentOperatorType.BitwiseAnd,
+            TokenType.BitwiseOrAssign is AssignmentOperatorType.BitwiseOr,
+            TokenType.BitwiseXorAssign is AssignmentOperatorType.BitwiseXor,
+            TokenType.LeftShiftAssign is AssignmentOperatorType.LeftShift,
+            TokenType.RightShiftAssign is AssignmentOperatorType.RightShift,
+            TokenType.NullCoalesceAssign is AssignmentOperatorType.NullCoalesce,
+            _ is AssignmentOperatorType.None,
+        }
