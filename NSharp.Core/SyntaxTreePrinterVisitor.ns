@@ -60,6 +60,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item Argument)
         if item.Name != null
             Write("{item.Name} = ")
+        Write("{str.Join(" ", item.Modifiers)} ")
         item.Value.Accept(this)
 
     public fn Visit(item Array)

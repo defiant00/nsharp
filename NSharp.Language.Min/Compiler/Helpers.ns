@@ -136,6 +136,8 @@ public static class Helpers
         KeywordTokens.Add("virtual", TokenType.Virtual)
         KeywordTokens.Add("override", TokenType.Override)
         KeywordTokens.Add("ext", TokenType.Extension)
+        KeywordTokens.Add("out", TokenType.Out)
+        KeywordTokens.Add("ref", TokenType.Reference)
         KeywordTokens.Add("this", TokenType.This)
         KeywordTokens.Add("str", TokenType.String)
         KeywordTokens.Add("char", TokenType.Character)

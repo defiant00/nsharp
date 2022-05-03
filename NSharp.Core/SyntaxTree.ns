@@ -33,9 +33,13 @@ public class AnonymousFunction is Expression
 
 public class Argument is Expression
     public fn Name ?str
+    public fn Modifiers List{ArgumentModifierType}
     public fn Value Expression
 
-    public fn new(position Position, value Expression) base(position) is Value = value
+    public fn new(position Position, name ?str, modifiers List{ArgumentModifierType}, value Expression) base(position)
+        Name = name
+        Modifiers = modifiers
+        Value = value
 
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 

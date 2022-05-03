@@ -97,6 +97,15 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Argument)
         if item.Name != null
             Write("{item.Name}: ")
+
+        var mods = str.Join(" ", item.Modifiers.Select(fn(m) is m ?
+        {
+            ArgumentModifierType.Out is "out",
+            ArgumentModifierType.Reference is "ref",
+            _ is "[{m}]"
+        }))
+        Write("{mods} ")
+
         item.Value.Accept(this)
 
     public fn Visit(item Core.Ast.Array)
