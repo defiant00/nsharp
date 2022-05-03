@@ -1,0 +1,320 @@
+use NSharp.Core
+
+ns NSharp.Language.Min.Compiler
+
+public class Lexer
+    private val EOL char = '\0'
+    private val OPERATOR_CHARACTERS str = "()[]{{}}<>?!=+-*/%,.&|^~"
+    private val REPEATED_ESCAPE_STRING_CHARACTERS str = "{{}}"""
+
+    private del StateFunction() ?StateFunction
+
+    private fn Line str
+    private fn LineNumber int
+    private fn LineStartIndex int
+    private fn LineCurrentIndex int
+    private fn State ?StateFunction
+    private fn IndentationLevels Stack{int}
+    private fn HeldTokens Queue{Token}
+    private fn HeldIndents Queue{int}
+    private fn LastEmittedWasLineContinuation bool
+    private fn StringTerminators Stack{TokenType}
+
+    public fn Tokens List{Token}
+
+    public fn new()
+        IndentationLevels = new Stack{int}()
+        IndentationLevels.Push(0)
+        Tokens = new List{Token}()
+        Line = str.Empty
+        LineNumber = 0
+        HeldTokens = new Queue{Token}()
+        HeldIndents = new Queue{int}()
+        LastEmittedWasLineContinuation = false
+        StringTerminators = new Stack{TokenType}()
+
+    public fn Lex(line str)
+        LineNumber += 1
+        Line = line
+        LineStartIndex = 0
+        LineCurrentIndex = 0
+        State = LexIndent
+
+        for State != null
+            State = State()
+
+    public fn EndOfFile()
+        EmitIndent(0)
+        Emit(TokenType.EOF)
+
+    ; Literals can start with a letter, _, or ` to indicate an identifier that matches a keyword
+    private fn IsValidLiteralStart(c char) bool is char.IsLetter(c) or c == '_' or c == Constants.LITERAL_INDICATOR
+
+    ; Literals can contain letters, numbers, and _
+    private fn IsValidLiteral(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
+
+    private fn IsLineEnd(c char) bool is c == EOL or c == '\r' or c == '\n'
+
+    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = LineStartIndex + 1 }
+
+    private fn CurrentValue str is Line.Substring(LineStartIndex, CurrentLength)
+
+    private fn CurrentLength int is LineCurrentIndex - LineStartIndex
+
+    private fn Next() char
+        var next = Peek
+        LineCurrentIndex += 1
+        ret next
+
+    private fn Peek char is (LineCurrentIndex >= Line.Length) ? EOL, Line[LineCurrentIndex]
+
+    private fn PeekNext char is ((LineCurrentIndex + 1) >= Line.Length) ? EOL, Line[LineCurrentIndex + 1]
+
+    private fn Backup() is LineCurrentIndex -= 1
+
+    private fn Discard(increment int = 0)
+        LineCurrentIndex += increment
+        LineStartIndex = LineCurrentIndex
+
+    private fn Accept(valid str) bool
+        if valid.IndexOf(Next()) >= 0
+            ret true
+        Backup()
+        ret false
+
+    private fn AcceptRun(valid str)
+        for valid.IndexOf(Next()) >= 0
+            ; empty
+        Backup()
+
+    private fn Error(error str) ?StateFunction
+        Tokens.Add(new Token(TokenType.Error, CurrentPosition, error))
+        ret null
+
+    private fn Emit(token TokenType, indent int = 0)
+        ; Hold certain tokens in case the next line is a prefix line continuation.
+        if token.IsLineContinuationHeld()
+            HeldTokens.Enqueue(new Token(token, CurrentPosition, CurrentValue))
+            HeldIndents.Enqueue(indent)
+        else
+            ; If the previous or current token is a line continuation, clear the
+            ; held tokens.
+            if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
+                HeldTokens.Clear()
+                HeldIndents.Clear()
+
+            ; Emit any held tokens.
+            var eols = new List{Token}()
+            var firstEol = true
+            for HeldTokens.Any()
+                var tok = HeldTokens.Dequeue()
+                var ind = HeldIndents.Dequeue()
+                if tok.Type == TokenType.EOL
+                    if firstEol
+                        Tokens.Add(tok)
+                        firstEol = false
+                    else
+                        eols.Add(tok)
+                else
+                    var currentIndent = IndentationLevels.Peek()
+                    if ind > currentIndent
+                        Tokens.Add(new Token(TokenType.Indent, tok.Position, str.Empty))
+                        IndentationLevels.Push(ind)
+                    else
+                        for IndentationLevels.Any() and ind < currentIndent
+                            Tokens.Add(new Token(TokenType.Dedent, tok.Position, str.Empty))
+                            IndentationLevels.Pop()
+                            currentIndent = IndentationLevels.Peek()
+                        if !IndentationLevels.Any() or currentIndent != ind
+                            Error("Mismatched indentation level")
+            Tokens.AddRange(eols)
+
+            ; String terminators.
+            if token == TokenType.LeftCurly
+                StringTerminators.Push(TokenType.RightCurly)
+            else if token == TokenType.StringStart
+                StringTerminators.Push(TokenType.StringEnd)
+            else if StringTerminators.Any() and StringTerminators.Peek() == token
+                StringTerminators.Pop()
+
+            ; Emit the current token.
+            var curVal = CurrentValue
+            if token == TokenType.StringLiteral
+                curVal = curVal.Unescape()
+            Tokens.Add(new Token(token, CurrentPosition, curVal))
+
+            LastEmittedWasLineContinuation = token.IsLineContinuationPostfix()
+
+        LineStartIndex = LineCurrentIndex
+
+    private fn EmitIndent(indent int) is Emit(TokenType.Indent, indent)
+
+    private fn LexIndent() ?StateFunction
+        var indent = 0
+        for
+            if Next()
+                is EOL
+                is '\r'
+                is '\n'
+                    Backup()
+                    Discard()
+                    Emit(TokenType.EOL)
+                    ret null
+                is ' '
+                    indent += 1
+                is '\t'
+                    indent += 4
+                is ';'
+                    Backup()
+                    Discard()
+                    EmitIndent(indent)
+                    ret LexComment
+                is _
+                    Backup()
+                    Discard()
+                    EmitIndent(indent)
+                    ret LexStatement
+
+    private fn LexStatement() ?StateFunction
+        for
+            var peekVal = Peek
+            if peekVal
+                is ' '
+                is '\t'
+                    Discard(1)
+                is EOL
+                is '\r'
+                is '\n'
+                    Discard()
+                    Emit(TokenType.EOL)
+                    ret null
+                is ';'
+                    ret LexComment
+                is '\''
+                    ret LexCharacter
+                is '"'
+                    ret LexString
+                is _
+                    if peekVal == '}' and StringTerminators.Any() and StringTerminators.Peek() == TokenType.RightCurly
+                        ret LexString
+                    else if IsValidLiteralStart(peekVal)
+                        ret LexLiteral
+                    else if char.IsDigit(peekVal)
+                        ret LexNumber
+                    else if Accept(OPERATOR_CHARACTERS)
+                        ret LexOperator
+                    ret Error("Invalid character '{peekVal}'")
+
+    private fn LexCharacter() ?StateFunction
+        ; discard the '
+        Discard(1)
+
+        if c = Next(), IsLineEnd(c)
+            Error("Unclosed '")
+            ret LexStatement
+        else if c == '\\'
+            c = Next()
+            if IsLineEnd(c)
+                Error("Unclosed '")
+                ret LexStatement
+
+        if Peek != '\''
+            Error("Unclosed '")
+        else
+            Emit(TokenType.CharacterLiteral)
+            Discard(1)
+
+        ret LexStatement
+
+    private fn LexComment() ?StateFunction
+        ; discard the ;
+        Discard(1)
+        for c = Peek, !IsLineEnd(c), c = Peek
+            Next()
+        Emit(TokenType.Comment)
+        Emit(TokenType.EOL)
+        ret null
+
+    private fn LexLiteral() ?StateFunction
+        ; accept the starting literal character
+        var isLiteral = Next() == Constants.LITERAL_INDICATOR
+        ; if it starts with ` discard it
+        if isLiteral
+            Discard()
+
+        for c = Peek, IsValidLiteral(c), c = Peek
+            Next()
+
+        if CurrentLength == 0
+            Error("A literal must have a value")
+        else if isLiteral
+            Emit(TokenType.Literal)
+        else
+            var tokenType TokenType
+            var found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+            Emit(found ? tokenType, TokenType.Literal)
+        ret LexStatement
+
+    private fn LexNumber() ?StateFunction
+        for c = Peek, char.IsDigit(c), c = Peek
+            Next()
+        if Accept(".")
+            var foundDigitsAfterDecimal = false
+            for c = Peek, char.IsDigit(c), c = Peek
+                Next()
+                foundDigitsAfterDecimal = true
+            ; Put the decimal back if there are no numbers after it
+            if !foundDigitsAfterDecimal
+                Backup()
+        Emit(TokenType.NumberLiteral)
+        ret LexStatement
+
+    private fn LexOperator() ?StateFunction
+        AcceptRun(OPERATOR_CHARACTERS)
+        var initialIndex = LineCurrentIndex
+        var tokenType TokenType
+        var found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+        for !found and LineCurrentIndex > LineStartIndex
+            Backup()
+            found = Helpers.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+        if LineCurrentIndex > LineStartIndex
+            Emit(tokenType)
+            ret LexStatement
+        ret Error("Invalid operator '{Line.Substring(LineStartIndex, initialIndex - LineStartIndex)}'")
+
+    private fn LexString() ?StateFunction
+        ; accept the " or }
+        var start = Next()
+        if start == '"'
+            Emit(TokenType.StringStart)
+        else
+            Emit(TokenType.RightCurly)
+
+        for StringTerminators.Any() and StringTerminators.Peek() == TokenType.StringEnd
+            var c = Peek
+            
+            ; Repeated '"', '{', '}' are accepted as literals
+            if c = Peek, REPEATED_ESCAPE_STRING_CHARACTERS.IndexOf(c) >= 0 and c == PeekNext
+                Next()
+            else if c == '"'
+                if CurrentLength > 0
+                    Emit(TokenType.StringLiteral)
+                ; accept the "
+                Next()
+                Emit(TokenType.StringEnd)
+                break
+            else if c == '{'
+                if CurrentLength > 0
+                    Emit(TokenType.StringLiteral)
+                break
+            else if c == '\\'
+                Next()
+                if IsLineEnd(Peek)
+                    Error("Unclosed \"")
+                    break
+            else if IsLineEnd(c)
+                Error("Unclosed \"")
+                break
+            Next()
+
+        ret LexStatement
