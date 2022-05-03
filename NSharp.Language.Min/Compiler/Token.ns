@@ -1,0 +1,15 @@
+use NSharp.Core
+
+ns NSharp.Language.Min.Compiler
+
+public class Token
+    public fn Type TokenType
+    public fn Position Position
+    public fn Value str
+
+    public fn new(type TokenType, position Position, value str)
+        Type = type
+        Position = position
+        Value = value
+
+    public override fn ToString() str is "{Type} {Position} '{Value}'"

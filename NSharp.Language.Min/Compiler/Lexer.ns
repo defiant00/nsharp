@@ -291,8 +291,6 @@ public class Lexer
             Emit(TokenType.RightCurly)
 
         for StringTerminators.Any() and StringTerminators.Peek() == TokenType.StringEnd
-            var c = Peek
-            
             ; Repeated '"', '{', '}' are accepted as literals
             if c = Peek, REPEATED_ESCAPE_STRING_CHARACTERS.IndexOf(c) >= 0 and c == PeekNext
                 Next()
