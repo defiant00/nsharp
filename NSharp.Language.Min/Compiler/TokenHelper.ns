@@ -4,6 +4,7 @@ ns NSharp.Language.Min.Compiler
 
 public static class TokenHelper
     public static ext{TokenType} fn IsAssignment() bool is this > TokenType.Assignment_Start and this < TokenType.Assignment_End
+    public static ext{TokenType} fn IsOperatorCanThrow() bool is this > TokenType.Operator_Can_Throw_Start and this < TokenType.Operator_Can_Throw_End
     public static ext{TokenType} fn IsLineContinuationHeld() bool is this > TokenType.Line_Continuation_Held_Start and this < TokenType.Line_Continuation_Held_End
     public static ext{TokenType} fn IsLineContinuationPostfix() bool is this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
     public static ext{TokenType} fn IsLineContinuationPrefix() bool is this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
@@ -12,7 +13,6 @@ public static class TokenHelper
     public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
     public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
 
-    ; TODO - throw the exception
     public static ext{TokenType} fn ToModifier() ModifierType is this ?
         {
             TokenType.Public is ModifierType.Public,
@@ -24,15 +24,14 @@ public static class TokenHelper
             TokenType.Virtual is ModifierType.Virtual,
             TokenType.Override is ModifierType.Override,
             TokenType.Extension is ModifierType.Extension,
-            _ is new Exception("Could not match token type {this} to a modifier."),
+            _ is throw new Exception("Could not match token type {this} to a modifier."),
         }
 
-    ; TODO - throw the exception
     public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType is this ?
         {
             TokenType.Out is ArgumentModifierType.Out,
             TokenType.Reference is ArgumentModifierType.Reference,
-            _ is new Exception("Could not match token type {this} to an argument modifier."),
+            _ is throw new Exception("Could not match token type {this} to an argument modifier."),
         }
 
     public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?

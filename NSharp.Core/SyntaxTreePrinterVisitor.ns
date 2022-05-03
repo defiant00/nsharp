@@ -482,9 +482,9 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteStatementBlock(item.Statements)
 
     public fn Visit(item Throw)
-        WriteIndented("Throw: ")
+        Write("Throw(")
         item.Exception.Accept(this)
-        WriteLine()
+        Write(")")
 
     public fn Visit(item Try)
         WriteLineIndented("Try: ")

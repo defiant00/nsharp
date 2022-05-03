@@ -649,9 +649,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLineIndented("}")
 
     public fn Visit(item Throw)
-        WriteIndented("throw ")
+        Write("throw ")
         item.Exception.Accept(this)
-        WriteLine(";")
 
     public fn Visit(item Try)
         WriteLineIndented("try")

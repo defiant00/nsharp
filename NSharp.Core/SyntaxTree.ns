@@ -613,7 +613,7 @@ public class Switch is Statement
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
-public class Throw is Statement
+public class Throw is Expression
     public fn Exception Expression
 
     public fn new(position Position, exception Expression) base(position) is Exception = exception
