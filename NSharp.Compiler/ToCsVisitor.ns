@@ -51,7 +51,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         for stmt in statements
             stmt.Accept(this)
         Indent -= 1
-        WriteLineIndented("}")
+        WriteLineIndented("}}")
     
     private fn JoinItems(items IEnumerable{ISyntaxTreeItem})
         var first = true
@@ -115,7 +115,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item ArrayLiteral)
         Write("{{")
         JoinItems(item.Values)
-        Write("}")
+        Write("}}")
 
     public fn Visit(item Assignment)
         if !InFor
@@ -258,7 +258,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             for condition in item.Conditions
                 condition.Accept(this)
             Indent -= 1
-            WriteIndented("}")
+            WriteIndented("}}")
 
     public fn Visit(item Constant)
         WriteModifiersIndented(item.Modifiers)
@@ -283,7 +283,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                     Write(", ")
                 Write("{item.InitNames[i]} = ")
                 item.InitValues[i].Accept(this)
-            Write("}")
+            Write("}}")
 
     public fn Visit(item ConstructorDefinition)
         WriteModifiersIndented(item.Modifiers)
@@ -325,7 +325,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         for value in item.Values
             value.Accept(this)
         Indent -= 1
-        WriteLineIndented("}")
+        WriteLineIndented("}}")
 
     public fn Visit(item EnumerationItem)
         WriteIndented(item.Name)
@@ -387,9 +387,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteIndented("foreach (var {item.LocalName} in ")
         item.Expr.Accept(this)
         WriteLine(")")
-        WriteLineIndented("{{")
         WriteStatementBlock(item.Statements)
-        WriteLineIndented("}")
 
     public fn Visit(item Generic)
         item.Expr.Accept(this)
@@ -414,7 +412,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             WriteLineIndented("else")
             WriteStatementBlock(item.ElseStatements)
         Indent -= 1
-        WriteLineIndented("}")
+        WriteLineIndented("}}")
 
     public fn Visit(item ImplicitConstructorCall)
         Write("new(")
@@ -427,7 +425,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                     Write(", ")
                 Write("{item.InitNames[i]} = ")
                 item.InitValues[i].Accept(this)
-            Write("}")
+            Write("}}")
 
     public fn Visit(item Import) is WriteLineIndented("using {str.Join(".", item.NameParts)};")
 
@@ -581,7 +579,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             WriteLineIndented("set;")
         
         Indent -= 1
-        WriteIndented("}")
+        WriteIndented("}}")
 
         if item.Value != null
             Write(" = ")
@@ -598,7 +596,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write("get;")
         if item.SetSpecified
             Write("set;")
-        WriteLine("}")
+        WriteLine("}}")
 
     public fn Visit(item Return)
         WriteIndented("return ")
@@ -624,7 +622,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                     Write("{{(")
                 expr.Accept(this)
                 if curlies
-                    Write(")}")
+                    Write(")}}")
         
         Write("\"")
 
@@ -655,7 +653,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(")")
         WriteStatementBlock(item.Statements)
         Indent -= 1
-        WriteLineIndented("}")
+        WriteLineIndented("}}")
 
     public fn Visit(item Throw)
         Write("throw ")

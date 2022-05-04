@@ -6,7 +6,7 @@
             "command": "dotnet",
             "type": "process",
             "args": [
-                "${workspaceFolder}/lib/nsc-legacy.dll",
+                "${workspaceFolder}/lib/nsc.dll",
                 "tocs",
                 "${workspaceFolder}/NSharp.Compiler/",
                 "${workspaceFolder}/NSharp.Core/",
