@@ -12,8 +12,8 @@ public class Min has ILanguage
 
     public fn Load(fileName str) LoadResult
         var result = new LoadResult(fileName)
-        ; var parser = new Parser()
-        ; result.Ast = parser.Parse(fileName).Result as Core.Ast.File
+        var parser = new Parser()
+        result.Ast = parser.Parse(fileName).Result as Core.Ast.File
         ret result
 
     public fn Save(fileName str, item ISyntaxTreeItem) SaveResult

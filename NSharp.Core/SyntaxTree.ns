@@ -123,7 +123,7 @@ public class Class is Statement
     public fn Modifiers List{Modifier}
     public fn Name str
     public fn GenericNames List{str} = new()
-    public fn Parent ?Class
+    public fn Parent ?Expression
     public fn Interfaces List{Expression} = new()
     public fn Statements List{Statement} = new()
 

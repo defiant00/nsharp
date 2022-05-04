@@ -40,7 +40,7 @@ public static class TokenHelper
             TokenType.Out is ParameterModifierType.Out,
             TokenType.Reference is ParameterModifierType.Reference,
             TokenType.Variable is ParameterModifierType.Parameters,
-            _ is throw new Exception($"Could not match token type {this} to a parameter modifier."),
+            _ is throw new Exception("Could not match token type {this} to a parameter modifier."),
         }
 
     public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?
