@@ -9,6 +9,7 @@ public static class TokenHelper
     public static ext{TokenType} fn IsLineContinuationPostfix() bool is this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
     public static ext{TokenType} fn IsLineContinuationPrefix() bool is this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
     public static ext{TokenType} fn IsArgumentModifier() bool is this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
+    public static ext{TokenType} fn IsParameterModifier() bool is this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
     public static ext{TokenType} fn IsModifier() bool is this > TokenType.Modifier_Start and this < TokenType.Modifier_End
     public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
     public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
@@ -32,6 +33,14 @@ public static class TokenHelper
             TokenType.Out is ArgumentModifierType.Out,
             TokenType.Reference is ArgumentModifierType.Reference,
             _ is throw new Exception("Could not match token type {this} to an argument modifier."),
+        }
+    
+    public static ext{TokenType} fn ToParameterModifier() ParameterModifierType is this ?
+        {
+            TokenType.Out is ParameterModifierType.Out,
+            TokenType.Reference is ParameterModifierType.Reference,
+            TokenType.Variable is ParameterModifierType.Parameters,
+            _ is throw new Exception($"Could not match token type {this} to a parameter modifier."),
         }
 
     public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?

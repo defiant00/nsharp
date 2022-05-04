@@ -513,11 +513,15 @@ public class Number is Expression
 
 
 public class Parameter is Expression
+    public fn Modifiers List{ParameterModifierType}
     public fn Name str
     public fn Type ?Expression
     public fn Value ?Expression
 
-    public fn new(position Position, name str) base(position) is Name = name
+    public fn new(position Position, modifiers List{ParameterModifierType}, type ?Expression, name str) base(position)
+        Modifiers = modifiers
+        Type = type
+        Name = name
 
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 

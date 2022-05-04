@@ -35,7 +35,7 @@ repository:
     patterns:
     - match: \b(?:break|continue|if|else|for|in|bet|try|catch|fin|throw|ret)\b
       name: keyword.control.nsharp-min
-    - match: \b(?:public|protected|private|internal|static|abstract|virtual|override|ext)\b
+    - match: \b(?:public|protected|private|internal|static|abstract|virtual|override|ext|ref|out)\b
       name: storage.modifier.nsharp-min
     - match: \b(?:class|struct|enum|interface|del|fn|var|val|has)\b
       name: storage.type.nsharp-min

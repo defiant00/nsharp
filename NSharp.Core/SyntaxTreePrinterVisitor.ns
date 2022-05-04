@@ -400,6 +400,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item Number) is Write(item.Value)
 
     public fn Visit(item Parameter)
+        Write("{str.Join(" ", item.Modifiers)} ")
         item.Type?.Accept(this)
         Write(" {item.Name}")
         if item.Value != null
