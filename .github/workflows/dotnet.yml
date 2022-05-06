@@ -19,18 +19,18 @@ jobs:
         dotnet-version: 6.0.x
     - name: Restore dependencies
       run: |
-        dotnet restore NSharp.Compiler/
-        dotnet restore NSharp.Core/
-        dotnet restore NSharp.Language.Min/
+        dotnet restore /NSharp.Compiler
+        dotnet restore /NSharp.Core
+        dotnet restore /NSharp.Language.Min
     - uses: dsaltares/fetch-gh-release-asset@master
       with:
         file: nsc.zip
-        target: lib/nsc.zip
+        target: /lib/nsc.zip
     - name: Unzip
-      run: unzip lib/nsc.zip
+      run: unzip /lib/nsc.zip -d /lib
     - name: Transpile
-      run: dotnet nsc.dll -compile NSharp.Compiler/ NSharp.Core/ NSharp.Language.Min/
+      run: dotnet /lib/nsc.dll -compile /NSharp.Compiler /NSharp.Core /NSharp.Language.Min
     - name: Build
-      run: dotnet build --no-restore
+      run: dotnet build /NSharp.Compiler --no-restore
 #    - name: Test
 #      run: dotnet test --no-build --verbosity normal
