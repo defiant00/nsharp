@@ -29,7 +29,7 @@ jobs:
     - name: Unzip
       run: unzip lib/nsc.zip
     - name: Transpile
-      run: dotnet /lib/nsc.dll -compile NSharp.Compiler/ NSharp.Core/ NSharp.Language.Min/
+      run: dotnet nsc.dll -compile NSharp.Compiler/ NSharp.Core/ NSharp.Language.Min/
     - name: Build
       run: dotnet build --no-restore
 #    - name: Test
