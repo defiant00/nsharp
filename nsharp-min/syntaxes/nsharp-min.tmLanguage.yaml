@@ -43,7 +43,11 @@ repository:
       name: support.function.nsharp-min
     - match: \b(?:ns|use|get|set)\b
       name: keyword.other.nsharp-min
-    - match: \b(?:==|!=|<|>|<=|>=|and|or|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|is|as|_)\b
+    - match: //
+      name: keyword.other.nsharp-min
+    - match: (?:==|!=|<|>|<=|>=|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|_\b)
+      name: keyword.operator.nsharp-min
+    - match: \b(?:and|or|is|as)\b
       name: keyword.operator.nsharp-min
     - match: \b(?:new)\b
       name: keyword.operator.new.nsharp-min
@@ -59,7 +63,7 @@ repository:
       name: constant.numeric.hex.nsharp-min
     - match: '[+-]?0b[01]+'
       name: constant.numeric.binary.nsharp-min
-    - match: '[+-]?(?:\d+(?:\.\d*)?|\.\d+)'
+    - match: '[+-]?(?:\d+(?:\.\d+)?)'
       name: constant.numeric.decimal.nsharp-min
     - match: '[+-]?\d+'
       name: constant.numeric.integer.nsharp-min
