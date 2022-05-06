@@ -8,11 +8,12 @@ ns NSharp.Language.Min
 public class Min has ILanguage
     private fn Settings Settings
 
-    public fn new(settings Dictionary{str, str}) is Settings = new Settings(settings)
+    public fn new(args Dictionary{str, str}, config Dictionary{str, str})
+        Settings = new Settings(args, config)
 
     public fn Load(fileName str) LoadResult
         var result = new LoadResult(fileName)
-        var parser = new Parser()
+        var parser = new Parser(Settings, result)
         result.Ast = parser.Parse(fileName).Result as Core.Ast.File
         ret result
 

@@ -1,0 +1,18 @@
+ns NSharp.Compiler
+
+public class Arguments
+    public fn Flags Dictionary{str, str} = new()
+    public fn Paths List{str} = new()
+
+    public fn new(args []str)
+        for arg in args
+            if arg[0] == '/' or arg[0] == '-'
+                var index = arg.IndexOf(':')
+                var key = arg
+                var value  = str.Empty
+                if index > -1
+                    key = arg.Substring(0, index)
+                    value = arg.Substring(index + 1)
+                Flags[key.Substring(1)] = value
+            else
+                Paths.Add(arg)

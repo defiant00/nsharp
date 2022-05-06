@@ -2,7 +2,7 @@ ns NSharp.Core
 
 public abstract class Result
     public fn FileName str
-    public fn Diagnostics List{Diagnostic} = new List{Diagnostic}()
+    public fn Diagnostics List{Diagnostic} = new()
 
     public fn new(fileName str)
         FileName = fileName

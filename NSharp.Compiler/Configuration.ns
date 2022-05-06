@@ -1,6 +1,6 @@
 ns NSharp.Compiler
 
-public static class Settings
+public static class Configuration
     private static var Delimiters []char = [' ', '\t']
 
     public static fn Load(fileName str) Dictionary{str, str}

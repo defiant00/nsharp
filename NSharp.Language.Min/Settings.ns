@@ -1,12 +1,20 @@
 ns NSharp.Language.Min
 
 public class Settings
+    private val PRINT_TOKENS str = "print-tokens"
+    private val PRINT_TREE str = "print-tree"
     private val INDENT str = "indent"
     private val CTYPES str = "ctypes"
 
+    public fn PrintTokens bool
+    public fn PrintTree bool
     public fn Indent str
     public fn CTypes bool
 
-    public fn new(settings Dictionary{str, str})
+    ;; arguments - Command-line arguments.
+    ;; settings - Configuration file settings.
+    public fn new(arguments Dictionary{str, str}, settings Dictionary{str, str})
+        PrintTokens = arguments.ContainsKey(PRINT_TOKENS)
+        PrintTree = arguments.ContainsKey(PRINT_TREE)
         Indent = settings.ContainsKey(INDENT) ? settings[INDENT], "    "
         CTypes = settings.ContainsKey(CTYPES)

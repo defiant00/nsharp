@@ -24,8 +24,14 @@ public class ParseResult{T}
 
 
 public class Parser
+    private fn Settings Settings
+    private fn Result LoadResult
     private fn Tokens List{Token} = new()
     private fn CurrentIndex int = 0
+
+    public fn new(settings Settings, result LoadResult)
+        Settings = settings
+        Result = result
 
     private fn Peek Token is Tokens[CurrentIndex]
 
@@ -34,14 +40,17 @@ public class Parser
         CurrentIndex += 1
         ret token
     
+    private fn LogError(code str, error str, position Position)
+        Result.Diagnostics.Add(new Diagnostic(code, error){Severity = Severity.Error, Position = position})
+    
     private fn ErrorExpression(error str, position Position) ParseResult{Expression}
-        ; todo - log the error
+        LogError("[code]", error, position)
         ret new ParseResult{Expression}(new ErrorExpression(position, error), true)
 
     private fn ErrorExpression(stmt ErrorStatement) ParseResult{Expression} is ErrorExpression(stmt.Value, stmt.Position)
 
     private fn ErrorStatement(error str, position Position) ParseResult{Statement}
-        ; todo - log the error
+        LogError("[code]", error, position)
         ret new ParseResult{Statement}(new ErrorStatement(position, error), true)
 
     private fn ErrorStatement(expr ErrorExpression) ParseResult{Statement} is ErrorStatement(expr.Value, expr.Position)
@@ -56,11 +65,15 @@ public class Parser
     
     private fn ErrorExpr(type str, result AcceptResult) ErrorExpression
         var token = ErrorToken(result)
-        ret new ErrorExpression(token.Position, "Invalid token in {type}: {token}")
+        var error = "Invalid token in {type}: {token}"
+        LogError("[code]", error, token.Position)
+        ret new ErrorExpression(token.Position, error)
     
     private fn ErrorStmt(type str, result AcceptResult) ErrorStatement
         var token = ErrorToken(result)
-        ret new ErrorStatement(token.Position, "Invalid token in {type}: {token}")
+        var error = "Invalid token in {type}: {token}"
+        LogError("[code]", error, token.Position)
+        ret new ErrorStatement(token.Position, error)
 
     public fn Parse(fileName str) ParseResult{Statement}
         var lexer = new Lexer()
@@ -72,17 +85,19 @@ public class Parser
 
         Tokens = lexer.Tokens
 
-        for token in lexer.Tokens
-            Console.Write(token)
-            if token.Type == TokenType.EOL or token.Type == TokenType.EOF
-                Console.WriteLine()
-            else
-                Console.Write(" | ")
-        Console.WriteLine()
+        if Settings.PrintTokens
+            for token in lexer.Tokens
+                Console.Write(token)
+                if token.Type == TokenType.EOL or token.Type == TokenType.EOF
+                    Console.WriteLine()
+                else
+                    Console.Write(" | ")
+            Console.WriteLine()
 
         var file = ParseFileStatement(fileName)
 
-        file.Result.Accept(new SyntaxTreePrinterVisitor())
+        if Settings.PrintTree
+            file.Result.Accept(new SyntaxTreePrinterVisitor())
 
         ret file
 
@@ -722,7 +737,7 @@ public class Parser
                 is TokenType.Comment
                     file.Statements.Add(ParseComment().Result)
                 is TokenType.EOF
-                    ; call next so that we break out of the while loop
+                    ; call next so that we don't get stuck in an infinite loop
                     Next()
                 is TokenType.EOL
                     file.Statements.Add(ParseSpace().Result)

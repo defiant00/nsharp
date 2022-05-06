@@ -4,7 +4,14 @@ public enum Severity
     Message
     Warning
     Error
+    Fatal
 
 public class Diagnostic
     public fn Severity Severity
-    public fn Message str = str.Empty
+    public fn Code str
+    public fn Message str
+    public fn Position Position
+
+    public fn new(code str, message str)
+        Code = code
+        Message = message

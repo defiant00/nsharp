@@ -5,8 +5,10 @@ use NSharp.Language.Min
 ns NSharp.Compiler
 
 public static class Program
-    private val EDIT_SETTINGS str = ".nsedit"
+    private val SAVE_EXT str = ".ns"
+    private val EDIT_EXT str = ".edit"
     private val SAVE_SETTINGS str = ".nssave"
+    private val EDIT_SETTINGS str = ".nsedit"
     private val LANGUAGE_KEY str = "language"
 
     public static fn Main(args []str)
@@ -15,47 +17,52 @@ public static class Program
         var stopwatch = new Stopwatch()
         stopwatch.Start()
 
-        if args.Length < 2 or args[0] == "?" or args[0] == "help"
+        var arguments = new Arguments(args)
+
+        if args.Length < 2 or arguments.Flags.ContainsKey("help")
             Console.WriteLine()
             Console.WriteLine("Usage: nsc [command] [file(s)]")
             Console.WriteLine()
             Console.WriteLine("Commands:")
-            Console.WriteLine("    build [project paths] - tbd, build projects")
-            Console.WriteLine("    compile [files]       - compile the specified files")
-            Console.WriteLine("    edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
-            Console.WriteLine("    format [files]        - format the specified files per the .nsedit and .nssave settings")
-            Console.WriteLine("    save [files]          - save the specified files per the .nssave settings")
-            Console.WriteLine("    tocs [paths]          - convert all N# files recursively in the paths to C#")
-            Console.WriteLine("    validate [files]      - validate the specified files' syntax")
-            ret
-
-        if args[0].ToLower()
-            is "build"
-                Console.WriteLine("Build not yet supported")
-            is "compile"
-                Compile(args.Skip(1))
-            is "edit"
-                for file in args.Skip(1)
-                    Edit(file)
-            is "format"
-                for file in args.Skip(1)
-                    Format(file)
-            is "save"
-                for file in args.Skip(1)
-                    Save(file)
-            is "tocs"
-                for path in args.Skip(1)
-                    for file in Directory.EnumerateFiles(path, "*.ns", SearchOption.AllDirectories)
-                        ToCs(file)
-            is "validate"
-                for file in args.Skip(1)
-                    Validate(file)
-            is _
-                Console.WriteLine("Unknown command '{args[0]}'")
+            Console.WriteLine("    /build [project paths] - build projects")
+            Console.WriteLine("    /compile [files]       - compile the specified files")
+            Console.WriteLine("    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
+            Console.WriteLine("    /format [files]        - format the specified files per the .nsedit and .nssave settings")
+            Console.WriteLine("    /save [files]          - save the specified files per the .nssave settings")
+            Console.WriteLine("    /validate [files]      - validate the specified files' syntax")
+        else if arguments.Flags.ContainsKey("build")
+            Console.WriteLine("Build not yet supported.")
+        else if arguments.Flags.ContainsKey("compile")
+            Compile(arguments)
+        else if arguments.Flags.ContainsKey("edit")
+            Edit(arguments)
+        else if arguments.Flags.ContainsKey("format")
+            Format(arguments)
+        else if arguments.Flags.ContainsKey("save")
+            Save(arguments)
+        else if arguments.Flags.ContainsKey("validate")
+            Validate(arguments)
+        else
+            Console.WriteLine("No command found.")
 
         Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
 
-    private static fn Compile(files IEnumerable{str})
+    private static fn Compile(args Arguments)
+        for path in args.Paths
+            for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
+                if !File.Exists(file)
+                    throw new Exception("File '{file}' does not exist.")
+                if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                    throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+
+                var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
+
+                var loadResult = loadLang.Load(file)
+                HandleResult(loadResult)
+                if loadResult.Ast != null
+                    use visitor = new ToCsVisitor("{file}.cs")
+                    loadResult.Ast.Accept(visitor)
+
         ; var compiler Compiler = new()
         ; for file in files
         ;     if !File.Exists(file)
@@ -64,9 +71,9 @@ public static class Program
         ;     var language ILanguage
 
         ;     if file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-        ;         language = GetLanguage(SAVE_SETTINGS, file)
+        ;         language = GetLanguage(args, SAVE_SETTINGS, file)
         ;     else if file.EndsWith(".ns.edit", StringComparison.OrdinalIgnoreCase)
-        ;         language = GetLanguage(EDIT_SETTINGS, file)
+        ;         language = GetLanguage(args, EDIT_SETTINGS, file)
         ;     else
         ;         throw new Exception("File '{file}' does not end with .ns or .ns.edit")
 
@@ -78,116 +85,107 @@ public static class Program
         ; HandleCompileResult(compiler.Compile())
         ; compiler.Save()
 
-    private static fn Edit(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
-        if !file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-            throw new Exception("File '{file}' does not end with .ns")
+    private static fn Edit(args Arguments)
+        for file in args.Paths
+            if !File.Exists(file)
+                throw new Exception("File '{file}' does not exist.")
+            if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                throw new Exception("File '{file}' does not end with {SAVE_EXT}")
 
-        var loadLang = GetLanguage(SAVE_SETTINGS, file)
-        var saveLang = GetLanguage(EDIT_SETTINGS, file)
+            var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
+            var saveLang = GetLanguage(args, EDIT_SETTINGS, file)
 
-        var loadResult = loadLang.Load(file)
-        HandleResult(loadResult)
-        if loadResult.Ast != null
-            HandleResult(saveLang.Save("{file}.edit", loadResult.Ast))
+            var loadResult = loadLang.Load(file)
+            HandleResult(loadResult)
+            if loadResult.Ast != null
+                HandleResult(saveLang.Save("{file}{EDIT_EXT}", loadResult.Ast))
 
-    private static fn Format(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
+    private static fn Format(args Arguments)
+        for file in args.Paths
+            if !File.Exists(file)
+                throw new Exception("File '{file}' does not exist.")
 
-        var language ILanguage
+            var language ILanguage
 
-        if file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-            language = GetLanguage(SAVE_SETTINGS, file)
-        else if file.EndsWith(".ns.edit", StringComparison.OrdinalIgnoreCase)
-            language = GetLanguage(EDIT_SETTINGS, file)
-        else
-            throw new Exception("File '{file}' does not end with .ns or .ns.edit")
+            if file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, SAVE_SETTINGS, file)
+            else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, EDIT_SETTINGS, file)
+            else
+                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
 
-        var loadResult = language.Load(file)
-        HandleResult(loadResult)
-        if loadResult.Ast != null
-            HandleResult(language.Save(file, loadResult.Ast))
+            var loadResult = language.Load(file)
+            HandleResult(loadResult)
+            if loadResult.Ast != null
+                HandleResult(language.Save(file, loadResult.Ast))
 
-    private static fn Save(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
-        if !file.EndsWith(".ns.edit", StringComparison.OrdinalIgnoreCase)
-            throw new Exception("File '{file}' does not end with .ns.edit")
+    private static fn Save(args Arguments)
+        for file in args.Paths
+            if !File.Exists(file)
+                throw new Exception("File '{file}' does not exist.")
+            if !file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
+                throw new Exception("File '{file}' does not end with {SAVE_EXT}{EDIT_EXT}")
 
-        var loadLang = GetLanguage(EDIT_SETTINGS, file)
-        var saveLang = GetLanguage(SAVE_SETTINGS, file)
+            var loadLang = GetLanguage(args, EDIT_SETTINGS, file)
+            var saveLang = GetLanguage(args, SAVE_SETTINGS, file)
 
-        var loadResult = loadLang.Load(file)
-        HandleResult(loadResult)
-        if loadResult.Ast != null
-            HandleResult(saveLang.Save(file.Substring(0, file.Length - 5), loadResult.Ast))
+            var loadResult = loadLang.Load(file)
+            HandleResult(loadResult)
+            if loadResult.Ast != null
+                HandleResult(saveLang.Save(file.Substring(0, file.Length - EDIT_EXT.Length), loadResult.Ast))
 
-    private static fn ToCs(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
-        if !file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-            throw new Exception("File '{file}' does not end with .ns")
+    private static fn Validate(args Arguments)
+        for file in args.Paths
+            if !File.Exists(file)
+                throw new Exception("File '{file}' does not exist.")
 
-        var loadLang = GetLanguage(SAVE_SETTINGS, file)
+            var language ILanguage
 
-        var loadResult = loadLang.Load(file)
-        HandleResult(loadResult)
-        if loadResult.Ast != null
-            use visitor = new ToCsVisitor("{file}.cs")
-            loadResult.Ast.Accept(visitor)
+            if file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, SAVE_SETTINGS, file)
+            else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, EDIT_SETTINGS, file)
+            else
+                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
 
-    private static fn Validate(file str)
-        if !File.Exists(file)
-            throw new Exception("File '{file}' does not exist.")
-
-        var language ILanguage
-
-        if file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-            language = GetLanguage(SAVE_SETTINGS, file)
-        else if file.EndsWith(".ns.edit", StringComparison.OrdinalIgnoreCase)
-            language = GetLanguage(EDIT_SETTINGS, file)
-        else
-            throw new Exception("File '{file}' does not end with .ns or .ns.edit")
-
-        var loadResult = language.Load(file)
-        HandleResult(loadResult)
+            var loadResult = language.Load(file)
+            HandleResult(loadResult)
 
     private static fn HandleResult(result Result)
         if result.Diagnostics.Any()
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
-                Console.WriteLine("  {diagnostic.Severity}: {diagnostic.Message}")
+                Console.WriteLine("  [{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
 
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
-            Console.WriteLine("{diagnostic.Severity}: {diagnostic.Message}")
-        if diagnostics.All(fn(d) is d.Severity != Severity.Error)
+            Console.WriteLine("[{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+        if diagnostics.All(fn(d) is d.Severity < Severity.Error)
             Console.WriteLine("Compile successful")
 
-    private static fn GetLanguage(settingsFileName str, startingPath str) ILanguage
-        var settings ?Dictionary{str, str} = null
+    private static fn GetLanguage(args Arguments, configFileName str, startingPath str) ILanguage
+        var config ?Dictionary{str, str} = null
 
         var dirName ?str = Path.GetDirectoryName(startingPath)
         if dirName != null
             var dir ?DirectoryInfo = new(dirName)
-            for settings == null and dir != null
-                var settingsPath str = Path.Combine(dir.FullName, settingsFileName)
-                if File.Exists(settingsPath)
-                    settings = Settings.Load(settingsPath)
+            for config == null and dir != null
+                var configPath str = Path.Combine(dir.FullName, configFileName)
+                if File.Exists(configPath)
+                    config = Configuration.Load(configPath)
                 dir = dir.Parent
 
-        if settings == null
-            Console.WriteLine("'{settingsFileName}' not found, using default settings.")
-            settings = new()
+        if config == null
+            Console.WriteLine("'{configFileName}' not found, using default configuration.")
+            config = new()
 
         var lang ?ILanguage = null
-        if settings.ContainsKey(LANGUAGE_KEY)
-            if settings[LANGUAGE_KEY]
+        if config.ContainsKey(LANGUAGE_KEY)
+            if config[LANGUAGE_KEY]
                 is "Min"
-                    lang = new Min(settings)
+                    lang = new Min(args.Flags, config)
+        
         if lang == null
-            lang = new Min(settings)
+            lang = new Min(args.Flags, config)
 
         ret lang
