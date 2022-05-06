@@ -18,7 +18,10 @@ jobs:
       with:
         dotnet-version: 6.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        dotnet restore NSharp.Compiler/
+        dotnet restore NSharp.Core/
+        dotnet restore NSharp.Language.Min/
     - uses: dsaltares/fetch-gh-release-asset@master
       with:
         file: nsc.zip
