@@ -14,11 +14,9 @@ public struct AcceptResult
 
 public class ParseResult{T}
     public fn Result T
-    public fn Error bool = false
+    public fn Error bool
 
-    public fn new(result T) is Result = result
-
-    public fn new(result T, error bool)
+    public fn new(result T, error bool = false)
         Result = result
         Error = error
 
@@ -42,6 +40,11 @@ public class Parser
     
     private fn LogError(code str, error str, position Position)
         Result.Diagnostics.Add(new Diagnostic(code, error){Severity = Severity.Error, Position = position})
+    
+    private fn LogError(type str, result AcceptResult)
+        var token = ErrorToken(result)
+        var error = "Invalid token in {type}: {token}"
+        LogError("[code]", error, token.Position)
     
     private fn ErrorExpression(error str, position Position) ParseResult{Expression}
         LogError("[code]", error, position)
@@ -116,7 +119,15 @@ public class Parser
 
     private fn ErrorToken(result AcceptResult) Token is Tokens[result.StartingIndex + result.Count]
 
-    private fn ParseAnonymouseFunction() ParseResult{Expression}
+    private fn To(token TokenType, accept bool = true)
+        for Peek.Type != token and Peek.Type != TokenType.EOF
+            Next()
+        if accept and Peek.Type != TokenType.EOF
+            Next()
+    
+    private fn ToNextLine() is To(TokenType.EOL)
+    
+    private fn ParseAnonymousFunction() ParseResult{Expression}
         ; fn([params]) is [statement]
         ; fn([params]) [type] is [statement]
         ; fn([params])
@@ -129,7 +140,8 @@ public class Parser
         var anonFn = new AnonymousFunction(Peek.Position)
 
         if res = Accept(TokenType.Function), res.Failure
-            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
+            LogError("anonymous function", res)
+            ToNextLine()
 
         ParseParameters(anonFn.Parameters)
 
@@ -147,7 +159,8 @@ public class Parser
         ; [modifiers] fn [name]([params]) [type]
         ;     [statements]
         if res = Accept(TokenType.EOL, TokenType.Indent), res.Failure
-            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
+            LogError("anonymous function", res)
+            ToNextLine()
 
         for Peek.Type != TokenType.Dedent
             var stmtRes = ParseMethodStatement()
@@ -156,21 +169,20 @@ public class Parser
                 break
 
         if res = Accept(TokenType.Dedent, TokenType.FunctionEnd), res.Failure
-            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
+            LogError("anonymous function", res)
+            ToNextLine()
 
         ret new ParseResult{Expression}(anonFn)
 
-    ; Returns null on success, or the error if there is one.
-    private fn ParseArguments(args List{Argument}) ?ParseResult{Expression}
-        var res = Accept(TokenType.LeftParenthesis)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in args", res)
+    private fn ParseArguments(args List{Argument})
+        if res = Accept(TokenType.LeftParenthesis), res.Failure
+            LogError("args", res)
+            To(TokenType.RightParenthesis)
 
         if Peek.Type != TokenType.RightParenthesis
             ; Named arguments
             var name ?str = null
-            res = Accept(TokenType.Literal, TokenType.Assign)
-            if res.Success
+            if res = Accept(TokenType.Literal, TokenType.Assign), res.Success
                 name = GetToken(res).Value
 
             ; Argument modifiers
@@ -181,13 +193,13 @@ public class Parser
             ; Argument value
             var argExpr = ParseExpression()
             if argExpr.Error
-                ret argExpr
+                To(TokenType.RightParenthesis)
             args.Add(new Argument(argExpr.Result.Position, name, modifiers, argExpr.Result))
+
             for Accept(TokenType.Comma).Success
                 ; Named arguments
                 name = null
-                res = Accept(TokenType.Literal, TokenType.Assign)
-                if res.Success
+                if res = Accept(TokenType.Literal, TokenType.Assign), res.Success
                     name = GetToken(res).Value
 
                 ; Argument modifiers
@@ -198,60 +210,61 @@ public class Parser
                 ; Argument value
                 argExpr = ParseExpression()
                 if argExpr.Error
-                    ret argExpr
+                    To(TokenType.RightParenthesis)
                 args.Add(new Argument(argExpr.Result.Position, name, modifiers, argExpr.Result))
 
-        res = Accept(TokenType.RightParenthesis)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in args", res)
-
-        ret null
+        if res = Accept(TokenType.RightParenthesis), res.Failure
+            LogError("args", res)
+            ToNextLine()
 
     private fn ParseArray() ParseResult{Expression}
         var start = Peek
-        var res = Accept(TokenType.LeftBracket, TokenType.RightBracket)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in array type declaration", res)
+        var expr Expression
+        if res = Accept(TokenType.LeftBracket, TokenType.RightBracket), res.Failure
+            expr = ErrorExpr("array type declaration", res)
+            ToNextLine()
+        else
+            expr = ParseType().Result
 
-        var typeResult = ParseType()
-        if typeResult.Error
-            ret typeResult
-
-        ret new ParseResult{Expression}(new Core.Ast.Array(start.Position, typeResult.Result))
+        ret new ParseResult{Expression}(new Core.Ast.Array(start.Position, expr))
 
     private fn ParseArrayLiteral() ParseResult{Expression}
         var res = Accept(TokenType.LeftBracket)
         if res.Failure
+            To(TokenType.RightBracket)
             ret InvalidTokenErrorExpression("Invalid token in array literal", res)
 
         var arrayRes = new ArrayLiteral(GetToken(res).Position)
 
         if Peek.Type != TokenType.RightBracket
             var exprRes = ParseExpression()
-            if exprRes.Error
-                ret exprRes
             arrayRes.Values.Add(exprRes.Result)
+            if exprRes.Error
+                To(TokenType.RightBracket)
+                ret new ParseResult{Expression}(arrayRes)
 
             for Accept(TokenType.Comma).Success
                 exprRes = ParseExpression()
-                if exprRes.Error
-                    ret exprRes
                 arrayRes.Values.Add(exprRes.Result)
+                if exprRes.Error
+                    To(TokenType.RightBracket)
+                    ret new ParseResult{Expression}(arrayRes)
 
         res = Accept(TokenType.RightBracket)
         if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in array literal", res)
+            LogError("array literal", res)
+            To(TokenType.RightBracket)
 
         ret new ParseResult{Expression}(arrayRes)
 
     private fn ParseAssignment(left Expression) ParseResult{Statement}
         var op = Next().Type.ToAssignmentOperator()
         var right = ParseExpression()
-        if right.Error and right.Result is ErrorExpression ex
-            ret ErrorStatement(ex)
-        var res = Accept(TokenType.EOL)
-        if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in assignment", res)
+        if right.Error
+            ToNextLine()
+        else if res = Accept(TokenType.EOL), res.Failure
+            LogError("assignment", res)
+            ToNextLine()
         ret new ParseResult{Statement}(new Assignment(left.Position, left, op, right.Result))
 
     private fn ParseBinaryOperatorRightSide(leftPrecedence int, left Expression, acceptIs bool) ParseResult{Expression}
@@ -264,16 +277,20 @@ public class Parser
                 ret new ParseResult{Expression}(left)
 
             var op = Next()
-            var right = op.Type.IsOperatorCanThrow() ? ParseThrowOr(ParsePrimaryExpression, acceptIs), ParsePrimaryExpression(acceptIs)
+            var right = op.Type.IsOperatorCanThrow() ?
+                ParseThrowOr(ParsePrimaryExpression, acceptIs),
+                ParsePrimaryExpression(acceptIs)
             if right.Error
-                ret right
+                ToNextLine()
+                ret new ParseResult{Expression}(left, true)
 
             ; If the binary operator binds less tightly with the right than the operator
             ; after the right, let the pending operator take the right as its left.
             if tokenPrecedence < Peek.Precedence()
                 right = ParseBinaryOperatorRightSide(tokenPrecedence + 1, right.Result, acceptIs)
                 if right.Error
-                    ret right
+                    ToNextLine()
+                    ret new ParseResult{Expression}(left, true)
 
             ; Merge left and right.
             left = new BinaryOperator(left.Position, left, op.Type.ToBinaryOperator(), right.Result)
@@ -487,9 +504,7 @@ public class Parser
 
         var ctor = new ConstructorCall(start.Position, typeResult.Result)
 
-        var argsRes = ParseArguments(ctor.Arguments)
-        if argsRes != null
-            ret argsRes
+        ParseArguments(ctor.Arguments)
 
         var res AcceptResult
         if Accept(TokenType.LeftCurly).Success
@@ -1082,9 +1097,7 @@ public class Parser
         var res AcceptResult
         var ctorDef = new ImplicitConstructorCall(start.Position)
 
-        var argsRes = ParseArguments(ctorDef.Arguments)
-        if argsRes != null
-            ret argsRes
+        ParseArguments(ctorDef.Arguments)
 
         if Accept(TokenType.LeftCurly).Success
             for Peek.Type != TokenType.RightCurly
@@ -1295,11 +1308,7 @@ public class Parser
 
     private fn ParseMethodCall(expr Expression) ParseResult{Expression}
         var methodCall = new MethodCall(expr.Position, expr)
-
-        var argsRes = ParseArguments(methodCall.Arguments)
-        if argsRes != null
-            ret argsRes
-
+        ParseArguments(methodCall.Arguments)
         ret new ParseResult{Expression}(methodCall)
 
     private fn ParseMethodDefinition(modifiers List{Modifier}, nameToken Token) ParseResult{Statement}
@@ -1540,7 +1549,7 @@ public class Parser
         else if Peek.Type == TokenType.New
             leftResult = ParseConstructorCall()
         else if Peek.Type == TokenType.Function
-            leftResult = ParseAnonymouseFunction()
+            leftResult = ParseAnonymousFunction()
         else if Peek.Type.IsUnaryOperator()
             leftResult = ParseUnaryOperator()
         else if Peek.Type.IsType()

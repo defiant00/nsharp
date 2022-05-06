@@ -1,27 +1,4 @@
 class TestClass
     fn Test()
-        if true
-            if false
-                if true
-                    if false
-                        break
-    
-
-
-
-    fn Second()
-        if true
-            if false
-                if true
-                    if false
-                        break
-        
-
-
-        fn(x)
-            if true
-                if false
-                    break
-        
-
-        //
+        var x = [1, 2, 3]
+        var y = 42
