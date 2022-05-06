@@ -33,7 +33,7 @@ public class Parser
         var token = Peek
         CurrentIndex += 1
         ret token
-
+    
     private fn ErrorExpression(error str, position Position) ParseResult{Expression}
         ; todo - log the error
         ret new ParseResult{Expression}(new ErrorExpression(position, error), true)
@@ -53,6 +53,14 @@ public class Parser
     private fn InvalidTokenErrorStatement(error str, result AcceptResult) ParseResult{Statement}
         var token = ErrorToken(result)
         ret ErrorStatement("{error}: {token}", token.Position)
+    
+    private fn ErrorExpr(type str, result AcceptResult) ErrorExpression
+        var token = ErrorToken(result)
+        ret new ErrorExpression(token.Position, "Invalid token in {type}: {token}")
+    
+    private fn ErrorStmt(type str, result AcceptResult) ErrorStatement
+        var token = ErrorToken(result)
+        ret new ErrorStatement(token.Position, "Invalid token in {type}: {token}")
 
     public fn Parse(fileName str) ParseResult{Statement}
         var lexer = new Lexer()
@@ -98,53 +106,42 @@ public class Parser
         ; fn([params]) [type] is [statement]
         ; fn([params])
         ;     [statements]
-        ; fn
+        ; //
         ; fn([params]) [type]
         ;     [statements]
-        ; fn
+        ; //
 
-        var res = Accept(TokenType.Function)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in anonymous function", res)
+        var anonFn = new AnonymousFunction(Peek.Position)
 
-        var anonFn = new AnonymousFunction(GetToken(res).Position)
+        if res = Accept(TokenType.Function), res.Failure
+            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
 
-        var paramRes = ParseParameters(anonFn.Parameters)
-        if paramRes != null and paramRes.Result is ErrorStatement es
-            ret ErrorExpression(es)
+        ParseParameters(anonFn.Parameters)
 
         ; return type
         if Peek.Type != TokenType.EOL and Peek.Type != TokenType.Is
-            var typeResult = ParseType()
-            if typeResult.Error
-                ret typeResult
-            anonFn.ReturnType = typeResult.Result
+            anonFn.ReturnType = ParseType().Result
 
         ; is [statement]
         if Accept(TokenType.Is).Success
-            var stmtResult = ParseMethodStatement(false)
-            if stmtResult.Error and stmtResult.Result is ErrorStatement est
-                ret ErrorExpression(est)
-            anonFn.Statements.Add(stmtResult.Result)
+            anonFn.Statements.Add(ParseMethodStatement(false).Result)
             ret new ParseResult{Expression}(anonFn)
 
         ; [modifiers] fn [name]([params])
         ;     [statements]
         ; [modifiers] fn [name]([params]) [type]
         ;     [statements]
-        res = Accept(TokenType.EOL, TokenType.Indent)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in anonymous function", res)
+        if res = Accept(TokenType.EOL, TokenType.Indent), res.Failure
+            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
 
         for Peek.Type != TokenType.Dedent
             var stmtRes = ParseMethodStatement()
-            if stmtRes.Error and stmtRes.Result is ErrorStatement est
-                ret ErrorExpression(est)
             anonFn.Statements.Add(stmtRes.Result)
+            if stmtRes.Error
+                break
 
-        res = Accept(TokenType.Dedent, TokenType.Function)
-        if res.Failure
-            ret InvalidTokenErrorExpression("Invalid token in anonymous function", res)
+        if res = Accept(TokenType.Dedent, TokenType.FunctionEnd), res.Failure
+            anonFn.Statements.Add(ErrorStmt("anonymous function", res))
 
         ret new ParseResult{Expression}(anonFn)
 
@@ -1965,7 +1962,7 @@ public class Parser
 
     private fn ParseUnaryOperator() ParseResult{Expression}
         var op = Next()
-        var exprResult = ParseExpression()
+        var exprResult = ParsePrimaryExpression(true)
         if exprResult.Error
             ret exprResult
         ret new ParseResult{Expression}(new UnaryOperator(op.Position, op.Type.ToUnaryOperator(), exprResult.Result))

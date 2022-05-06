@@ -167,6 +167,7 @@ public static class Helper
         KeywordTokens.Add("enum", TokenType.Enum)
         KeywordTokens.Add("interface", TokenType.Interface)
         KeywordTokens.Add("fn", TokenType.Function)
+        KeywordTokens.Add("//", TokenType.FunctionEnd)
         KeywordTokens.Add("del", TokenType.Delegate)
         KeywordTokens.Add("var", TokenType.Variable)
         KeywordTokens.Add("val", TokenType.Value)

@@ -35,7 +35,14 @@ public enum TokenType
     Namespace
     Use
     If
+    Try
+    Function
+    Token_Needs_Dedent_Start
     Else
+    Catch
+    Finally
+    FunctionEnd
+    Token_Needs_Dedent_End
     Discard
     Modifier_Start
     Public
@@ -59,7 +66,6 @@ public enum TokenType
     Struct
     Enum
     Interface
-    Function
     Delegate
     Value
     Get
@@ -67,9 +73,6 @@ public enum TokenType
     New
     Base
     Return
-    Try
-    Catch
-    Finally
     Throw
     For
     In

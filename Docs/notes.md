@@ -3,7 +3,7 @@
 * Chars unescape on parse, escape on output
 * Events
 * Generic constraints
-* Parameter decorators (out, ref, params, etc)
+* Generic in/out decorators for covariant/contravariant
 * ranges
 * properly parse anonymous functions as an expression or statement instead of assuming an expression
 

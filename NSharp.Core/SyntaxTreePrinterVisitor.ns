@@ -497,8 +497,9 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             WriteStatementBlock(item.FinallyStatements)
 
     public fn Visit(item UnaryOperator)
-        Write("({item.Operator})")
+        Write("{item.Operator}(")
         item.Expr.Accept(this)
+        Write(")")
 
     public fn Visit(item Using)
         WriteIndented("Using: {item.LocalName} = ")

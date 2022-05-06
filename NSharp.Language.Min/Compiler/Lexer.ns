@@ -102,10 +102,15 @@ public class Lexer
             if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
                 HeldTokens.Clear()
                 HeldIndents.Clear()
-
+            
             ; Emit any held tokens.
+            ; For normal code we emit:
+            ;   [first EOL] [dedents] [remaining EOLs]
+            ; If the token needs a dedent (else) emit:
+            ;   [first EOL] [all but the last dedent] [remaining EOLs] [last dedent]
             var eols = new List{Token}()
             var firstEol = true
+            var lastDedent ?Token = null
             for HeldTokens.Any()
                 var tok = HeldTokens.Dequeue()
                 var ind = HeldIndents.Dequeue()
@@ -122,12 +127,19 @@ public class Lexer
                         IndentationLevels.Push(ind)
                     else
                         for IndentationLevels.Any() and ind < currentIndent
-                            Tokens.Add(new Token(TokenType.Dedent, tok.Position, str.Empty))
+                            if token.NeedsDedent()
+                                if lastDedent != null
+                                    Tokens.Add(lastDedent)
+                                lastDedent = new Token(TokenType.Dedent, tok.Position, str.Empty)
+                            else
+                                Tokens.Add(new Token(TokenType.Dedent, tok.Position, str.Empty))
                             IndentationLevels.Pop()
                             currentIndent = IndentationLevels.Peek()
                         if !IndentationLevels.Any() or currentIndent != ind
                             Error("Mismatched indentation level")
             Tokens.AddRange(eols)
+            if lastDedent != null
+                Tokens.Add(lastDedent)
 
             ; String terminators.
             if token == TokenType.LeftCurly
@@ -177,8 +189,7 @@ public class Lexer
 
     private fn LexStatement() ?StateFunction
         for
-            var peekVal = Peek
-            if peekVal
+            if peekVal = Peek, peekVal
                 is ' '
                 is '\t'
                     Discard(1)
@@ -273,10 +284,10 @@ public class Lexer
         AcceptRun(OPERATOR_CHARACTERS)
         var initialIndex = LineCurrentIndex
         var tokenType TokenType
-        var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
-        for !found and LineCurrentIndex > LineStartIndex
+        for found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
+                !found and LineCurrentIndex > LineStartIndex,
+                found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Backup()
-            found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
         if LineCurrentIndex > LineStartIndex
             Emit(tokenType)
             ret LexStatement
@@ -284,8 +295,7 @@ public class Lexer
 
     private fn LexString() ?StateFunction
         ; accept the " or }
-        var start = Next()
-        if start == '"'
+        if Next() == '"'
             Emit(TokenType.StringStart)
         else
             Emit(TokenType.RightCurly)

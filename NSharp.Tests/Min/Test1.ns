@@ -1,0 +1,27 @@
+class TestClass
+    fn Test()
+        if true
+            if false
+                if true
+                    if false
+                        break
+    
+
+
+
+    fn Second()
+        if true
+            if false
+                if true
+                    if false
+                        break
+        
+
+
+        fn(x)
+            if true
+                if false
+                    break
+        
+
+        //

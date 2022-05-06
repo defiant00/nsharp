@@ -12,6 +12,7 @@ public static class TokenHelper
     public static ext{TokenType} fn IsParameterModifier() bool is this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
     public static ext{TokenType} fn IsModifier() bool is this > TokenType.Modifier_Start and this < TokenType.Modifier_End
     public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
+    public static ext{TokenType} fn NeedsDedent() bool is this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
     public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
 
     public static ext{TokenType} fn ToModifier() ModifierType is this ?
