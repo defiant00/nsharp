@@ -1,0 +1,18 @@
+use NSharp.Core
+use NSharp.Core.Ast
+
+ns NSharp.Compiler
+
+; N# - f42a87aa-def0-4884-be44-a929a8fc6283
+
+public class Compiler
+    private fn State State = new()
+
+    public fn Add(file Core.Ast.File)
+        file.Accept(new ToCompileStructureVisitor(State))
+    
+    public fn Compile() List{Diagnostic}
+        ret State.Diagnostics
+    
+    public fn Save()
+        ; save

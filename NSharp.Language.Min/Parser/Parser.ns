@@ -1,7 +1,7 @@
 use NSharp.Core
 use NSharp.Core.Ast
 
-ns NSharp.Language.Min.Compiler
+ns NSharp.Language.Min
 
 public struct AcceptResult
     public fn Success bool = true

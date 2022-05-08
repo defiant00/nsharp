@@ -46,44 +46,48 @@ public static class Program
             Console.WriteLine("No command found.")
 
         Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
-
+    
     private static fn Compile(args Arguments)
+        ; for path in args.Paths
+        ;     for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
+        ;         if !File.Exists(file)
+        ;             throw new Exception("File '{file}' does not exist.")
+        ;         if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+        ;             throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+
+        ;         var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
+
+        ;         var loadResult = loadLang.Load(file)
+        ;         HandleResult(loadResult)
+        ;         if loadResult.Ast != null
+        ;             use visitor = new ToCsVisitor("{file}.cs")
+        ;             loadResult.Ast.Accept(visitor)
+
+        var files = new List{str}()
         for path in args.Paths
-            for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
-                if !File.Exists(file)
-                    throw new Exception("File '{file}' does not exist.")
-                if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
-                    throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+            if Directory.Exists(path)
+                files.AddRange(Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories))
+            else if File.Exists(path)
+                files.Add(path)
 
-                var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
+        var compiler = new Compiler()
+        for file in files
+            var language ILanguage
 
-                var loadResult = loadLang.Load(file)
-                HandleResult(loadResult)
-                if loadResult.Ast != null
-                    use visitor = new ToCsVisitor("{file}.cs")
-                    loadResult.Ast.Accept(visitor)
+            if file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, SAVE_SETTINGS, file)
+            else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
+                language = GetLanguage(args, EDIT_SETTINGS, file)
+            else
+                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
 
-        ; var compiler Compiler = new()
-        ; for file in files
-        ;     if !File.Exists(file)
-        ;         throw new Exception("File '{file}' does not exist.")
+            var loadResult LoadResult = language.Load(file)
+            HandleResult(loadResult)
+            if loadResult.Ast != null
+                compiler.Add(loadResult.Ast)
 
-        ;     var language ILanguage
-
-        ;     if file.EndsWith(".ns", StringComparison.OrdinalIgnoreCase)
-        ;         language = GetLanguage(args, SAVE_SETTINGS, file)
-        ;     else if file.EndsWith(".ns.edit", StringComparison.OrdinalIgnoreCase)
-        ;         language = GetLanguage(args, EDIT_SETTINGS, file)
-        ;     else
-        ;         throw new Exception("File '{file}' does not end with .ns or .ns.edit")
-
-        ;     var loadResult LoadResult = language.Load(file)
-        ;     HandleResult(loadResult)
-        ;     if loadResult.Ast != null
-        ;         compiler.Add(loadResult.Ast)
-
-        ; HandleCompileResult(compiler.Compile())
-        ; compiler.Save()
+        HandleCompileResult(compiler.Compile())
+        compiler.Save()
 
     private static fn Edit(args Arguments)
         for file in args.Paths

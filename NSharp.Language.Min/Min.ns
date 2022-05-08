@@ -1,7 +1,5 @@
 use NSharp.Core
 use NSharp.Core.Ast
-use NSharp.Language.Min.Compiler
-use NSharp.Language.Min.Decompiler
 
 ns NSharp.Language.Min
 

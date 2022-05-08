@@ -1,0 +1,25 @@
+use System.Reflection.Metadata
+use NSharp.Core.Ast
+
+ns NSharp.Compiler.Ast
+
+public class Class
+    public fn Emitting bool
+    public fn Handle ?EntityHandle
+    public fn Namespace str
+    public fn TreeItem Core.Ast.Class
+    public fn FullName str is str.IsNullOrEmpty(Namespace) ? TreeItem.Name, "{Namespace}.{TreeItem.Name}"
+
+    public fn Classes List{Class} = new()
+    public fn Enumerations List{Enumeration} = new()
+    ; interfaces
+    ; structs
+    ; delegates
+    public fn Methods List{Core.Ast.MethodDefinition} = new()
+    public fn Properties List{Property} = new()
+    public fn Fields List{Field} = new()
+    public fn Constants List{Core.Ast.Constant} = new()
+
+    public fn new(nspace str, treeItem Core.Ast.Class)
+        Namespace = nspace
+        TreeItem = treeItem

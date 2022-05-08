@@ -1,0 +1,14 @@
+use NSharp.Compiler.Ast
+use NSharp.Core
+
+ns NSharp.Compiler
+
+public class State
+    public fn Classes Dictionary{str, Class} = new()
+    public fn ClassOrder List{Class} = new()
+    ; enums
+    ; interfaces
+    ; structs
+    ; delegates
+    public fn Diagnostics List{Diagnostic} = new()
+        

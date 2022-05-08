@@ -1,6 +1,6 @@
 use NSharp.Core
 
-ns NSharp.Language.Min.Compiler
+ns NSharp.Language.Min
 
 public static class TokenHelper
     public static ext{TokenType} fn IsAssignment() bool is this > TokenType.Assignment_Start and this < TokenType.Assignment_End

@@ -1,7 +1,7 @@
 use System.Text
 use NSharp.Core
 
-ns NSharp.Language.Min.Compiler
+ns NSharp.Language.Min
 
 public static class Helper
     public static ext{str} fn Unescape() str

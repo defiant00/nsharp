@@ -1,4 +1,4 @@
-ns NSharp.Language.Min.Decompiler
+ns NSharp.Language.Min
 
 public class Decompiler
     ; empty

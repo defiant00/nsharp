@@ -209,7 +209,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item Character) is Write("'{item.Value}'")
 
-    public fn Visit(item Class)
+    public fn Visit(item Core.Ast.Class)
         CurrentObject = item.Name
 
         WriteModifiersIndented(item.Modifiers)

@@ -1,4 +1,7 @@
+ns NSharp.Tests.Min
+
 class TestClass
+    fn First str
+    var Second i32 = 3
     fn Test()
-        var x = [1, 2, 3]
-        var y = 42
+        ret

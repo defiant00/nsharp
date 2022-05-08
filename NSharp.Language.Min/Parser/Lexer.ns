@@ -1,6 +1,6 @@
 use NSharp.Core
 
-ns NSharp.Language.Min.Compiler
+ns NSharp.Language.Min
 
 public class Lexer
     private val EOL char = '\0'
