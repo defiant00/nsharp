@@ -1,0 +1,6 @@
+use NSharp.Compiler
+
+ns NSharp.Compiler.Tree
+
+public abstract class TreeItem
+    public virtual fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

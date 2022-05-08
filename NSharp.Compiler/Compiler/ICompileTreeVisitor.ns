@@ -1,0 +1,8 @@
+use NSharp.Compiler.Tree
+
+ns NSharp.Compiler
+
+public interface ICompileTreeVisitor
+    public fn Visit(item TreeItem)
+    public fn Visit(item Class)
+    public fn Visit(item State)

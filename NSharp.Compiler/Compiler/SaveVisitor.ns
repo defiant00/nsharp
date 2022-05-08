@@ -1,0 +1,67 @@
+use System.Diagnostics
+use System.Reflection
+use System.Reflection.Metadata
+use System.Reflection.Metadata.Ecma335
+use System.Reflection.PortableExecutable
+use System.Security.Cryptography
+use System.Text
+use NSharp.Compiler.Tree
+
+ns NSharp.Compiler
+
+public class SaveVisitor has ICompileTreeVisitor
+    private fn OutFile str
+
+    public fn new(outFile str) is OutFile = outFile
+
+    public fn Visit(item State)
+        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.dll")
+        var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.pdb")
+        var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.runtimeconfig.json")
+
+        ; Make sure the directory exists.
+        if dir = new FileInfo(dllPath).DirectoryName, dir != null
+            Directory.CreateDirectory(dir)
+
+        ; dll
+
+        ; Specify the PDB location
+        var debugDirBuilder = new DebugDirectoryBuilder()
+
+        ; todo - add hex support and put this back
+        ; debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 0x0100)
+        ; debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 256)
+
+        ; debugDirBuilder.AddPdbChecksumEntry("SHA256", ImmutableArray.Create((byte)1))
+        debugDirBuilder.AddReproducibleEntry()
+
+        ; use peStream = new FileStream(dllPath, FileMode.Create, FileAccess.ReadWrite)
+        ; var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics = Characteristics.ExecutableImage | Characteristics.LargeAddressAware)
+        ; var peBuilder = new ManagedPEBuilder(
+        ;     peHeaderBuilder,
+        ;     new MetadataRootBuilder(progMeta),
+        ;     ilBuilder,
+        ;     debugDirectoryBuilder = debugDirBuilder,
+        ;     entryPoint = mainDef,
+        ;     deterministicIdProvider = fn(x) is contentId)
+        ; var peBlob = new BlobBuilder()
+        ; var blobContentId = peBuilder.Serialize(peBlob)
+        ; peBlob.WriteContentTo(peStream)
+
+        ; pdb
+
+        ; runtimeconfig json
+        File.WriteAllText(runtimeConfigPath,
+            "{{" ..
+            "  ""runtimeOptions"": {{" ..
+            "    ""tfm"": ""net6.0""," ..
+            "    ""framework"": {{" ..
+            "      ""name"": ""Microsoft.NETCore.App""," ..
+            "      ""version"": ""6.0.0""" ..
+            "    }}" ..
+            "  }}" ..
+            "}}")
+
+
+    public fn Visit(item TreeItem) is throw new InvalidItemException()
+    public fn Visit(item Class) is throw new InvalidItemException()

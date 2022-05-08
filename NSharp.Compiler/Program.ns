@@ -48,46 +48,52 @@ public static class Program
         Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
     
     private static fn Compile(args Arguments)
-        ; for path in args.Paths
-        ;     for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
-        ;         if !File.Exists(file)
-        ;             throw new Exception("File '{file}' does not exist.")
-        ;         if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
-        ;             throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+        if args.Flags.ContainsKey("tocs")
+            ; Transpile to C#
+            for path in args.Paths
+                for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
+                    if !File.Exists(file)
+                        throw new Exception("File '{file}' does not exist.")
+                    if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                        throw new Exception("File '{file}' does not end with {SAVE_EXT}")
 
-        ;         var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
+                    var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
 
-        ;         var loadResult = loadLang.Load(file)
-        ;         HandleResult(loadResult)
-        ;         if loadResult.Ast != null
-        ;             use visitor = new ToCsVisitor("{file}.cs")
-        ;             loadResult.Ast.Accept(visitor)
+                    var loadResult = loadLang.Load(file)
+                    HandleResult(loadResult)
+                    if loadResult.Ast != null
+                        use visitor = new ToCsVisitor("{file}.cs")
+                        loadResult.Ast.Accept(visitor)
 
-        var files = new List{str}()
-        for path in args.Paths
-            if Directory.Exists(path)
-                files.AddRange(Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories))
-            else if File.Exists(path)
-                files.Add(path)
+        else
+            var outFile = args.Flags.ContainsKey("out") ? args.Flags["out"],
+                throw new Exception("/out must be specified to compile.")
+            
+            var files = new List{str}()
+            for path in args.Paths
+                if Directory.Exists(path)
+                    files.AddRange(Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories))
+                else if File.Exists(path)
+                    files.Add(path)
 
-        var compiler = new Compiler()
-        for file in files
-            var language ILanguage
+            var compiler = new Compiler()
+            for file in files
+                var language ILanguage
 
-            if file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
-                language = GetLanguage(args, SAVE_SETTINGS, file)
-            else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
-                language = GetLanguage(args, EDIT_SETTINGS, file)
-            else
-                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
+                if file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
+                    language = GetLanguage(args, SAVE_SETTINGS, file)
+                else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
+                    language = GetLanguage(args, EDIT_SETTINGS, file)
+                else
+                    throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
 
-            var loadResult LoadResult = language.Load(file)
-            HandleResult(loadResult)
-            if loadResult.Ast != null
-                compiler.Add(loadResult.Ast)
+                var loadResult LoadResult = language.Load(file)
+                HandleResult(loadResult)
+                if loadResult.Ast != null
+                    compiler.Add(loadResult.Ast)
 
-        HandleCompileResult(compiler.Compile())
-        compiler.Save()
+            HandleCompileResult(compiler.Compile())
+            compiler.Save(outFile)
 
     private static fn Edit(args Arguments)
         for file in args.Paths

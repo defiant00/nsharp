@@ -1,11 +1,13 @@
 use System.Reflection.Metadata
+use NSharp.Compiler
 use NSharp.Core.Ast
 
-ns NSharp.Compiler.Ast
+ns NSharp.Compiler.Tree
 
-public class Class
+public class Class is TreeItem
     public fn Emitting bool
     public fn Handle ?EntityHandle
+    public fn Imports List{str}
     public fn Namespace str
     public fn TreeItem Core.Ast.Class
     public fn FullName str is str.IsNullOrEmpty(Namespace) ? TreeItem.Name, "{Namespace}.{TreeItem.Name}"
@@ -20,6 +22,9 @@ public class Class
     public fn Fields List{Field} = new()
     public fn Constants List{Core.Ast.Constant} = new()
 
-    public fn new(nspace str, treeItem Core.Ast.Class)
+    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class)
+        Imports = imports
         Namespace = nspace
         TreeItem = treeItem
+
+    public override fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

@@ -15,6 +15,7 @@
                 "/compile",
                 "/print-tokens",
                 "/print-tree",
+                "/out:../bin/test",
                 "${workspaceFolder}/NSharp.Tests/Min/"
             ],
             "cwd": "${workspaceFolder}/NSharp.Compiler",

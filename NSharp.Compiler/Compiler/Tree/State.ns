@@ -1,9 +1,8 @@
-use NSharp.Compiler.Ast
 use NSharp.Core
 
-ns NSharp.Compiler
+ns NSharp.Compiler.Tree
 
-public class State
+public class State is TreeItem
     public fn Classes Dictionary{str, Class} = new()
     public fn ClassOrder List{Class} = new()
     ; enums
@@ -11,4 +10,5 @@ public class State
     ; structs
     ; delegates
     public fn Diagnostics List{Diagnostic} = new()
-        
+    
+    public override fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

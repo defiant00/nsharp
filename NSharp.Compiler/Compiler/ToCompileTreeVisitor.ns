@@ -1,13 +1,15 @@
+use NSharp.Compiler.Tree
 use NSharp.Core
 use NSharp.Core.Ast
 
 ns NSharp.Compiler
 
-public class ToCompileStructureVisitor has ISyntaxTreeVisitor
+public class ToCompileTreeVisitor has ISyntaxTreeVisitor
     private fn State State
 
     private fn Namespace str = str.Empty
-    private fn CurrentClass Stack{NSharp.Compiler.Ast.Class} = new()
+    private fn Imports List{str} = new()
+    private fn CurrentClass Stack{Tree.Class} = new()
 
     public fn new(state State) is State = state
 
@@ -16,7 +18,7 @@ public class ToCompileStructureVisitor has ISyntaxTreeVisitor
 
 
     public fn Visit(item Core.Ast.Class)
-        var newClass = new NSharp.Compiler.Ast.Class(Namespace, item)
+        var newClass = new Tree.Class(Imports, Namespace, item)
 
         CurrentClass.Push(newClass)
         for stmt in item.Statements
@@ -31,7 +33,7 @@ public class ToCompileStructureVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item Core.Ast.Constant) is CurrentClass.Peek().Constants.Add(item)
 
-    public fn Visit(item ConstructorDefinition) is throw new InvalidItemException()
+    public fn Visit(item ConstructorDefinition) is throw new NotImplementedException()
 
     public fn Visit(item DelegateDefinition) is throw new NotImplementedException()
 
@@ -40,10 +42,11 @@ public class ToCompileStructureVisitor has ISyntaxTreeVisitor
     public fn Visit(item Field) is CurrentClass.Peek().Fields.Add(item)
 
     public fn Visit(item Core.Ast.File)
+        Imports = new List{str}()
         for stmt in item.Statements
             stmt.Accept(this)
 
-    public fn Visit(item Import) is throw new InvalidItemException()
+    public fn Visit(item Import) is Imports.Add(str.Join(".", item.NameParts))
 
     public fn Visit(item Interface) is throw new NotImplementedException()
 

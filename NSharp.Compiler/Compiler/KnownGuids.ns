@@ -1,0 +1,4 @@
+ns NSharp.Compiler
+
+public static class KnownGuids
+    public static fn NSharpLanguage Guid get = new Guid("f42a87aa-def0-4884-be44-a929a8fc6283")

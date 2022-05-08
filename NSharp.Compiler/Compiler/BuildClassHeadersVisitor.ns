@@ -1,0 +1,11 @@
+use NSharp.Compiler.Tree
+
+ns NSharp.Compiler
+
+public class BuildClassHeadersVisitor has ICompileTreeVisitor
+    public fn Visit(item Class) is ; empty
+
+    public fn Visit(item State) is ; empty
+
+
+    public fn Visit(item TreeItem) is throw new InvalidItemException()
