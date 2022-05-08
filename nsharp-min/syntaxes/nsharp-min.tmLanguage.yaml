@@ -57,7 +57,7 @@ repository:
       name: variable.language.nsharp-min
   constants:
     patterns:
-    - match: \b(?:true|false|null)\b
+    - match: \b(?:true|false|null|default)\b
       name: constant.language.nsharp-min
     - match: '[+-]?0x[0-9a-fA-F]+'
       name: constant.numeric.hex.nsharp-min

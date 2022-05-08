@@ -24,6 +24,7 @@ public interface ISyntaxTreeVisitor
     public fn Visit(item ConstructorDefinition)
     public fn Visit(item Continue)
     public fn Visit(item CurrentObjectInstance)
+    public fn Visit(item DefaultValue)
     public fn Visit(item DelegateDefinition)
     public fn Visit(item Discard)
     public fn Visit(item Enumeration)

@@ -76,6 +76,7 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
     public fn Visit(item ConstructorCall) is throw new InvalidItemException()
     public fn Visit(item Continue) is throw new InvalidItemException()
     public fn Visit(item CurrentObjectInstance) is throw new InvalidItemException()
+    public fn Visit(item DefaultValue) is throw new InvalidItemException()
     public fn Visit(item Discard) is throw new InvalidItemException()
     public fn Visit(item EnumerationItem) is throw new InvalidItemException()
     public fn Visit(item ErrorExpression) is throw new InvalidItemException()

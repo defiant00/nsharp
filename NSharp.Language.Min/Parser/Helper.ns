@@ -190,6 +190,7 @@ public static class Helper
         KeywordTokens.Add("true", TokenType.True)
         KeywordTokens.Add("false", TokenType.False)
         KeywordTokens.Add("null", TokenType.Null)
+        KeywordTokens.Add("default", TokenType.Default)
         KeywordTokens.Add("==", TokenType.Equal)
         KeywordTokens.Add("!=", TokenType.NotEqual)
         KeywordTokens.Add("<", TokenType.LessThan)

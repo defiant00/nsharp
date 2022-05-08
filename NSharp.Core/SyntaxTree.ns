@@ -211,6 +211,12 @@ public class CurrentObjectInstance is Expression
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
+public class DefaultValue is Expression
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
 public class DelegateDefinition is Statement
     public fn Modifiers List{Modifier}
     public fn ReturnType ?Expression

@@ -183,6 +183,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item CurrentObjectInstance) is Write("[this]")
 
+    public fn Visit(item DefaultValue) is Write("[default]")
+
     public fn Visit(item DelegateDefinition)
         WriteIndented("Delegate: ")
         WriteModifiers(item.Modifiers)

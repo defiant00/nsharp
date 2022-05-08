@@ -1563,6 +1563,7 @@ public class Parser
             leftResult = token.Type ?
             {
                 TokenType.CharacterLiteral is new ParseResult{Expression}(new Character(token.Position, token.Value)),
+                TokenType.Default is new ParseResult{Expression}(new DefaultValue(token.Position)),
                 TokenType.Discard is new ParseResult{Expression}(new Discard(token.Position)),
                 TokenType.False is new ParseResult{Expression}(new LiteralToken(token.Position, LiteralType.False)),
                 TokenType.Null is new ParseResult{Expression}(new LiteralToken(token.Position, LiteralType.Null)),

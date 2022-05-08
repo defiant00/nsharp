@@ -301,6 +301,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item CurrentObjectInstance) is Write(InExtension ? "__this", "this")
 
+    public fn Visit(item DefaultValue) is Write("default")
+
     public fn Visit(item DelegateDefinition)
         WriteModifiersIndented(item.Modifiers)
         Write(" delegate ")
