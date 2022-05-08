@@ -1,3 +1,9 @@
+use System.Diagnostics
+use System.Reflection
+use System.Reflection.Metadata
+use System.Reflection.Metadata.Ecma335
+use System.Reflection.PortableExecutable
+use System.Security.Cryptography
 use NSharp.Core
 
 ns NSharp.Compiler.Tree
@@ -10,5 +16,9 @@ public class State is TreeItem
     ; structs
     ; delegates
     public fn Diagnostics List{Diagnostic} = new()
+
+    public fn IlBuilder BlobBuilder = new()
+    public fn PeMetadataBuilder MetadataBuilder = new()
+    public fn EntryPoint ?MethodDefinitionHandle
     
     public override fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

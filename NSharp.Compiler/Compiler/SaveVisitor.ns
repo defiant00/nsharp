@@ -15,6 +15,12 @@ public class SaveVisitor has ICompileTreeVisitor
     public fn new(outFile str) is OutFile = outFile
 
     public fn Visit(item State)
+        ; temporary IDs
+        var guid = Guid.NewGuid()
+        ; todo - calculate a proper content id
+        var contentId = new BlobContentId(guid, 1)
+
+
         var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.dll")
         var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.pdb")
         var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.runtimeconfig.json")
@@ -28,25 +34,29 @@ public class SaveVisitor has ICompileTreeVisitor
         ; Specify the PDB location
         var debugDirBuilder = new DebugDirectoryBuilder()
 
-        ; todo - add hex support and put this back
+        ; todo - add hex support and switch this back
         ; debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 0x0100)
-        ; debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 256)
+        debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 256)
 
         ; debugDirBuilder.AddPdbChecksumEntry("SHA256", ImmutableArray.Create((byte)1))
         debugDirBuilder.AddReproducibleEntry()
 
-        ; use peStream = new FileStream(dllPath, FileMode.Create, FileAccess.ReadWrite)
-        ; var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics = Characteristics.ExecutableImage | Characteristics.LargeAddressAware)
-        ; var peBuilder = new ManagedPEBuilder(
-        ;     peHeaderBuilder,
-        ;     new MetadataRootBuilder(progMeta),
-        ;     ilBuilder,
-        ;     debugDirectoryBuilder = debugDirBuilder,
-        ;     entryPoint = mainDef,
-        ;     deterministicIdProvider = fn(x) is contentId)
-        ; var peBlob = new BlobBuilder()
-        ; var blobContentId = peBuilder.Serialize(peBlob)
-        ; peBlob.WriteContentTo(peStream)
+        use peStream = new FileStream(dllPath, FileMode.Create, FileAccess.ReadWrite)
+            var headerCharacteristics = Characteristics.ExecutableImage | Characteristics.LargeAddressAware
+            if item.EntryPoint == null
+                headerCharacteristics |= Characteristics.Dll
+            
+            var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics = headerCharacteristics)
+            var peBuilder = new ManagedPEBuilder(
+                peHeaderBuilder,
+                new MetadataRootBuilder(item.PeMetadataBuilder),
+                item.IlBuilder,
+                debugDirectoryBuilder = debugDirBuilder,
+                entryPoint = item.EntryPoint ?? default,
+                deterministicIdProvider = fn(x) is contentId)
+            var peBlob = new BlobBuilder()
+            var blobContentId = peBuilder.Serialize(peBlob)
+            peBlob.WriteContentTo(peStream)
 
         ; pdb
 
