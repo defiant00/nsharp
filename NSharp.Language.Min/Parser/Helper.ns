@@ -43,7 +43,7 @@ public static class Helper
         KeywordTokens.Add("abstract", TokenType.Abstract)
         KeywordTokens.Add("ext", TokenType.Extension)
         KeywordTokens.Add("open", TokenType.Open)
-        KeywordTokens.Add("override", TokenType.Override)
+        KeywordTokens.Add("over", TokenType.Override)
         KeywordTokens.Add("static", TokenType.Static)
         KeywordTokens.Add("out", TokenType.Out)
         KeywordTokens.Add("ref", TokenType.Reference)

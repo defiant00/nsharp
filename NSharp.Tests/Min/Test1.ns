@@ -1,11 +1,14 @@
 ns NSharp.Tests.Min
 
-class SealedClass
-    ; empty
-open class OpenClass
-    open fn Open() is ; empty
-    open override fn OpenOverride() is ; empty
-    override fn Override() is ; empty
-
-abstract class AbstractClass
-    ; empty
+class MyClass
+    fn Test()
+        Order.Customer
+            First = "first"
+            Last = "last"
+            Test()
+            ["first"] = "hi"
+            ["second"](1, 2, 3)
+            (4)
+            Address
+                Street = "street"
+                Zip = "12345"

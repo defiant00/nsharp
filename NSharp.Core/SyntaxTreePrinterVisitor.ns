@@ -232,6 +232,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteIndented("Expression Statement: ")
         item.Expr.Accept(this)
         WriteLine()
+        WriteStatementBlock(item.Statements)
 
     public fn Visit(item Field)
         WriteIndented("Field: ")

@@ -285,6 +285,7 @@ public class ErrorStatement is Statement
 
 public class ExpressionStatement is Statement
     public fn Expr Expression
+    public fn Statements List{Statement} = new()
 
     public fn new(position Position, expr Expression) base(position) is Expr = expr
 

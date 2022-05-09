@@ -1,5 +1,7 @@
 ## TODO
 
+* expression statement blocks
+
 * Chars unescape on parse, escape on output
 * Events
 * Generic constraints
@@ -16,6 +18,15 @@ Attributes
 @SpecialAttribute
 @Special("val")
 @assembly:Special
+```
+
+```
+MyClass.SubClass
+    Property = val
+    Method()
+    AnotherSubClass
+        Prop = val
+        ["indexer"] += val
 ```
 
 Modifiers in general should be allowing things.

@@ -11,6 +11,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     private fn BinopParentPrecedence Stack{int} = new()
     private fn InFor bool
     private fn InExtension bool
+    private fn ExprStmtVarStack Stack{str} = new()
 
     private fn Write(line str) is Buffer.Write(line)
     private fn WriteLine() is Buffer.WriteLine()
@@ -123,6 +124,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Assignment)
         if !InFor
             WriteIndent()
+        if ExprStmtVarStack.Any()
+            Write("{ExprStmtVarStack.Peek()}.")
         item.Left.Accept(this)
         Write(item.Operator ?
         {
@@ -349,9 +352,27 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item ErrorStatement) is WriteLineIndented("/* Error: {item.Value} */")
 
     public fn Visit(item ExpressionStatement)
-        WriteIndent()
-        item.Expr.Accept(this)
-        WriteLine(";")
+        if item.Statements.Any()
+            WriteLineIndented("{{")
+            Indent += 1
+            var tempName = "__t{ExprStmtVarStack.Count}"
+            WriteIndented("var {tempName} = ")
+            if ExprStmtVarStack.Any()
+                Write("{ExprStmtVarStack.Peek()}.")
+            item.Expr.Accept(this)
+            WriteLine(";")
+            ExprStmtVarStack.Push(tempName)
+            for stmt in item.Statements
+                stmt.Accept(this)
+            ExprStmtVarStack.Pop()
+            Indent -= 1
+            WriteLineIndented("}}")
+        else
+            WriteIndent()
+            if ExprStmtVarStack.Any()
+                Write("{ExprStmtVarStack.Peek()}.")
+            item.Expr.Accept(this)
+            WriteLine(";")
 
     public fn Visit(item Field)
         WriteModifiersIndented(item.Modifiers)

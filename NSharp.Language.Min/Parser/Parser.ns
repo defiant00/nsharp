@@ -702,12 +702,22 @@ public class Parser
         if Peek.Type.IsAssignment()
             ret ParseAssignment(expr.Result)
 
+        var exprStmt = new ExpressionStatement(expr.Result.Position, expr.Result)
         if acceptEol
-            var res = Accept(TokenType.EOL)
-            if res.Failure
+            if res = Accept(TokenType.EOL), res.Failure
                 ret InvalidTokenErrorStatement("Invalid token in expression statement", res)
 
-        ret new ParseResult{Statement}(new ExpressionStatement(expr.Result.Position, expr.Result))
+            if Accept(TokenType.Indent).Success
+                for Peek.Type != TokenType.Dedent
+                    var stmtRes = ParseMethodStatement()
+                    if stmtRes.Error
+                        ret stmtRes
+                    exprStmt.Statements.Add(stmtRes.Result)
+                
+                if res = Accept(TokenType.Dedent), res.Failure
+                    ret InvalidTokenErrorStatement("Invalid token in expression statement", res)
+
+        ret new ParseResult{Statement}(exprStmt)
 
     private fn ParseField(modifiers List{Modifier}) ParseResult{Statement}
         ; [modifiers] var [name] [type]
