@@ -1,7 +1,11 @@
 ns NSharp.Tests.Min
 
-class TestClass
-    fn First str
-    var Second i32 = 3
-    fn Test()
-        ret
+class SealedClass
+    ; empty
+open class OpenClass
+    open fn Open() is ; empty
+    open override fn OpenOverride() is ; empty
+    override fn Override() is ; empty
+
+abstract class AbstractClass
+    ; empty

@@ -35,7 +35,7 @@ repository:
     patterns:
     - match: \b(?:break|continue|if|else|for|in|bet|try|catch|fin|throw|ret)\b
       name: keyword.control.nsharp-min
-    - match: \b(?:public|protected|private|internal|static|abstract|virtual|override|ext|ref|out)\b
+    - match: \b(?:public|protected|private|internal|static|abstract|open|override|ext|ref|out)\b
       name: storage.modifier.nsharp-min
     - match: \b(?:class|struct|enum|interface|del|fn|var|val|has)\b
       name: storage.type.nsharp-min
@@ -45,7 +45,7 @@ repository:
       name: keyword.other.nsharp-min
     - match: //
       name: keyword.other.nsharp-min
-    - match: (?:==|!=|<|>|<=|>=|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|_\b)
+    - match: (?:==|!=|<|>|<=|>=|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|:|_\b)
       name: keyword.operator.nsharp-min
     - match: \b(?:and|or|is|as)\b
       name: keyword.operator.nsharp-min

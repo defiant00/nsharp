@@ -4,7 +4,7 @@ ns NSharp.Language.Min
 
 public class Lexer
     private val EOL char = '\0'
-    private val OPERATOR_CHARACTERS str = "()[]{{}}<>?!=+-*/%,.&|^~"
+    private val OPERATOR_CHARACTERS str = "()[]{{}}<>:?!=+-*/%,.&|^~"
     private val REPEATED_ESCAPE_STRING_CHARACTERS str = "{{}}"""
 
     private del StateFunction() ?StateFunction

@@ -39,7 +39,7 @@ public class Parser
         ret token
     
     private fn LogError(code str, error str, position Position)
-        Result.Diagnostics.Add(new Diagnostic(code, error){Severity = Severity.Error, Position = position})
+        Result.Diagnostics.Add(new Diagnostic(Severity.Error, code, error, position))
     
     private fn LogError(type str, result AcceptResult)
         var token = ErrorToken(result)
@@ -294,6 +294,24 @@ public class Parser
 
             ; Merge left and right.
             left = new BinaryOperator(left.Position, left, op.Type.ToBinaryOperator(), right.Result)
+
+    private fn ParseBlock() ParseResult{Statement}
+        var start = Peek
+        if res = Accept(TokenType.Colon, TokenType.EOL, TokenType.Indent), res.Failure
+            ret InvalidTokenErrorStatement("Invalid token in block", res)
+
+        var block = new Block(start.Position)
+
+        for Peek.Type != TokenType.Dedent
+            var stmtRes = ParseMethodStatement()
+            if stmtRes.Error
+                ret stmtRes
+            block.Statements.Add(stmtRes.Result)
+        
+        if res = Accept(TokenType.Dedent), res.Failure
+            ret InvalidTokenErrorStatement("Invalid token in block", res)
+        
+        ret new ParseResult{Statement}(block)
 
     private fn ParseBreak() ParseResult{Statement}
         var res = Accept(TokenType.Break, TokenType.EOL)
@@ -1427,6 +1445,7 @@ public class Parser
     private fn ParseMethodStatement(acceptEol bool = true) ParseResult{Statement} is Peek.Type ?
         {
             TokenType.Break is ParseBreak(),
+            TokenType.Colon is ParseBlock(),
             TokenType.Comment is ParseComment(acceptEol),
             TokenType.Continue is ParseContinue(),
             TokenType.EOL is ParseSpace(),

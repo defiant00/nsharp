@@ -87,6 +87,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         item.Right.Accept(this)
         Write(")")
 
+    public fn Visit(item Block)
+        WriteLineIndented("Block")
+        WriteStatementBlock(item.Statements)
+
     public fn Visit(item Break) is WriteLineIndented("Break")
 
     public fn Visit(item Case)

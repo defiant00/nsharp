@@ -5,8 +5,8 @@ public enum ModifierType
     Protected
     Internal
     Private
-    Static
     Abstract
-    Virtual
-    Override
     Extension
+    Open
+    Override
+    Static

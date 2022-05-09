@@ -1,9 +1,5 @@
-use System.Diagnostics
-use System.Reflection
 use System.Reflection.Metadata
 use System.Reflection.Metadata.Ecma335
-use System.Reflection.PortableExecutable
-use System.Security.Cryptography
 use NSharp.Core
 
 ns NSharp.Compiler.Tree

@@ -26,98 +26,6 @@ public static class Helper
 
         ret sb.ToString()
 
-    public static ext{StringBuilder} fn Indent(indentStr str, indent int)
-        for i = 0, i < indent, i += 1
-            this.Append(indentStr)
-
-    public static ext{StringBuilder} fn AppendIndented(indentStr str, indent int, content str)
-        this.Indent(indentStr, indent)
-        this.Append(content)
-
-    public static ext{StringBuilder} fn AppendLineIndented(indentStr str, indent int, content str)
-        this.Indent(indentStr, indent)
-        this.AppendLine(content)
-
-    public static ext{StringBuilder} fn AppendModifiersIndented(indentStr str, indent int, modifiers List{ModifierType})
-        this.Indent(indentStr, indent)
-        for modifier in modifiers
-            this.Append(modifier.StringVal())
-            this.Append(" ")
-
-    public static ext{str} fn GetLiteral() str is KeywordTokens.ContainsKey(this) ? "{Constants.LITERAL_INDICATOR}{this}", this
-
-    public static ext{ModifierType} fn StringVal() str is this ?
-        {
-            ModifierType.Public is "public",
-            ModifierType.Protected is "protected",
-            ModifierType.Internal is "internal",
-            ModifierType.Private is "private",
-            ModifierType.Static is "static",
-            ModifierType.Abstract is "abstract",
-            ModifierType.Virtual is "virtual",
-            ModifierType.Override is "override",
-
-            ModifierType.Extension is "",
-
-            _ is "[{this}]",
-        }
-
-    public static ext{BinaryOperatorType} fn StringVal() str is this ?
-        {
-            BinaryOperatorType.Dot is ".",
-            BinaryOperatorType.NullDot is "?.",
-
-            BinaryOperatorType.As is "as",
-
-            BinaryOperatorType.Multiply is "*",
-            BinaryOperatorType.Divide is "/",
-            BinaryOperatorType.Modulus is "%",
-
-            BinaryOperatorType.Add is "+",
-            BinaryOperatorType.Subtract is "-",
-
-            BinaryOperatorType.LeftShift is "<<",
-            BinaryOperatorType.RightShift is ">>",
-
-            BinaryOperatorType.BitwiseAnd is "&",
-
-            BinaryOperatorType.BitwiseOr is "|",
-            BinaryOperatorType.BitwiseXor is "^",
-
-            BinaryOperatorType.LessThan is "<",
-            BinaryOperatorType.GreaterThan is ">",
-            BinaryOperatorType.LessThanOrEqual is "<=",
-            BinaryOperatorType.GreaterThanOrEqual is ">=",
-
-            BinaryOperatorType.Equal is "==",
-            BinaryOperatorType.NotEqual is "!=",
-
-            BinaryOperatorType.And is "and",
-
-            BinaryOperatorType.Or is "or",
-
-            BinaryOperatorType.NullCoalesce is "??",
-
-            _ is "[{this}]",
-        }
-
-    public static ext{AssignmentOperatorType} fn StringVal() str is this ?
-        {
-            AssignmentOperatorType.Assign is "=",
-            AssignmentOperatorType.Add is "+=",
-            AssignmentOperatorType.Subtract is "-=",
-            AssignmentOperatorType.Multiply is "*=",
-            AssignmentOperatorType.Divide is "/=",
-            AssignmentOperatorType.Modulus is "%=",
-            AssignmentOperatorType.BitwiseAnd is "&=",
-            AssignmentOperatorType.BitwiseOr is "|=",
-            AssignmentOperatorType.BitwiseXor is "^=",
-            AssignmentOperatorType.LeftShift is "<<=",
-            AssignmentOperatorType.RightShift is ">>=",
-            AssignmentOperatorType.NullCoalesce is "??=",
-            _ is "[{this}]",
-        }
-
     public static var KeywordTokens Dictionary{str, TokenType}
 
     static fn new()
@@ -126,16 +34,17 @@ public static class Helper
         KeywordTokens.Add("use", TokenType.Use)
         KeywordTokens.Add("if", TokenType.If)
         KeywordTokens.Add("else", TokenType.Else)
+        KeywordTokens.Add(":", TokenType.Colon)
         KeywordTokens.Add("_", TokenType.Discard)
         KeywordTokens.Add("public", TokenType.Public)
         KeywordTokens.Add("protected", TokenType.Protected)
         KeywordTokens.Add("internal", TokenType.Internal)
         KeywordTokens.Add("private", TokenType.Private)
-        KeywordTokens.Add("static", TokenType.Static)
         KeywordTokens.Add("abstract", TokenType.Abstract)
-        KeywordTokens.Add("virtual", TokenType.Virtual)
-        KeywordTokens.Add("override", TokenType.Override)
         KeywordTokens.Add("ext", TokenType.Extension)
+        KeywordTokens.Add("open", TokenType.Open)
+        KeywordTokens.Add("override", TokenType.Override)
+        KeywordTokens.Add("static", TokenType.Static)
         KeywordTokens.Add("out", TokenType.Out)
         KeywordTokens.Add("ref", TokenType.Reference)
         KeywordTokens.Add("this", TokenType.This)

@@ -86,6 +86,14 @@ public class BinaryOperator is Expression
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
+public class Block is Statement
+    public fn Statements List{Statement} = new()
+    
+    public fn new(position Position) base(position) is ; empty
+
+    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+
+
 public class Break is Statement
     public fn new(position Position) base(position) is ; empty
 

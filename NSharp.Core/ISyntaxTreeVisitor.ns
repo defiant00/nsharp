@@ -11,6 +11,7 @@ public interface ISyntaxTreeVisitor
     public fn Visit(item ArrayLiteral)
     public fn Visit(item Assignment)
     public fn Visit(item BinaryOperator)
+    public fn Visit(item Block)
     public fn Visit(item Break)
     public fn Visit(item Case)
     public fn Visit(item Catch)

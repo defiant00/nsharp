@@ -1,5 +1,3 @@
-use NSharp.Compiler
-
 ns NSharp.Compiler.Tree
 
 public abstract class TreeItem

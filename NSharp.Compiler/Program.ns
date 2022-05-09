@@ -19,32 +19,37 @@ public static class Program
 
         var arguments = new Arguments(args)
 
-        if args.Length < 2 or arguments.Flags.ContainsKey("help")
-            Console.WriteLine()
-            Console.WriteLine("Usage: nsc [command] [file(s)]")
-            Console.WriteLine()
-            Console.WriteLine("Commands:")
-            Console.WriteLine("    /build [project paths] - build projects")
-            Console.WriteLine("    /compile [files]       - compile the specified files")
-            Console.WriteLine("    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
-            Console.WriteLine("    /format [files]        - format the specified files per the .nsedit and .nssave settings")
-            Console.WriteLine("    /save [files]          - save the specified files per the .nssave settings")
-            Console.WriteLine("    /validate [files]      - validate the specified files' syntax")
-        else if arguments.Flags.ContainsKey("build")
-            Console.WriteLine("Build not yet supported.")
-        else if arguments.Flags.ContainsKey("compile")
-            Compile(arguments)
-        else if arguments.Flags.ContainsKey("edit")
-            Edit(arguments)
-        else if arguments.Flags.ContainsKey("format")
-            Format(arguments)
-        else if arguments.Flags.ContainsKey("save")
-            Save(arguments)
-        else if arguments.Flags.ContainsKey("validate")
-            Validate(arguments)
-        else
-            Console.WriteLine("No command found.")
+        try
+            if args.Length < 2 or arguments.Flags.ContainsKey("help")
+                Console.WriteLine()
+                Console.WriteLine("Usage: nsc [command] [file(s)]")
+                Console.WriteLine()
+                Console.WriteLine("Commands:")
+                Console.WriteLine("    /build [project paths] - build projects")
+                Console.WriteLine("    /compile [files]       - compile the specified files")
+                Console.WriteLine("    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
+                Console.WriteLine("    /format [files]        - format the specified files per the .nsedit and .nssave settings")
+                Console.WriteLine("    /save [files]          - save the specified files per the .nssave settings")
+                Console.WriteLine("    /validate [files]      - validate the specified files' syntax")
+            else if arguments.Flags.ContainsKey("build")
+                Console.WriteLine("Build not yet supported.")
+            else if arguments.Flags.ContainsKey("compile")
+                Compile(arguments)
+            else if arguments.Flags.ContainsKey("edit")
+                Edit(arguments)
+            else if arguments.Flags.ContainsKey("format")
+                Format(arguments)
+            else if arguments.Flags.ContainsKey("save")
+                Save(arguments)
+            else if arguments.Flags.ContainsKey("validate")
+                Validate(arguments)
+            else
+                Console.WriteLine("No command found.")
+        catch Exception ex
+            SetConsoleColor(Severity.Fatal)
+            Console.WriteLine(ex)
 
+        ResetConsoleColor()
         Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
     
     private static fn Compile(args Arguments)
@@ -163,14 +168,29 @@ public static class Program
 
     private static fn HandleResult(result Result)
         if result.Diagnostics.Any()
+            ResetConsoleColor()
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
+                SetConsoleColor(diagnostic.Severity)
                 Console.WriteLine("  [{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+
+    private static fn ResetConsoleColor() is Console.ForegroundColor = ConsoleColor.White
+
+    private static fn SetConsoleColor(severity Severity)
+        Console.ForegroundColor = severity ? {
+            Severity.Message is ConsoleColor.Cyan,
+            Severity.Warning is ConsoleColor.Yellow,
+            Severity.Error is ConsoleColor.Red,
+            Severity.Fatal is ConsoleColor.Red,
+            _ is ConsoleColor.White,
+        }
 
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
+            SetConsoleColor(diagnostic.Severity)
             Console.WriteLine("[{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
+            ResetConsoleColor()
             Console.WriteLine("Compile successful")
 
     private static fn GetLanguage(args Arguments, configFileName str, startingPath str) ILanguage
@@ -186,6 +206,7 @@ public static class Program
                 dir = dir.Parent
 
         if config == null
+            SetConsoleColor(Severity.Warning)
             Console.WriteLine("'{configFileName}' not found, using default configuration.")
             config = new()
 

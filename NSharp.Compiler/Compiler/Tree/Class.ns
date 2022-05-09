@@ -1,5 +1,4 @@
 use System.Reflection.Metadata
-use NSharp.Compiler
 use NSharp.Core.Ast
 
 ns NSharp.Compiler.Tree

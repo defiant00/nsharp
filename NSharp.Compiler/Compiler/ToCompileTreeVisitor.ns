@@ -67,6 +67,7 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
     public fn Visit(item ArrayLiteral) is throw new InvalidItemException()
     public fn Visit(item Assignment) is throw new InvalidItemException()
     public fn Visit(item BinaryOperator) is throw new InvalidItemException()
+    public fn Visit(item Block) is throw new InvalidItemException()
     public fn Visit(item Break) is throw new InvalidItemException()
     public fn Visit(item Case) is throw new InvalidItemException()
     public fn Visit(item Catch) is throw new InvalidItemException()

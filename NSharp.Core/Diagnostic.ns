@@ -12,6 +12,8 @@ public class Diagnostic
     public fn Message str
     public fn Position Position
 
-    public fn new(code str, message str)
+    public fn new(severity Severity, code str, message str, position Position)
+        Severity = severity
         Code = code
         Message = message
+        Position = position

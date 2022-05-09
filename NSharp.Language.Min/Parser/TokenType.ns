@@ -43,17 +43,16 @@ public enum TokenType
     Finally
     FunctionEnd
     Token_Needs_Dedent_End
-    Discard
     Modifier_Start
     Public
     Protected
     Internal
     Private
-    Static
     Abstract
-    Virtual
-    Override
     Extension
+    Open
+    Override
+    Static
     Modifier_End
     Parameter_Modifier_Start
     Variable
@@ -85,6 +84,8 @@ public enum TokenType
     Is
     As
     Has
+    Colon
+    Discard
     Line_Continuation_Postfix_Start
     LeftParenthesis
     LeftBracket
