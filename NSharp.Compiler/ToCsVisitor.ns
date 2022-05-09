@@ -57,6 +57,15 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Indent -= 1
         WriteLineIndented("}}")
     
+    private fn IsNestedHandled(expr Expression) bool is (expr is Generic g and g.Expr == null)
+        or (expr is Indexer i and i.Expr == null)
+        or (expr is MethodCall m and m.Expr == null)
+        or (expr is BinaryOperator b and IsNestedHandled(b.Left))
+    
+    private fn AddNestedVarStack(expr Expression)
+        if ExprStmtVarStack.Any() and !IsNestedHandled(expr)
+            Write("{ExprStmtVarStack.Peek()}.")
+    
     private fn JoinItems(items IEnumerable{ISyntaxTreeItem})
         var first = true
         for item in items
@@ -124,8 +133,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Assignment)
         if !InFor
             WriteIndent()
-        if ExprStmtVarStack.Any()
-            Write("{ExprStmtVarStack.Peek()}.")
+        AddNestedVarStack(item.Left)
         item.Left.Accept(this)
         Write(item.Operator ?
         {
@@ -357,8 +365,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Indent += 1
             var tempName = "__t{ExprStmtVarStack.Count}"
             WriteIndented("var {tempName} = ")
-            if ExprStmtVarStack.Any()
-                Write("{ExprStmtVarStack.Peek()}.")
+            AddNestedVarStack(item.Expr)
             item.Expr.Accept(this)
             WriteLine(";")
             ExprStmtVarStack.Push(tempName)
@@ -369,8 +376,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             WriteLineIndented("}}")
         else
             WriteIndent()
-            if ExprStmtVarStack.Any()
-                Write("{ExprStmtVarStack.Peek()}.")
+            AddNestedVarStack(item.Expr)
             item.Expr.Accept(this)
             WriteLine(";")
 
@@ -418,7 +424,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteStatementBlock(item.Statements)
 
     public fn Visit(item Generic)
-        item.Expr.Accept(this)
+        if item.Expr == null and ExprStmtVarStack.Any()
+            Write(ExprStmtVarStack.Peek())
+        else
+            item.Expr?.Accept(this)
         Write("<")
         JoinItems(item.Arguments)
         Write(">")
@@ -458,7 +467,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Import) is WriteLineIndented("using {str.Join(".", item.NameParts)};")
 
     public fn Visit(item Indexer)
-        item.Expr.Accept(this)
+        if item.Expr == null and ExprStmtVarStack.Any()
+            Write(ExprStmtVarStack.Peek())
+        else
+            item.Expr?.Accept(this)
         Write("[")
         JoinItems(item.Arguments)
         Write("]")
@@ -511,7 +523,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(";")
 
     public fn Visit(item MethodCall)
-        item.Expr.Accept(this)
+        if item.Expr == null and ExprStmtVarStack.Any()
+            Write(ExprStmtVarStack.Peek())
+        else
+            item.Expr?.Accept(this)
         Write("(")
         JoinItems(item.Arguments)
         Write(")")

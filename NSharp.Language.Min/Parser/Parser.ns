@@ -694,8 +694,8 @@ public class Parser
             ret left
         ret ParseBinaryOperatorRightSide(0, left.Result, acceptIs)
 
-    private fn ParseExpressionStatement(acceptEol bool) ParseResult{Statement}
-        var expr = ParseThrowOr(ParseExpression)
+    private fn ParseExpressionStatement(acceptEol bool, isNested bool) ParseResult{Statement}
+        var expr = isNested ? ParseNestedPrimaryExpression(), ParseThrowOr(ParseExpression)
         if expr.Error and expr.Result is ErrorExpression ex
             ret ErrorStatement(ex)
 
@@ -709,7 +709,7 @@ public class Parser
 
             if Accept(TokenType.Indent).Success
                 for Peek.Type != TokenType.Dedent
-                    var stmtRes = ParseMethodStatement()
+                    var stmtRes = ParseMethodStatement(isNested = true)
                     if stmtRes.Error
                         ret stmtRes
                     exprStmt.Statements.Add(stmtRes.Result)
@@ -906,16 +906,16 @@ public class Parser
 
         ret new ParseResult{Statement}(forDef)
 
-    private fn ParseGeneric(expr Expression) ParseResult{Expression}
-        var res = Accept(TokenType.LeftCurly)
-        if res.Failure
+    private fn ParseGeneric(expr ?Expression) ParseResult{Expression}
+        var start = Peek
+        if res = Accept(TokenType.LeftCurly), res.Failure
             ret InvalidTokenErrorExpression("Invalid token in generic", res)
 
         var argType = ParseType()
         if argType.Error
             ret argType
 
-        var generic = new Generic(expr.Position, expr, argType.Result)
+        var generic = new Generic(expr?.Position ?? start.Position, expr, argType.Result)
 
         for Accept(TokenType.Comma).Success
             argType = ParseType()
@@ -923,8 +923,7 @@ public class Parser
                 ret argType
             generic.Arguments.Add(argType.Result)
 
-        res = Accept(TokenType.RightCurly)
-        if res.Failure
+        if res = Accept(TokenType.RightCurly), res.Failure
             ret InvalidTokenErrorExpression("Invalid token in generic", res)
 
         ret new ParseResult{Expression}(generic)
@@ -1168,16 +1167,16 @@ public class Parser
 
         ret new ParseResult{Statement}(import)
 
-    private fn ParseIndexer(expr Expression) ParseResult{Expression}
-        var res = Accept(TokenType.LeftBracket)
-        if res.Failure
+    private fn ParseIndexer(expr ?Expression) ParseResult{Expression}
+        var start = Peek
+        if res = Accept(TokenType.LeftBracket), res.Failure
             ret InvalidTokenErrorExpression("Invalid token in indexer", res)
 
         var argExpr = ParseExpression()
         if argExpr.Error
             ret argExpr
 
-        var indexer = new Indexer(expr.Position, expr, argExpr.Result)
+        var indexer = new Indexer(expr?.Position ?? start.Position, expr, argExpr.Result)
 
         for Accept(TokenType.Comma).Success
             argExpr = ParseExpression()
@@ -1185,8 +1184,7 @@ public class Parser
                 ret argExpr
             indexer.Arguments.Add(argExpr.Result)
 
-        res = Accept(TokenType.RightBracket)
-        if res.Failure
+        if res = Accept(TokenType.RightBracket), res.Failure
             ret InvalidTokenErrorExpression("Invalid token in indexer", res)
 
         ret new ParseResult{Expression}(indexer)
@@ -1334,8 +1332,8 @@ public class Parser
 
         ret new ParseResult{Statement}(local)
 
-    private fn ParseMethodCall(expr Expression) ParseResult{Expression}
-        var methodCall = new MethodCall(expr.Position, expr)
+    private fn ParseMethodCall(expr ?Expression) ParseResult{Expression}
+        var methodCall = new MethodCall(expr?.Position ?? Peek.Position, expr)
         ParseArguments(methodCall.Arguments)
         ret new ParseResult{Expression}(methodCall)
 
@@ -1452,7 +1450,7 @@ public class Parser
 
         ret new ParseResult{Statement}(methodSig)
 
-    private fn ParseMethodStatement(acceptEol bool = true) ParseResult{Statement} is Peek.Type ?
+    private fn ParseMethodStatement(acceptEol bool = true, isNested bool = false) ParseResult{Statement} is Peek.Type ?
         {
             TokenType.Break is ParseBreak(),
             TokenType.Colon is ParseBlock(),
@@ -1466,7 +1464,7 @@ public class Parser
             TokenType.Use is ParseUsing(),
             TokenType.Variable is ParseLocalVariable(),
             TokenType.Value is ParseLocalConstant(),
-            _ is ParseExpressionStatement(acceptEol),
+            _ is ParseExpressionStatement(acceptEol, isNested),
         }
 
     ; Returns null on success, or the error statement.
@@ -1505,6 +1503,59 @@ public class Parser
             ret InvalidTokenErrorStatement("Invalid token in namespace", res)
 
         ret new ParseResult{Statement}(nsRes)
+    
+    private fn ParseNestedPrimaryExpression() ParseResult{Expression}
+        var leftResult ParseResult{Expression}
+        if Peek.Type == TokenType.Literal
+            leftResult = ParseIdentifier()
+        else if Peek.Type == TokenType.LeftParenthesis
+            leftResult = ParseMethodCall(null)
+        else if Peek.Type == TokenType.LeftBracket
+            leftResult = ParseIndexer(null)
+        else if Peek.Type == TokenType.LeftCurly
+            leftResult = ParseGeneric(null)
+        else
+            var token = Next()
+            ret ErrorExpression("Invalid token in nested expression: " + token, token.Position)
+        
+        if leftResult.Error
+            ret leftResult
+
+        var loop bool
+        for
+            loop = true
+            var res = Accept(TokenType.Dot, TokenType.Literal)
+            if res.Success
+                leftResult = new ParseResult{Expression}(new BinaryOperator(
+                    leftResult.Result.Position,
+                    leftResult.Result,
+                    BinaryOperatorType.Dot,
+                    new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
+                ))
+            else
+                res = Accept(TokenType.NullDot, TokenType.Literal)
+                if res.Success
+                    leftResult = new ParseResult{Expression}(new BinaryOperator(
+                        leftResult.Result.Position,
+                        leftResult.Result,
+                        BinaryOperatorType.NullDot,
+                        new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
+                    ))
+                else if Peek.Type == TokenType.LeftParenthesis
+                    leftResult = ParseMethodCall(leftResult.Result)
+                else if Peek.Type == TokenType.LeftBracket
+                    leftResult = ParseIndexer(leftResult.Result)
+                else if Peek.Type == TokenType.LeftCurly
+                    leftResult = ParseGeneric(leftResult.Result)
+                else if Peek.Type == TokenType.Question
+                    leftResult = ParseConditional(leftResult.Result)
+                else
+                    loop = false
+            
+            if !loop
+                break
+
+        ret leftResult
 
     private fn ParseNullable() ParseResult{Expression}
         var start = Peek

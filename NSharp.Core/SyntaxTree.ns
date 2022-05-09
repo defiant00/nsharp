@@ -340,10 +340,10 @@ public class ForEach is Statement
 
 
 public class Generic is Expression
-    public fn Expr Expression
+    public fn Expr ?Expression
     public fn Arguments List{Expression} = new()
 
-    public fn new(position Position, expr Expression, arg Expression) base(position)
+    public fn new(position Position, expr ?Expression, arg Expression) base(position)
         Expr = expr
         Arguments.Add(arg)
 
@@ -389,10 +389,10 @@ public class Import is Statement
 
 
 public class Indexer is Expression
-    public fn Expr Expression
+    public fn Expr ?Expression
     public fn Arguments List{Expression} = new()
 
-    public fn new(position Position, expr Expression, arg Expression) base(position)
+    public fn new(position Position, expr ?Expression, arg Expression) base(position)
         Expr = expr
         Arguments.Add(arg)
 
@@ -457,10 +457,10 @@ public class LocalVariable is Statement
 
 
 public class MethodCall is Expression
-    public fn Expr Expression
+    public fn Expr ?Expression
     public fn Arguments List{Argument} = new()
 
-    public fn new(position Position, expr Expression) base(position) is Expr = expr
+    public fn new(position Position, expr ?Expression) base(position) is Expr = expr
 
     public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 

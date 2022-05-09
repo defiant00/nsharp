@@ -141,7 +141,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             cond.Accept(this)
             WriteLine()
         Indent -= 1
-        WriteLineIndented("}")
+        WriteLineIndented("}}")
 
     public fn Visit(item Constant)
         WriteIndented("Constant: ")
@@ -168,7 +168,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
                 Write("{item.InitNames[i]} = ")
                 item.InitValues[i].Accept(this)
             Indent -= 1
-            Write("}")
+            Write("}}")
 
     public fn Visit(item ConstructorDefinition)
         WriteIndented("Constructor: ")
@@ -272,10 +272,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteStatementBlock(item.Statements)
 
     public fn Visit(item Generic)
-        item.Expr.Accept(this)
+        item.Expr?.Accept(this)
         Write("{{")
         JoinItems(item.Arguments)
-        Write("}")
+        Write("}}")
 
     public fn Visit(item Identifier) is Write(item.Value)
 
@@ -303,13 +303,13 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
                     Write(", ")
                 Write("{item.InitNames[i]} = ")
                 item.InitValues[i].Accept(this)
-            Write("}")
+            Write("}}")
 
     public fn Visit(item Import) is WriteLineIndented("Import: {str.Join(".", item.NameParts)}")
 
     public fn Visit(item Indexer)
         Write("(")
-        item.Expr.Accept(this)
+        item.Expr?.Accept(this)
         Write("[")
         JoinItems(item.Arguments)
         Write("])")
@@ -355,7 +355,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
 
     public fn Visit(item MethodCall)
-        item.Expr.Accept(this)
+        item.Expr?.Accept(this)
         Write("(")
         JoinItems(item.Arguments)
         Write(")")
@@ -395,7 +395,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         if item.Argument != null
             Write("{{")
             item.Argument.Accept(this)
-            Write("}")
+            Write("}}")
 
     public fn Visit(item Namespace) is WriteLineIndented("Namespace: {str.Join(".", item.NameParts)}")
 
@@ -460,7 +460,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
                 if !(expr is StringLiteral)
                     Write("{{")
                     expr.Accept(this)
-                    Write("}")
+                    Write("}}")
                 else
                     expr.Accept(this)
         Write("\"")
