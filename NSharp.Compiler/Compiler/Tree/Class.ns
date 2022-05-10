@@ -3,7 +3,7 @@ use NSharp.Core.Ast
 
 ns NSharp.Compiler.Tree
 
-public class Class is TreeItem
+public class Class
     public fn Emitting bool
     public fn Handle ?EntityHandle
     public fn Imports List{str}
@@ -25,5 +25,3 @@ public class Class is TreeItem
         Imports = imports
         Namespace = nspace
         TreeItem = treeItem
-
-    public over fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

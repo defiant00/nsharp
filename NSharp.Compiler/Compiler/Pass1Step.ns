@@ -1,0 +1,119 @@
+use System.Reflection
+use System.Reflection.Metadata
+use System.Reflection.Metadata.Ecma335
+use NSharp.Compiler.Tree
+
+ns NSharp.Compiler
+
+; Pass 1, creates:
+;   * The module and assembly.
+;   * Class headers.
+public class Pass1Step
+    public fn Run(state State)
+        var guid = Guid.NewGuid()
+
+        state.PeMetadataBuilder.AddModule(
+            0,
+            state.PeMetadataBuilder.GetOrAddString("{state.FileName}.dll"),
+            state.PeMetadataBuilder.GetOrAddGuid(guid),
+            default,
+            default
+        )
+
+        var assemblyHandle = state.PeMetadataBuilder.AddAssembly(
+            state.PeMetadataBuilder.GetOrAddString(state.FileName),
+            new Version(1, 0, 0, 0),
+            default,
+            default,
+            0,
+            AssemblyHashAlgorithm.None
+        )
+
+        var runtimeKey []byte = [0xB0, 0x3F, 0x5F, 0x7F, 0x11, 0xD5, 0x0A, 0x3A]
+
+        var runtimeAssemblyRef = state.PeMetadataBuilder.AddAssemblyReference(
+            state.PeMetadataBuilder.GetOrAddString("System.Runtime"),
+            new Version(6, 0, 0, 0),
+            default,
+            state.PeMetadataBuilder.GetOrAddBlob(runtimeKey),
+            default,
+            default
+        )
+
+        var consoleAssemblyRef = state.PeMetadataBuilder.AddAssemblyReference(
+            state.PeMetadataBuilder.GetOrAddString("System.Console"),
+            new Version(6, 0, 0, 0),
+            default,
+            state.PeMetadataBuilder.GetOrAddBlob(runtimeKey),
+            default,
+            default
+        )
+
+        ; Object type reference
+        state.ObjectTypeRef = state.PeMetadataBuilder.AddTypeReference(
+            runtimeAssemblyRef,
+            state.PeMetadataBuilder.GetOrAddString("System"),
+            state.PeMetadataBuilder.GetOrAddString("Object")
+        )
+
+        ; TargetFrameworkAttribute
+        var targetFrameworkTypeRef = state.PeMetadataBuilder.AddTypeReference(
+            runtimeAssemblyRef,
+            state.PeMetadataBuilder.GetOrAddString("System.Runtime.Versioning"),
+            state.PeMetadataBuilder.GetOrAddString("TargetFrameworkAttribute")
+        )
+
+        var targetFrameworkCtorSig = new BlobBuilder()
+        new BlobEncoder(targetFrameworkCtorSig)
+            .MethodSignature(isInstanceMethod = true)
+            .Parameters(1, fn(r) is r.Void(), fn(p) is p.AddParameter().Type().String())
+
+        var targetFrameworkMemberRef = state.PeMetadataBuilder.AddMemberReference(
+            targetFrameworkTypeRef,
+            state.PeMetadataBuilder.GetOrAddString(".ctor"),
+            state.PeMetadataBuilder.GetOrAddBlob(targetFrameworkCtorSig)
+        )
+
+        var targetFrameworkAttribute = new BlobBuilder()
+        new BlobEncoder(targetFrameworkAttribute)
+            .CustomAttributeSignature(
+                fn(fa) is fa.AddArgument().Scalar().Constant(".NETCoreApp,Version=v6.0"),
+                fn(na) is na.Count(1).AddArgument(
+                    false,
+                    fn(t) is t.ScalarType().String(),
+                    fn(n) is n.Name("FrameworkDisplayName"),
+                    fn(l) is l.Scalar().Constant("")
+                )
+            )
+        
+        state.PeMetadataBuilder.AddCustomAttribute(
+            assemblyHandle,
+            targetFrameworkMemberRef,
+            state.PeMetadataBuilder.GetOrAddBlob(targetFrameworkAttribute)
+        )
+
+        ; <Module>
+        state.PeMetadataBuilder.AddTypeDefinition(
+            default,
+            default,
+            state.PeMetadataBuilder.GetOrAddString("<Module>"),
+            default,
+            MetadataTokens.FieldDefinitionHandle(1),
+            MetadataTokens.MethodDefinitionHandle(1)
+        )
+
+        for c in state.Classes.Values
+            ProcessClass(state, c)
+    
+    private fn ProcessClass(state State, cl Class)
+        state.PeMetadataBuilder.AddTypeDefinition(
+            TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
+            state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
+            state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
+            state.ObjectTypeRef,
+            default,
+            default
+        )
+        
+        for c in cl.Classes
+            ProcessClass(state, c)

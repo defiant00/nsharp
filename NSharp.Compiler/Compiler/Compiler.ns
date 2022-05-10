@@ -13,8 +13,8 @@ public class Compiler
     
     public fn Compile() List{Diagnostic}
         ; Setup the assembly and class headers.
-        State.Accept(new Pass1Visitor())
+        new Pass1Step().Run(State)
         ret State.Diagnostics
     
     public fn Save()
-        State.Accept(new SaveVisitor())
+        new SaveStep().Run(State)

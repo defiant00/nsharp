@@ -5,16 +5,16 @@ use NSharp.Compiler.Tree
 
 ns NSharp.Compiler
 
-public class SaveVisitor has ICompileTreeVisitor
-    public fn Visit(item State)
+public class SaveStep
+    public fn Run(state State)
         ; temporary IDs
         var guid = Guid.NewGuid()
         ; todo - calculate a proper content id
-        var contentId = new BlobContentId(guid, 1)
+        var contentId = new BlobContentId(guid, 0x1)
 
-        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.dll")
-        var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.pdb")
-        var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.runtimeconfig.json")
+        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{state.OutFilePath}.dll")
+        var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{state.OutFilePath}.pdb")
+        var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{state.OutFilePath}.runtimeconfig.json")
 
         ; Make sure the directory exists.
         if dir = new FileInfo(dllPath).DirectoryName, dir != null
@@ -25,25 +25,23 @@ public class SaveVisitor has ICompileTreeVisitor
         ; Specify the PDB location
         var debugDirBuilder = new DebugDirectoryBuilder()
 
-        ; todo - add hex support and switch this back
-        ; debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 0x0100)
-        debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 256)
+        debugDirBuilder.AddCodeViewEntry(pdbPath, contentId, 0x0100)
 
         ; debugDirBuilder.AddPdbChecksumEntry("SHA256", ImmutableArray.Create((byte)1))
         debugDirBuilder.AddReproducibleEntry()
 
         use peStream = new FileStream(dllPath, FileMode.Create, FileAccess.ReadWrite)
             var headerCharacteristics = Characteristics.ExecutableImage | Characteristics.LargeAddressAware
-            if item.EntryPoint == null
+            if state.EntryPoint == null
                 headerCharacteristics |= Characteristics.Dll
             
             var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics = headerCharacteristics)
             var peBuilder = new ManagedPEBuilder(
                 peHeaderBuilder,
-                new MetadataRootBuilder(item.PeMetadataBuilder),
-                item.IlBuilder,
+                new MetadataRootBuilder(state.PeMetadataBuilder),
+                state.IlBuilder,
                 debugDirectoryBuilder = debugDirBuilder,
-                entryPoint = item.EntryPoint ?? default,
+                entryPoint = state.EntryPoint ?? default,
                 deterministicIdProvider = fn(x) is contentId)
             var peBlob = new BlobBuilder()
             var blobContentId = peBuilder.Serialize(peBlob)
@@ -62,7 +60,3 @@ public class SaveVisitor has ICompileTreeVisitor
             "    }}" ..
             "  }}" ..
             "}}")
-
-
-    public fn Visit(item TreeItem) is throw new InvalidItemException()
-    public fn Visit(item Class) is throw new InvalidItemException()
