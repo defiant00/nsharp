@@ -12,7 +12,7 @@ public static class Program
     private val LANGUAGE_KEY str = "language"
 
     public static fn Main(args []str)
-        Console.WriteLine("N# Compiler v0.1.0")
+        Console.WriteLine("N# Compiler v0.1.1")
 
         var stopwatch = new Stopwatch()
         stopwatch.Start()

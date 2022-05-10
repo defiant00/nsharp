@@ -1,7 +1,5 @@
 ## TODO
 
-* expression statement blocks
-
 * Chars unescape on parse, escape on output
 * Events
 * Generic constraints

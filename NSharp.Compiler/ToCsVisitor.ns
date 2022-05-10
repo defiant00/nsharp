@@ -29,7 +29,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteIndent()
         WriteLine(line)
 
-    private fn WriteModifiersIndented(modifiers List{Modifier}, canBeSealead bool = false, doVirtual bool = false)
+    private fn WriteModifiersIndented(modifiers List{Modifier}, canBeSealed bool = false, canOverride bool = false)
         WriteIndented(str.Join(" ", modifiers.Select(fn(m) is m.Type ?
         {
             ModifierType.Abstract is "abstract",
@@ -44,9 +44,17 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             _ is " [modifier] ",
         })))
         if modifiers.Any(fn(m) is m.Type == ModifierType.Open)
-            if doVirtual and !modifiers.Any(fn(m) is m.Type == ModifierType.Override)
+            if canOverride
+                    and !modifiers.Any(fn(m) is m.Type == ModifierType.Override)
+                    and !modifiers.Any(fn(m) is m.Type == ModifierType.Static)
                 Write(" virtual")
-        else if canBeSealead and !modifiers.Any(fn(m) is m.Type == ModifierType.Abstract)
+        else if canBeSealed
+                and !modifiers.Any(fn(m) is m.Type == ModifierType.Abstract)
+                and !modifiers.Any(fn(m) is m.Type == ModifierType.Static)
+            Write(" sealed")
+        else if canOverride
+                and modifiers.Any(fn(m) is m.Type == ModifierType.Override)
+                and !modifiers.Any(fn(m) is m.Type == ModifierType.Open)
             Write(" sealed")
 
     private fn WriteStatementBlock(statements List{Statement})
@@ -228,7 +236,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Core.Ast.Class)
         CurrentObject = item.Name
 
-        WriteModifiersIndented(item.Modifiers, true)
+        WriteModifiersIndented(item.Modifiers, canBeSealed = true)
         Write(" class {item.Name}")
         if item.GenericNames.Any()
             Write("<{str.Join(", ", item.GenericNames)}>")
@@ -532,7 +540,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Write(")")
 
     public fn Visit(item MethodDefinition)
-        WriteModifiersIndented(item.Modifiers, true, true)
+        WriteModifiersIndented(item.Modifiers, canOverride = true)
         Write(" ")
         if item.ReturnType == null
             Write("void")
@@ -601,7 +609,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             item.Value.Accept(this)
 
     public fn Visit(item Property)
-        WriteModifiersIndented(item.Modifiers, true)
+        WriteModifiersIndented(item.Modifiers, canOverride = true)
         Write(" ")
         item.Type.Accept(this)
         WriteLine(" {item.Name}")

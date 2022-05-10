@@ -26,4 +26,4 @@ public class Class is TreeItem
         Namespace = nspace
         TreeItem = treeItem
 
-    public override fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

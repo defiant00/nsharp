@@ -5,7 +5,6 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
 
 jobs:
   build:
@@ -29,7 +28,7 @@ jobs:
     - name: Unzip
       run: unzip lib/nsc.zip -d lib
     - name: Transpile
-      run: dotnet lib/nsc.dll -compile NSharp.Compiler NSharp.Core NSharp.Language.Min
+      run: dotnet lib/nsc.dll -compile -tocs NSharp.Compiler NSharp.Core NSharp.Language.Min
     - name: Build
       run: dotnet build NSharp.Compiler --no-restore
 #    - name: Test

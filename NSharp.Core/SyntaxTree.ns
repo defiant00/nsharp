@@ -10,7 +10,7 @@ public abstract class Expression has ISyntaxTreeItem
 
     public fn new(position Position) is Position = position
 
-    public virtual fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public open fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public abstract class Statement has ISyntaxTreeItem
@@ -18,7 +18,7 @@ public abstract class Statement has ISyntaxTreeItem
 
     public fn new(position Position) is Position = position
 
-    public virtual fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public open fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class AnonymousFunction is Expression
@@ -28,7 +28,7 @@ public class AnonymousFunction is Expression
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Argument is Expression
@@ -41,7 +41,7 @@ public class Argument is Expression
         Modifiers = modifiers
         Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Array is Expression
@@ -49,7 +49,7 @@ public class Array is Expression
 
     public fn new(position Position, type Expression) base(position) is Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ArrayLiteral is Expression
@@ -57,7 +57,7 @@ public class ArrayLiteral is Expression
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Assignment is Statement
@@ -70,7 +70,7 @@ public class Assignment is Statement
         Operator = op
         Right = right
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class BinaryOperator is Expression
@@ -83,7 +83,7 @@ public class BinaryOperator is Expression
         Operator = op
         Right = right
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Block is Statement
@@ -91,13 +91,13 @@ public class Block is Statement
     
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Break is Statement
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Case is Statement
@@ -106,7 +106,7 @@ public class Case is Statement
 
     public fn new(position Position, value Expression) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Catch is Statement
@@ -116,7 +116,7 @@ public class Catch is Statement
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Character is Expression
@@ -124,7 +124,7 @@ public class Character is Expression
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Class is Statement
@@ -139,7 +139,7 @@ public class Class is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Comment is Statement
@@ -148,7 +148,7 @@ public class Comment is Statement
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Condition is Expression
@@ -159,7 +159,7 @@ public class Condition is Expression
         Value = value
         Result = result
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Conditional is Expression
@@ -168,7 +168,7 @@ public class Conditional is Expression
 
     public fn new(position Position, value Expression) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Constant is Statement
@@ -182,7 +182,7 @@ public class Constant is Statement
         Name = name
         Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ConstructorCall is Expression
@@ -193,7 +193,7 @@ public class ConstructorCall is Expression
 
     public fn new(position Position, expr Expression) base(position) is Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ConstructorDefinition is Statement
@@ -204,25 +204,25 @@ public class ConstructorDefinition is Statement
 
     public fn new(position Position, modifiers List{Modifier}) base(position) is Modifiers = modifiers
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Continue is Statement
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class CurrentObjectInstance is Expression
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class DefaultValue is Expression
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class DelegateDefinition is Statement
@@ -236,13 +236,13 @@ public class DelegateDefinition is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Discard is Expression
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Enumeration is Statement
@@ -254,7 +254,7 @@ public class Enumeration is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class EnumerationItem is Statement
@@ -264,7 +264,7 @@ public class EnumerationItem is Statement
 
     public fn new(position Position, name str) base(position) is Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ErrorExpression is Expression
@@ -272,7 +272,7 @@ public class ErrorExpression is Expression
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ErrorStatement is Statement
@@ -280,7 +280,7 @@ public class ErrorStatement is Statement
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ExpressionStatement is Statement
@@ -289,7 +289,7 @@ public class ExpressionStatement is Statement
 
     public fn new(position Position, expr Expression) base(position) is Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Field is Statement
@@ -303,7 +303,7 @@ public class Field is Statement
         Name = name
         Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class File is Statement
@@ -312,7 +312,7 @@ public class File is Statement
 
     public fn new(name str) base(new Position()) is Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class For is Statement
@@ -324,7 +324,7 @@ public class For is Statement
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ForEach is Statement
@@ -336,7 +336,7 @@ public class ForEach is Statement
         LocalName = localName
         Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Generic is Expression
@@ -347,7 +347,7 @@ public class Generic is Expression
         Expr = expr
         Arguments.Add(arg)
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Identifier is Expression
@@ -355,7 +355,7 @@ public class Identifier is Expression
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class If is Statement
@@ -367,7 +367,7 @@ public class If is Statement
 
     public fn new(position Position, condition Expression) base(position) is Condition = condition
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class ImplicitConstructorCall is Expression
@@ -377,7 +377,7 @@ public class ImplicitConstructorCall is Expression
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Import is Statement
@@ -385,7 +385,7 @@ public class Import is Statement
 
     public fn new(position Position, namePart str) base(position) is NameParts.Add(namePart)
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Indexer is Expression
@@ -396,7 +396,7 @@ public class Indexer is Expression
         Expr = expr
         Arguments.Add(arg)
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Interface is Statement
@@ -410,7 +410,7 @@ public class Interface is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Is is Expression
@@ -422,7 +422,7 @@ public class Is is Expression
         Expr = expr
         Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class LiteralToken is Expression
@@ -430,7 +430,7 @@ public class LiteralToken is Expression
 
     public fn new(position Position, token LiteralType) base(position) is Token = token
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class LocalConstant is Statement
@@ -443,7 +443,7 @@ public class LocalConstant is Statement
         Type = type
         Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class LocalVariable is Statement
@@ -453,7 +453,7 @@ public class LocalVariable is Statement
 
     public fn new(position Position, name str) base(position) is Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class MethodCall is Expression
@@ -462,7 +462,7 @@ public class MethodCall is Expression
 
     public fn new(position Position, expr ?Expression) base(position) is Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class MethodDefinition is Statement
@@ -477,7 +477,7 @@ public class MethodDefinition is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class MethodSignature is Statement
@@ -491,7 +491,7 @@ public class MethodSignature is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Modifier is Expression
@@ -500,7 +500,7 @@ public class Modifier is Expression
 
     public fn new(position Position, type ModifierType) base(position) is Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Namespace is Statement
@@ -508,7 +508,7 @@ public class Namespace is Statement
 
     public fn new(position Position, namePart str) base(position) is NameParts.Add(namePart)
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Nullable is Expression
@@ -516,7 +516,7 @@ public class Nullable is Expression
 
     public fn new(position Position, type Expression) base(position) is Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Number is Expression
@@ -524,7 +524,7 @@ public class Number is Expression
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Parameter is Expression
@@ -538,7 +538,7 @@ public class Parameter is Expression
         Type = type
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Property is Statement
@@ -557,7 +557,7 @@ public class Property is Statement
         Name = name
         Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class PropertySignature is Statement
@@ -572,7 +572,7 @@ public class PropertySignature is Statement
         Name = name
         Type = type
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Return is Statement
@@ -580,7 +580,7 @@ public class Return is Statement
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Space is Statement
@@ -588,7 +588,7 @@ public class Space is Statement
 
     public fn new(position Position, size int) base(position) is Size = size
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class String is Expression
@@ -596,7 +596,7 @@ public class String is Expression
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class StringLiteral is Expression
@@ -604,7 +604,7 @@ public class StringLiteral is Expression
 
     public fn new(position Position, value str) base(position) is Value = value
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Struct is Statement
@@ -618,7 +618,7 @@ public class Struct is Statement
         Modifiers = modifiers
         Name = name
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Switch is Statement
@@ -629,7 +629,7 @@ public class Switch is Statement
 
     public fn new(position Position, expr Expression) base(position) is Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Throw is Expression
@@ -637,7 +637,7 @@ public class Throw is Expression
 
     public fn new(position Position, exception Expression) base(position) is Exception = exception
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Try is Statement
@@ -647,7 +647,7 @@ public class Try is Statement
 
     public fn new(position Position) base(position) is ; empty
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class UnaryOperator is Expression
@@ -658,7 +658,7 @@ public class UnaryOperator is Expression
         Operator = op
         Expr = expr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
 
 
 public class Using is Statement
@@ -670,4 +670,4 @@ public class Using is Statement
         LocalName = localName
         LocalExpr = localExpr
 
-    public override fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -8,6 +8,7 @@
             "args": [
                 "${workspaceFolder}/lib/nsc.dll",
                 "/compile",
+                "/tocs",
                 "${workspaceFolder}/NSharp.Compiler/",
                 "${workspaceFolder}/NSharp.Core/",
                 "${workspaceFolder}/NSharp.Language.Min/"

@@ -17,4 +17,4 @@ public class State is TreeItem
     public fn PeMetadataBuilder MetadataBuilder = new()
     public fn EntryPoint ?MethodDefinitionHandle
     
-    public override fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)
