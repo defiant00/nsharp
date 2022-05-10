@@ -590,7 +590,12 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         item.Type.Accept(this)
         Write("?")
 
-    public fn Visit(item Number) is Write(item.Value)
+    public fn Visit(item Number) is Write(item.Type ? {
+        NumberType.Binary is "0b{item.Value}",
+        NumberType.Decimal is item.Value,
+        NumberType.Hexadecimal is "0x{item.Value}",
+        _ is "[{item.Type}:{item.Value}]",
+    })
 
     public fn Visit(item Parameter)
         var mods = str.Join(" ", item.Modifiers.Select(fn(m) is m ?

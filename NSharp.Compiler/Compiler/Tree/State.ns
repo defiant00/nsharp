@@ -13,8 +13,14 @@ public class State is TreeItem
     ; delegates
     public fn Diagnostics List{Diagnostic} = new()
 
+    public fn OutFilePath str
+    public fn FileName str
     public fn IlBuilder BlobBuilder = new()
     public fn PeMetadataBuilder MetadataBuilder = new()
     public fn EntryPoint ?MethodDefinitionHandle
+
+    public fn new(outFilePath str)
+        OutFilePath = outFilePath
+        FileName = Path.GetFileName(outFilePath)
     
     public over fn Accept(visitor ICompileTreeVisitor) is visitor.Visit(this)

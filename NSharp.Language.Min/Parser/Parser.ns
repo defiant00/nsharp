@@ -1569,6 +1569,22 @@ public class Parser
 
         ret new ParseResult{Expression}(new Core.Ast.Nullable(start.Position, typeResult.Result))
 
+    private fn ParseNumber() ParseResult{Expression}
+        ; accept number literal
+        var lit = Next()
+
+        var numVal = lit.Value
+        var type = NumberType.Decimal
+
+        if lit.Value.StartsWith("0b")
+            numVal = numVal.Substring(2)
+            type = NumberType.Binary
+        else if lit.Value.StartsWith("0x")
+            numVal = numVal.Substring(2)
+            type = NumberType.Hexadecimal
+        
+        ret new ParseResult{Expression}(new Number(lit.Position, type, numVal))
+
     ; Returns an error, or null on success
     private fn ParseParameters(parameters List{Parameter}) ?ParseResult{Statement}
         var res = Accept(TokenType.LeftParenthesis)
@@ -1638,6 +1654,8 @@ public class Parser
             leftResult = ParseArray()
         else if Peek.Type == TokenType.Question
             leftResult = ParseNullable()
+        else if Peek.Type == TokenType.NumberLiteral
+            leftResult = ParseNumber()
         else
             var token = Next()
             leftResult = token.Type ?
@@ -1647,7 +1665,6 @@ public class Parser
                 TokenType.Discard is new ParseResult{Expression}(new Discard(token.Position)),
                 TokenType.False is new ParseResult{Expression}(new LiteralToken(token.Position, LiteralType.False)),
                 TokenType.Null is new ParseResult{Expression}(new LiteralToken(token.Position, LiteralType.Null)),
-                TokenType.NumberLiteral is new ParseResult{Expression}(new Number(token.Position, token.Value)),
                 TokenType.This is new ParseResult{Expression}(new CurrentObjectInstance(token.Position)),
                 TokenType.True is new ParseResult{Expression}(new LiteralToken(token.Position, LiteralType.True)),
                 _ is ErrorExpression("Invalid token in expression: " + token, token.Position)

@@ -1,32 +1,7 @@
+use System
+
 ns NSharp.Tests.Min
 
 class MyClass
-    fn Test()
-        Order.Customer
-            First = "first"
-            Last = "last"
-            Test()
-            [3].Person
-            Person.Face
-            Person[2]
-            Person[2].Face
-            Person[2].Face[3]
-            ["first"] = First
-            ["second"] = First.Second
-            ["third"] = First.Second[0]
-            ["second"]
-            (4)
-            {int}
-            Address
-                Street = "street"
-                Zip = "12345"
-            Some.Other[thing]()
-            And.Something["else"] = true
-            [0]
-                Name = "name"
-                [1] = "hi"
-                [2]
-            [0].Person
-                Name = "name"
-                [1] = "hi"
-                [2]
+    fn Main(args []str)
+        Console.WriteLine("Hello from N#")

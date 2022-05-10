@@ -4,14 +4,17 @@ use NSharp.Core
 ns NSharp.Compiler
 
 public class Compiler
-    private fn State State = new()
+    private fn State State
+
+    public fn new(outFile str) is State = new(outFile)
 
     public fn Add(file Core.Ast.File)
         file.Accept(new ToCompileTreeVisitor(State))
     
     public fn Compile() List{Diagnostic}
-        State.Accept(new BuildClassHeadersVisitor())
+        ; Setup the assembly and class headers.
+        State.Accept(new Pass1Visitor())
         ret State.Diagnostics
     
-    public fn Save(outFile str)
-        State.Accept(new SaveVisitor(outFile))
+    public fn Save()
+        State.Accept(new SaveVisitor())

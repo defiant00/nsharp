@@ -404,7 +404,12 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         item.Type.Accept(this)
         Write(")")
 
-    public fn Visit(item Number) is Write(item.Value)
+    public fn Visit(item Number) is Write(item.Type ? {
+        NumberType.Binary is "bin({item.Value})",
+        NumberType.Decimal is item.Value,
+        NumberType.Hexadecimal is "hex({item.Value})",
+        _ is "{item.Type}({item.Value})",
+    })
 
     public fn Visit(item Parameter)
         Write("{str.Join(" ", item.Modifiers)} ")

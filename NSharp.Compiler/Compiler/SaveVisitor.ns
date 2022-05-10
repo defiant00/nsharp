@@ -6,20 +6,15 @@ use NSharp.Compiler.Tree
 ns NSharp.Compiler
 
 public class SaveVisitor has ICompileTreeVisitor
-    private fn OutFile str
-
-    public fn new(outFile str) is OutFile = outFile
-
     public fn Visit(item State)
         ; temporary IDs
         var guid = Guid.NewGuid()
         ; todo - calculate a proper content id
         var contentId = new BlobContentId(guid, 1)
 
-
-        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.dll")
-        var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.pdb")
-        var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{OutFile}.runtimeconfig.json")
+        var dllPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.dll")
+        var pdbPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.pdb")
+        var runtimeConfigPath = Path.Combine(Directory.GetCurrentDirectory(), "{item.OutFilePath}.runtimeconfig.json")
 
         ; Make sure the directory exists.
         if dir = new FileInfo(dllPath).DirectoryName, dir != null
