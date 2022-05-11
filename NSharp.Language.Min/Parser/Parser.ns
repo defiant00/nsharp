@@ -296,11 +296,12 @@ public class Parser
             left = new BinaryOperator(left.Position, left, op.Type.ToBinaryOperator(), right.Result)
 
     private fn ParseBlock() ParseResult{Statement}
-        var start = Peek
-        if res = Accept(TokenType.Colon, TokenType.EOL, TokenType.Indent), res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in block", res)
+        var block = new Block(Peek.Position)
 
-        var block = new Block(start.Position)
+        if res = Accept(TokenType.Colon, TokenType.EOL, TokenType.Indent), res.Failure
+            LogError("block", res)
+            ToNextLine()
+            ret new ParseResult{Statement}(block)
 
         for Peek.Type != TokenType.Dedent
             var stmtRes = ParseMethodStatement()
@@ -309,26 +310,24 @@ public class Parser
             block.Statements.Add(stmtRes.Result)
         
         if res = Accept(TokenType.Dedent), res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in block", res)
+            block.Statements.Add(ErrorStmt("block", res))
         
         ret new ParseResult{Statement}(block)
 
     private fn ParseBreak() ParseResult{Statement}
         var res = Accept(TokenType.Break, TokenType.EOL)
         if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in break", res)
+            ret new ParseResult{Statement}(ErrorStmt("break", res))
         ret new ParseResult{Statement}(new Break(GetToken(res).Position))
 
     private fn ParseClass(modifiers List{Modifier}) ParseResult{Statement}
         var res = Accept(TokenType.Class, TokenType.Literal)
         if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in class", res)
+            ret new ParseResult{Statement}(ErrorStmt("class", res))
 
         var classResult = new Class(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
 
-        var genericRes = ParseGenericNames(classResult.GenericNames)
-        if genericRes != null
-            ret genericRes
+        ParseGenericNames(classResult.GenericNames)
 
         if Accept(TokenType.Is).Success
             var parentType = ParseType()
@@ -562,9 +561,7 @@ public class Parser
 
         var ctorDef = new ConstructorDefinition(start.Position, modifiers)
 
-        var paramRes = ParseParameters(ctorDef.Parameters)
-        if paramRes != null
-            ret paramRes
+        ParseParameters(ctorDef.Parameters)
 
         ; base([exprs])
         if Accept(TokenType.Base, TokenType.LeftParenthesis).Success
@@ -628,13 +625,8 @@ public class Parser
 
         var delegateDef = new DelegateDefinition(nameToken.Position, modifiers, nameToken.Value)
 
-        var genericRes = ParseGenericNames(delegateDef.GenericNames)
-        if genericRes != null
-            ret genericRes
-
-        var paramRes = ParseParameters(delegateDef.Parameters)
-        if paramRes != null
-            ret paramRes
+        ParseGenericNames(delegateDef.GenericNames)
+        ParseParameters(delegateDef.Parameters)
 
         if Peek.Type != TokenType.EOL
             var retType = ParseType()
@@ -928,27 +920,22 @@ public class Parser
 
         ret new ParseResult{Expression}(generic)
 
-    ; Returns the error parse result, or null on success.
-    private fn ParseGenericNames(genericNames List{str}) ?ParseResult{Statement}
+    private fn ParseGenericNames(genericNames List{str})
         if Peek.Type != TokenType.LeftCurly
-            ret null
+            ret
 
-        var res = Accept(TokenType.LeftCurly, TokenType.Literal)
-        if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in generic", res)
-
-        genericNames.Add(GetToken(res, 1).Value)
-
-        res = Accept(TokenType.Comma, TokenType.Literal)
-        for res.Success
+        if res = Accept(TokenType.LeftCurly, TokenType.Literal), res.Success
             genericNames.Add(GetToken(res, 1).Value)
-            res = Accept(TokenType.Comma, TokenType.Literal)
+        else
+            LogError("generic", res)
+            ret
 
-        res = Accept(TokenType.RightCurly)
-        if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in generic", res)
+        for res = Accept(TokenType.Comma, TokenType.Literal), res.Success, res = Accept(TokenType.Comma, TokenType.Literal)
+            genericNames.Add(GetToken(res, 1).Value)
 
-        ret null
+        if res = Accept(TokenType.RightCurly), res.Failure
+            LogError("generic", res)
+            To(TokenType.RightCurly)
 
     ; Returns the error parse result, or null on success.
     private fn ParseGetSet(propDef Property) ?ParseResult{Statement}
@@ -1197,9 +1184,7 @@ public class Parser
 
         var intf = new Interface(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
 
-        var genericRes = ParseGenericNames(intf.GenericNames)
-        if genericRes != null
-            ret genericRes
+        ParseGenericNames(intf.GenericNames)
 
         if Accept(TokenType.Has).Success
             var interfaceType = ParseType()
@@ -1348,13 +1333,8 @@ public class Parser
 
         var methodDef = new MethodDefinition(nameToken.Position, modifiers, nameToken.Value)
 
-        var genericRes = ParseGenericNames(methodDef.GenericNames)
-        if genericRes != null
-            ret genericRes
-
-        var paramRes = ParseParameters(methodDef.Parameters)
-        if paramRes != null
-            ret paramRes
+        ParseGenericNames(methodDef.GenericNames)
+        ParseParameters(methodDef.Parameters)
 
         ; [modifiers] fn [name]([params]) is [statement]
         if Accept(TokenType.Is).Success
@@ -1429,13 +1409,8 @@ public class Parser
 
         var methodSig = new MethodSignature(pos, modifiers, name)
 
-        var genericRes = ParseGenericNames(methodSig.GenericNames)
-        if genericRes != null
-            ret genericRes
-
-        var paramRes = ParseParameters(methodSig.Parameters)
-        if paramRes != null
-            ret paramRes
+        ParseGenericNames(methodSig.GenericNames)
+        ParseParameters(methodSig.Parameters)
 
         ; return type
         if Peek.Type != TokenType.EOL
@@ -1585,11 +1560,11 @@ public class Parser
         
         ret new ParseResult{Expression}(new Number(lit.Position, type, numVal))
 
-    ; Returns an error, or null on success
-    private fn ParseParameters(parameters List{Parameter}) ?ParseResult{Statement}
+    private fn ParseParameters(parameters List{Parameter})
         var res = Accept(TokenType.LeftParenthesis)
         if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in parameters", res)
+            LogError("parameters", res)
+            ret
 
         for Peek.Type != TokenType.RightParenthesis
             var modifiers = new List{ParameterModifierType}()
@@ -1598,30 +1573,28 @@ public class Parser
 
             res = Accept(TokenType.Literal)
             if res.Failure
-                ret InvalidTokenErrorStatement("Invalid token in parameter", res)
+                LogError("parameters", res)
+                To(TokenType.Comma)
             var paramNameToken = GetToken(res)
             var paramType ?ParseResult{Expression} = null
             if Peek.Type != TokenType.RightParenthesis and Peek.Type != TokenType.Comma and Peek.Type != TokenType.Assign
                 paramType = ParseType()
-            if paramType != null and paramType.Error and paramType.Result is ErrorExpression ex
-                ret ErrorStatement(ex)
 
             var par = new Parameter(paramNameToken.Position, modifiers, paramType?.Result, paramNameToken.Value)
             parameters.Add(par)
 
             if Accept(TokenType.Assign).Success
                 var exprRes = ParseExpression()
-                if exprRes.Error and exprRes.Result is ErrorExpression exp
-                    ret ErrorStatement(exp)
                 par.Value = exprRes.Result
+                if exprRes.Error
+                    To(TokenType.RightParenthesis)
 
             Accept(TokenType.Comma)
 
         res = Accept(TokenType.RightParenthesis)
         if res.Failure
-            ret InvalidTokenErrorStatement("Invalid token in parameters", res)
-
-        ret null
+            LogError("parameters", res)
+            To(TokenType.RightParenthesis)
 
     private fn ParseParenthesizedExpression() ParseResult{Expression}
         ; Discard the opening parenthesis
@@ -1915,9 +1888,7 @@ public class Parser
 
         var structRes = new Struct(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
 
-        var genericRes = ParseGenericNames(structRes.GenericNames)
-        if genericRes != null
-            ret genericRes
+        ParseGenericNames(structRes.GenericNames)
 
         if Accept(TokenType.Has).Success
             var interfaceType = ParseType()

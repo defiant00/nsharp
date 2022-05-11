@@ -21,16 +21,18 @@ public static class Program
 
         try
             if args.Length < 2 or arguments.Flags.ContainsKey("help")
-                Console.WriteLine()
-                Console.WriteLine("Usage: nsc [command] [file(s)]")
-                Console.WriteLine()
-                Console.WriteLine("Commands:")
-                Console.WriteLine("    /build [project paths] - build projects")
-                Console.WriteLine("    /compile [files]       - compile the specified files")
-                Console.WriteLine("    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings")
-                Console.WriteLine("    /format [files]        - format the specified files per the .nsedit and .nssave settings")
-                Console.WriteLine("    /save [files]          - save the specified files per the .nssave settings")
-                Console.WriteLine("    /validate [files]      - validate the specified files' syntax")
+                Console.WriteLine(
+                    "" ..
+                    "Usage: nsc [command] [file(s)]" ..
+                    "" ..
+                    "Commands:" ..
+                    "    /build [project paths] - build projects" ..
+                    "    /compile [files]       - compile the specified files" ..
+                    "    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings" ..
+                    "    /format [files]        - format the specified files per the .nsedit and .nssave settings" ..
+                    "    /save [files]          - save the specified files per the .nssave settings" ..
+                    "    /validate [files]      - validate the specified files' syntax"
+                )
             else if arguments.Flags.ContainsKey("build")
                 Console.WriteLine("Build not yet supported.")
             else if arguments.Flags.ContainsKey("compile")
