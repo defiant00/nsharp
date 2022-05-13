@@ -273,16 +273,23 @@ public class Parser
 
             ; If this is a binary operator that binds at least as tightly as the
             ; current operator then consume it, otherwise we're done.
-            if tokenPrecedence < leftPrecedence
+            ;
+            ; Also stop if it's an 'is' and we are not currently accepting 'is'
+            if tokenPrecedence < leftPrecedence or (Peek.Type == TokenType.Is and !acceptIs)
                 ret new ParseResult{Expression}(left)
 
             var op = Next()
             var right = op.Type.IsOperatorCanThrow() ?
-                ParseThrowOr(ParsePrimaryExpression, acceptIs),
-                ParsePrimaryExpression(acceptIs)
+                ParseThrowOr(ParsePrimaryExpression),
+                ParsePrimaryExpression()
             if right.Error
                 ToNextLine()
                 ret new ParseResult{Expression}(left, true)
+            
+            ; If it's a named expression (currently only 'is') then accept the
+            ; next token as the name if it's a literal.
+            if op.Type == TokenType.Is and Peek.Type == TokenType.Literal
+                right = new ParseResult{Expression}(new NamedExpression(right.Result.Position, right.Result, Next().Value))
 
             ; If the binary operator binds less tightly with the right than the operator
             ; after the right, let the pending operator take the right as its left.
@@ -681,7 +688,7 @@ public class Parser
         ret new ParseResult{Statement}(enumDef)
 
     private fn ParseExpression(acceptIs bool = true) ParseResult{Expression}
-        var left = ParsePrimaryExpression(acceptIs)
+        var left = ParsePrimaryExpression()
         if left.Error
             ret left
         ret ParseBinaryOperatorRightSide(0, left.Result, acceptIs)
@@ -1242,19 +1249,6 @@ public class Parser
 
         ret ParsePropertySignature(modifiers, fnPos, name)
 
-    private fn ParseIs(expr Expression) ParseResult{Expression}
-        ; accept is
-        Next()
-        var typeResult = ParseType()
-        if typeResult.Error
-            ret typeResult
-        var isExpr = new Is(expr.Position, expr, typeResult.Result)
-
-        if Peek.Type == TokenType.Literal
-            isExpr.Name = Next().Value
-
-        ret new ParseResult{Expression}(isExpr)
-
     private fn ParseLocalConstant() ParseResult{Statement}
         ; val [name] [type] = [expr]
 
@@ -1605,7 +1599,9 @@ public class Parser
             ret InvalidTokenErrorExpression("Invalid token in parenthesized expression", res)
         ret expression
 
-    private fn ParsePrimaryExpression(acceptIs bool) ParseResult{Expression}
+    ; acceptIs is not used, but is there so ParsePrimaryExpression can be used
+    ; in ParseThrowOr()
+    private fn ParsePrimaryExpression(acceptIs bool = true) ParseResult{Expression}
         var leftResult ParseResult{Expression}
         if Peek.Type == TokenType.LeftParenthesis
             leftResult = ParseParenthesizedExpression()
@@ -1672,8 +1668,6 @@ public class Parser
                     leftResult = ParseIndexer(leftResult.Result)
                 else if Peek.Type == TokenType.LeftCurly
                     leftResult = ParseGeneric(leftResult.Result)
-                else if acceptIs and Peek.Type == TokenType.Is
-                    leftResult = ParseIs(leftResult.Result)
                 else if Peek.Type == TokenType.Question
                     leftResult = ParseConditional(leftResult.Result)
                 else

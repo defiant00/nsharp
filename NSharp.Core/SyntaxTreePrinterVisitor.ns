@@ -326,13 +326,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
         WriteStatementBlock(item.Statements)
 
-    public fn Visit(item Is)
-        item.Expr.Accept(this)
-        Write(" is ")
-        item.Type.Accept(this)
-        if item.Name != null
-            Write(" {item.Name}")
-
     public fn Visit(item LiteralToken) is Console.Write(item.Token)
 
     public fn Visit(item LocalConstant)
@@ -396,6 +389,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             Write("{{")
             item.Argument.Accept(this)
             Write("}}")
+    
+    public fn Visit(item NamedExpression)
+        item.Expr.Accept(this)
+        Write(" {item.Name}")
 
     public fn Visit(item Namespace) is WriteLineIndented("Namespace: {str.Join(".", item.NameParts)}")
 

@@ -5,6 +5,7 @@ public enum BinaryOperatorType
     Dot
     NullDot
     NullCoalesce
+    Is
     As
     Add
     Subtract
@@ -32,6 +33,7 @@ public static class BinaryOperatorHelper
             BinaryOperatorType.Dot is 12,
             BinaryOperatorType.NullDot is 12,
 
+            BinaryOperatorType.Is is 11,
             BinaryOperatorType.As is 11,
 
             BinaryOperatorType.Multiply is 10,

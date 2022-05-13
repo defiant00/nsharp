@@ -183,6 +183,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             BinaryOperatorType.Equal is " == ",
             BinaryOperatorType.GreaterThan is " > ",
             BinaryOperatorType.GreaterThanOrEqual is " >= ",
+            BinaryOperatorType.Is is " is ",
             BinaryOperatorType.LeftShift is " << ",
             BinaryOperatorType.LessThan is " < ",
             BinaryOperatorType.LessThanOrEqual is " <= ",
@@ -494,13 +495,6 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine()
         WriteStatementBlock(item.Statements)
 
-    public fn Visit(item Is)
-        item.Expr.Accept(this)
-        Write(" is ")
-        item.Type.Accept(this)
-        if item.Name != null
-            Write(" {item.Name}")
-
     public fn Visit(item LiteralToken) is Write(item.Token ?
         {
             LiteralType.False is "false",
@@ -583,6 +577,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(");")
 
     public fn Visit(item Modifier) is Write("/* modifier */")
+
+    public fn Visit(item NamedExpression)
+        item.Expr.Accept(this)
+        Write(" {item.Name}")
 
     public fn Visit(item Namespace) is WriteLineIndented("namespace {str.Join(".", item.NameParts)};")
 

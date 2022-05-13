@@ -57,6 +57,7 @@ public static class TokenHelper
             TokenType.Dot is BinaryOperatorType.Dot,
             TokenType.NullDot is BinaryOperatorType.NullDot,
 
+            TokenType.Is is BinaryOperatorType.Is,
             TokenType.As is BinaryOperatorType.As,
 
             TokenType.Multiply is BinaryOperatorType.Multiply,
