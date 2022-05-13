@@ -1,0 +1,37 @@
+use System.Reflection.Metadata
+
+ns NSharp.Compiler
+
+public enum TypeItemType
+    Assembly
+    Namespace
+    Type
+
+public class TypeItem is Dictionary{str, TypeItem}
+    public fn Handle ?TypeReferenceHandle
+    private fn Type TypeItemType
+    public fn Value str
+
+    public fn new(type TypeItemType, value str)
+        Type = type
+        Value = value
+
+    public fn AddType(nspace str, name str)
+        ; add the namespace tree
+        var nsParts = nspace.Split('.')
+        var curr = this
+        var newItem TypeItem
+        for part in nsParts
+            if curr.ContainsKey(part)
+                curr = curr[part]
+            else
+                newItem = new(TypeItemType.Namespace, part)
+                curr[part] = newItem
+                curr = newItem
+        
+        ; now add the type
+        if curr.ContainsKey(name)
+            newItem = curr[name]
+        else
+            newItem = new(TypeItemType.Type, name)
+            curr[name] = newItem

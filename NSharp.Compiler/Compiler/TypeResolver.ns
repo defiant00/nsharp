@@ -1,0 +1,60 @@
+use System.Reflection.Metadata
+use NSharp.Compiler.Tree
+
+ns NSharp.Compiler
+
+public class TypeResolver has IDisposable
+    private fn State State
+    private fn Assemblies Dictionary{str, Assembly} = new()
+
+    public fn new(state State) is State = state
+
+    public fn Dispose()
+        for asm in Assemblies.Values
+            asm.Dispose()
+
+    public fn AddAssemblyRef(fileName str)
+        ; load the assembly
+        var asm = new Assembly(fileName)
+        if Assemblies.ContainsKey(asm.Name)
+            throw new Exception("{asm.Name} has already been referenced.")
+        
+        Assemblies[asm.Name] = asm
+    
+    public fn GetOrAddTypeRef(nspace str, name str) TypeReferenceHandle
+        var nsParts = nspace.Split('.')
+
+        var assembly ?Assembly = null
+        var type ?TypeItem = null
+        for asm in Assemblies.Values
+            var t = asm.GetTypeItem(nsParts, name)
+            if t != null
+                if type == null
+                    assembly = asm
+                    type = t
+                else
+                    throw new Exception("Multiple types found for {nspace}.{name}")
+        
+        if assembly == null or type == null
+            throw new Exception("Unable to get type {nspace}.{name}")
+            
+        ; create an assembly reference if necessary
+        if assembly.Handle == null
+            assembly.Handle = State.PeMetadataBuilder.AddAssemblyReference(
+                State.PeMetadataBuilder.GetOrAddString(assembly.Name),
+                assembly.Definition.Version,
+                default,
+                State.PeMetadataBuilder.GetOrAddBlob(assembly.PublicKey),
+                default,
+                default
+            )
+        
+        ; create a type reference if necessary
+        if type.Handle == null
+            type.Handle = State.PeMetadataBuilder.AddTypeReference(
+                assembly.Handle.Value,
+                State.PeMetadataBuilder.GetOrAddString(nspace),
+                State.PeMetadataBuilder.GetOrAddString(name)
+            )
+        
+        ret type.Handle.Value

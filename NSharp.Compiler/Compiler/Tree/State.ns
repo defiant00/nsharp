@@ -4,7 +4,8 @@ use NSharp.Core
 
 ns NSharp.Compiler.Tree
 
-public class State
+public class State has IDisposable
+    public fn TypeResolver TypeResolver
     public fn Classes Dictionary{str, Class} = new()
     public fn ClassOrder List{Class} = new()
     ; enums
@@ -21,5 +22,8 @@ public class State
     public fn ObjectTypeRef TypeReferenceHandle = default
 
     public fn new(outFilePath str)
+        TypeResolver = new(this)
         OutFilePath = outFilePath
         FileName = Path.GetFileName(outFilePath)
+    
+    public fn Dispose() is TypeResolver.Dispose()

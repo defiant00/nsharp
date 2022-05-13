@@ -8,7 +8,7 @@ ns NSharp.Compiler
 ; Pass 1, creates:
 ;   * The module and assembly.
 ;   * Class headers.
-public class Pass1Step
+public class CompilePass1
     public fn Run(state State)
         var guid = Guid.NewGuid()
 
@@ -29,39 +29,13 @@ public class Pass1Step
             AssemblyHashAlgorithm.None
         )
 
-        var runtimeKey []byte = [0xB0, 0x3F, 0x5F, 0x7F, 0x11, 0xD5, 0x0A, 0x3A]
+        state.TypeResolver.AddAssemblyRef("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\6.0.0\\System.Runtime.dll")
+        state.TypeResolver.AddAssemblyRef("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\6.0.0\\System.Console.dll")
 
-        var runtimeAssemblyRef = state.PeMetadataBuilder.AddAssemblyReference(
-            state.PeMetadataBuilder.GetOrAddString("System.Runtime"),
-            new Version(6, 0, 0, 0),
-            default,
-            state.PeMetadataBuilder.GetOrAddBlob(runtimeKey),
-            default,
-            default
-        )
-
-        var consoleAssemblyRef = state.PeMetadataBuilder.AddAssemblyReference(
-            state.PeMetadataBuilder.GetOrAddString("System.Console"),
-            new Version(6, 0, 0, 0),
-            default,
-            state.PeMetadataBuilder.GetOrAddBlob(runtimeKey),
-            default,
-            default
-        )
-
-        ; Object type reference
-        state.ObjectTypeRef = state.PeMetadataBuilder.AddTypeReference(
-            runtimeAssemblyRef,
-            state.PeMetadataBuilder.GetOrAddString("System"),
-            state.PeMetadataBuilder.GetOrAddString("Object")
-        )
+        state.ObjectTypeRef = state.TypeResolver.GetOrAddTypeRef("System", "Object")
 
         ; TargetFrameworkAttribute
-        var targetFrameworkTypeRef = state.PeMetadataBuilder.AddTypeReference(
-            runtimeAssemblyRef,
-            state.PeMetadataBuilder.GetOrAddString("System.Runtime.Versioning"),
-            state.PeMetadataBuilder.GetOrAddString("TargetFrameworkAttribute")
-        )
+        var targetFrameworkTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Runtime.Versioning", "TargetFrameworkAttribute")
 
         var targetFrameworkCtorSig = new BlobBuilder()
         new BlobEncoder(targetFrameworkCtorSig)
@@ -111,8 +85,8 @@ public class Pass1Step
             state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
             state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
             state.ObjectTypeRef,
-            default,
-            default
+            MetadataTokens.FieldDefinitionHandle(1),
+            MetadataTokens.MethodDefinitionHandle(1)
         )
         
         for c in cl.Classes

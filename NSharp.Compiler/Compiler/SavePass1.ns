@@ -5,7 +5,7 @@ use NSharp.Compiler.Tree
 
 ns NSharp.Compiler
 
-public class SaveStep
+public class SavePass1
     public fn Run(state State)
         ; temporary IDs
         var guid = Guid.NewGuid()

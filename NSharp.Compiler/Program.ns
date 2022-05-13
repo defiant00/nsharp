@@ -83,7 +83,7 @@ public static class Program
                 else if File.Exists(path)
                     files.Add(path)
 
-            var compiler = new Compiler(outFile)
+            use compiler = new Compiler(outFile)
             for file in files
                 var language ILanguage
 

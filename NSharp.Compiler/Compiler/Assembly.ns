@@ -1,0 +1,58 @@
+use System.Collections.Immutable
+use System.Reflection.Metadata
+use System.Reflection.Metadata.Ecma335
+use System.Reflection.PortableExecutable
+
+ns NSharp.Compiler
+
+public class Assembly has IDisposable
+    public fn Name str is Items.Value
+    public fn PublicKey ImmutableArray{byte} is Meta.GetBlobContent(Definition.PublicKey)
+    public fn Definition AssemblyDefinition
+    public fn Handle ?AssemblyReferenceHandle
+
+    private fn Items TypeItem
+
+    private fn Stream FileStream
+    private fn Meta MetadataReader
+
+    public fn new(fileName str)
+        Stream = new FileStream(fileName, FileMode.Open, FileAccess.Read)
+        Meta = new PEReader(Stream).GetMetadataReader()
+        Definition = Meta.GetAssemblyDefinition()
+        Items = new TypeItem(TypeItemType.Assembly, Meta.GetString(Definition.Name))
+
+        for handle in Meta.TypeDefinitions
+            LoadType(handle)
+        
+        for handle in Meta.ExportedTypes
+            LoadType(handle)
+    
+    private fn LoadType(handle TypeDefinitionHandle)
+        var type = Meta.GetTypeDefinition(handle)
+        var typeNamespace = Meta.GetString(type.Namespace)
+        var typeName = Meta.GetString(type.Name)
+        Items.AddType(typeNamespace, typeName)
+    
+    private fn LoadType(handle ExportedTypeHandle)
+        var type = Meta.GetExportedType(handle)
+        var typeNamespace = Meta.GetString(type.Namespace)
+        var typeName = Meta.GetString(type.Name)
+        Items.AddType(typeNamespace, typeName)
+    
+    public fn GetTypeItem(nsParts IEnumerable{str}, name str) ?TypeItem
+        var curr = Items
+
+        ; namespace
+        for part in nsParts
+            ; todo - dynamic loading
+            if !curr.ContainsKey(part)
+                ret null
+            curr = curr[part]
+        
+        ; type
+        var res ?TypeItem
+        curr.TryGetValue(name, out res)
+        ret res
+    
+    public fn Dispose() is Stream.Dispose()

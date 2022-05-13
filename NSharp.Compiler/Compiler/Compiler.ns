@@ -3,18 +3,20 @@ use NSharp.Core
 
 ns NSharp.Compiler
 
-public class Compiler
+public class Compiler has IDisposable
     private fn State State
 
     public fn new(outFile str) is State = new(outFile)
+
+    public fn Dispose() is State.Dispose()
 
     public fn Add(file Core.Ast.File)
         file.Accept(new ToCompileTreeVisitor(State))
     
     public fn Compile() List{Diagnostic}
         ; Setup the assembly and class headers.
-        new Pass1Step().Run(State)
+        new CompilePass1().Run(State)
         ret State.Diagnostics
     
     public fn Save()
-        new SaveStep().Run(State)
+        new SavePass1().Run(State)
