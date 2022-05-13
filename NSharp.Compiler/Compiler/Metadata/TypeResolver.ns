@@ -1,7 +1,7 @@
 use System.Reflection.Metadata
 use NSharp.Compiler.Tree
 
-ns NSharp.Compiler
+ns NSharp.Compiler.Metadata
 
 public class TypeResolver has IDisposable
     private fn State State

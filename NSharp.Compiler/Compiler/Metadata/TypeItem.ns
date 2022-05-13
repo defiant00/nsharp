@@ -1,6 +1,6 @@
 use System.Reflection.Metadata
 
-ns NSharp.Compiler
+ns NSharp.Compiler.Metadata
 
 public enum TypeItemType
     Assembly

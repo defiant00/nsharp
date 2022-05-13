@@ -1,5 +1,6 @@
 use System.Reflection.Metadata
 use System.Reflection.Metadata.Ecma335
+use NSharp.Compiler.Metadata
 use NSharp.Core
 
 ns NSharp.Compiler.Tree

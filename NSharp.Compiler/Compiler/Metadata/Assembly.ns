@@ -3,7 +3,7 @@ use System.Reflection.Metadata
 use System.Reflection.Metadata.Ecma335
 use System.Reflection.PortableExecutable
 
-ns NSharp.Compiler
+ns NSharp.Compiler.Metadata
 
 public class Assembly has IDisposable
     public fn Name str is Items.Value
