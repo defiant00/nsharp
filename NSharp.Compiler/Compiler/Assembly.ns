@@ -7,7 +7,7 @@ ns NSharp.Compiler
 
 public class Assembly has IDisposable
     public fn Name str is Items.Value
-    public fn PublicKey ImmutableArray{byte} is Meta.GetBlobContent(Definition.PublicKey)
+    public fn PublicKey []byte is Meta.GetBlobBytes(Definition.PublicKey)
     public fn Definition AssemblyDefinition
     public fn Handle ?AssemblyReferenceHandle
 
@@ -38,6 +38,11 @@ public class Assembly has IDisposable
         var type = Meta.GetExportedType(handle)
         var typeNamespace = Meta.GetString(type.Namespace)
         var typeName = Meta.GetString(type.Name)
+
+        if type.IsForwarder
+            var asmRef = Meta.GetAssemblyReference(type.Implementation as AssemblyReferenceHandle)
+            var asmName = Meta.GetString(asmRef.Name)
+
         Items.AddType(typeNamespace, typeName)
     
     public fn GetTypeItem(nsParts IEnumerable{str}, name str) ?TypeItem

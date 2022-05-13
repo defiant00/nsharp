@@ -168,38 +168,46 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         if (parens)
             Write("(")
         BinopParentPrecedence.Push(item.Operator.Precedence())
+
+        if item.Operator == BinaryOperatorType.As
+            Write("(")
+            item.Right.Accept(this)
+            Write(")")
+        
         item.Left.Accept(this)
         BinopParentPrecedence.Pop()
-        Write(item.Operator ?
-        {
-            BinaryOperatorType.Add is " + ",
-            BinaryOperatorType.And is " && ",
-            BinaryOperatorType.As is " as ",
-            BinaryOperatorType.BitwiseAnd is " & ",
-            BinaryOperatorType.BitwiseOr is " | ",
-            BinaryOperatorType.BitwiseXor is " ^ ",
-            BinaryOperatorType.Divide is " / ",
-            BinaryOperatorType.Dot is ".",
-            BinaryOperatorType.Equal is " == ",
-            BinaryOperatorType.GreaterThan is " > ",
-            BinaryOperatorType.GreaterThanOrEqual is " >= ",
-            BinaryOperatorType.Is is " is ",
-            BinaryOperatorType.LeftShift is " << ",
-            BinaryOperatorType.LessThan is " < ",
-            BinaryOperatorType.LessThanOrEqual is " <= ",
-            BinaryOperatorType.Modulus is " % ",
-            BinaryOperatorType.Multiply is " * ",
-            BinaryOperatorType.NotEqual is " != ",
-            BinaryOperatorType.NullCoalesce is " ?? ",
-            BinaryOperatorType.NullDot is "?.",
-            BinaryOperatorType.Or is " || ",
-            BinaryOperatorType.RightShift is " >> ",
-            BinaryOperatorType.Subtract is " - ",
-            _ is " [none] ",
-        })
-        BinopParentPrecedence.Push(item.Operator.Precedence() + 1)
-        item.Right.Accept(this)
-        BinopParentPrecedence.Pop()
+
+        if item.Operator != BinaryOperatorType.As
+            Write(item.Operator ?
+            {
+                BinaryOperatorType.Add is " + ",
+                BinaryOperatorType.And is " && ",
+                BinaryOperatorType.As is " as ",
+                BinaryOperatorType.BitwiseAnd is " & ",
+                BinaryOperatorType.BitwiseOr is " | ",
+                BinaryOperatorType.BitwiseXor is " ^ ",
+                BinaryOperatorType.Divide is " / ",
+                BinaryOperatorType.Dot is ".",
+                BinaryOperatorType.Equal is " == ",
+                BinaryOperatorType.GreaterThan is " > ",
+                BinaryOperatorType.GreaterThanOrEqual is " >= ",
+                BinaryOperatorType.Is is " is ",
+                BinaryOperatorType.LeftShift is " << ",
+                BinaryOperatorType.LessThan is " < ",
+                BinaryOperatorType.LessThanOrEqual is " <= ",
+                BinaryOperatorType.Modulus is " % ",
+                BinaryOperatorType.Multiply is " * ",
+                BinaryOperatorType.NotEqual is " != ",
+                BinaryOperatorType.NullCoalesce is " ?? ",
+                BinaryOperatorType.NullDot is "?.",
+                BinaryOperatorType.Or is " || ",
+                BinaryOperatorType.RightShift is " >> ",
+                BinaryOperatorType.Subtract is " - ",
+                _ is " [none] ",
+            })
+            BinopParentPrecedence.Push(item.Operator.Precedence() + 1)
+            item.Right.Accept(this)
+            BinopParentPrecedence.Pop()
         if parens
             Write(")")
 
