@@ -2,6 +2,7 @@ use System.Reflection
 use System.Reflection.Metadata
 use System.Reflection.Metadata.Ecma335
 use NSharp.Compiler.Tree
+use NSharp.Core
 
 ns NSharp.Compiler
 
@@ -29,8 +30,10 @@ public class CompilePass1
             AssemblyHashAlgorithm.None
         )
 
-        state.TypeResolver.AddAssemblyRef("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\6.0.0\\System.Runtime.dll")
-        state.TypeResolver.AddAssemblyRef("C:\\Program Files\\dotnet\\shared\\Microsoft.NETCore.App\\6.0.0\\System.Console.dll")
+        if path = Path.GetDirectoryName(typeof(System.Object).Module.FullyQualifiedName), path != null
+            state.TypeResolver.AddAssemblyPath(path)
+        state.TypeResolver.AddAssemblyRef("System.Runtime")
+        state.TypeResolver.AddAssemblyRef("System.Console")
 
         state.ObjectTypeRef = state.TypeResolver.GetOrAddTypeRef("System", "Object")
 
@@ -76,18 +79,35 @@ public class CompilePass1
             MetadataTokens.MethodDefinitionHandle(1)
         )
 
-        for c in state.Classes.Values
+        for c in state.Classes
             ProcessClass(state, c)
     
     private fn ProcessClass(state State, cl Class)
+        if cl.Handle != null
+            ret
+        
+        cl.Emitting = true
+
+        var parent = state.ObjectTypeRef
+        if cl.TreeItem.Parent != null
+            ; parse the expression and look up the type
+            ; if it's part of the current assembly, emit it
+        
+        var attrs = TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit
+        if cl.TreeItem.Modifiers.Any(fn(m) is m.Type == ModifierType.Public)
+            attrs |= TypeAttributes.Public
+
         state.PeMetadataBuilder.AddTypeDefinition(
-            TypeAttributes.Class | TypeAttributes.Public | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit,
+            attrs,
             state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
             state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
-            state.ObjectTypeRef,
+            parent,
             MetadataTokens.FieldDefinitionHandle(1),
             MetadataTokens.MethodDefinitionHandle(1)
         )
+
+        cl.Emitting = false
+        state.ClassOrder.Add(cl)
         
         for c in cl.Classes
             ProcessClass(state, c)

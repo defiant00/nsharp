@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <data name="Compiler.ConfigNotFound" xml:space="preserve">
+    <value>'{0}' not found, using default configuration.</value>
+  </data>
+  <data name="Compiler.CurrentAssembly" xml:space="preserve">
+    <value>current assembly</value>
+  </data>
+  <data name="Compiler.Elapsed" xml:space="preserve">
+    <value>Elapsed: {0}</value>
+  </data>
+  <data name="Compiler.FileDoesNotEndWithExtension" xml:space="preserve">
+    <value>File '{0}' does not end with {1}</value>
+  </data>
+  <data name="Compiler.FileDoesNotExist" xml:space="preserve">
+    <value>File '{0}' does not exist.</value>
+  </data>
+  <data name="Compiler.Intro" xml:space="preserve">
+    <value>N# Compiler v0.1.4</value>
+  </data>
+  <data name="Compiler.NoCommandFound" xml:space="preserve">
+    <value>No command found.</value>
+  </data>
+  <data name="Compiler.OutMustBeSpecified" xml:space="preserve">
+    <value>/out must be specified to compile.</value>
+  </data>
+  <data name="Compiler.Success" xml:space="preserve">
+    <value>Compile Successful</value>
+  </data>
   <data name="Compiler.Usage" xml:space="preserve">
     <value>Usage: nsc [command] [file(s)]
 
@@ -11,20 +38,11 @@ Commands:
     /save [files]          - save the specified files per the .nssave settings
     /validate [files]      - validate the specified files' syntax</value>
   </data>
-  <data name="Compiler.NoCommandFound" xml:space="preserve">
-    <value>No command found.</value>
+  <data name="Diagnostic.Error" xml:space="preserve">
+    <value>Error</value>
   </data>
-  <data name="Compiler.Elapsed" xml:space="preserve">
-    <value>Elapsed: {0}</value>
-  </data>
-  <data name="Compiler.FileDoesNotExist" xml:space="preserve">
-    <value>File '{0}' does not exist.</value>
-  </data>
-  <data name="Compiler.FileDoesNotEndWithExtension" xml:space="preserve">
-    <value>File '{0}' does not end with {1}</value>
-  </data>
-  <data name="Compiler.OutMustBeSpecified" xml:space="preserve">
-    <value>/out must be specified to compile.</value>
+  <data name="Diagnostic.Fatal" xml:space="preserve">
+    <value>Fatal</value>
   </data>
   <data name="Diagnostic.Message" xml:space="preserve">
     <value>Message</value>
@@ -32,20 +50,8 @@ Commands:
   <data name="Diagnostic.Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="Diagnostic.Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="Diagnostic.Fatal" xml:space="preserve">
-    <value>Fatal</value>
-  </data>
-  <data name="Compiler.Success" xml:space="preserve">
-    <value>Compile Successful</value>
-  </data>
-  <data name="Compiler.ConfigNotFound" xml:space="preserve">
-    <value>'{0}' not found, using default configuration.</value>
-  </data>
-  <data name="NSC.Warning.0000" xml:space="preserve">
-    <value>{0} has already been referenced.</value>
+  <data name="NSC.Error.0000" xml:space="preserve">
+    <value>Type {0} found in locations {1}.</value>
   </data>
   <data name="NSC.Fatal.0000" xml:space="preserve">
     <value>Multiple types found for {0}.</value>
@@ -53,7 +59,7 @@ Commands:
   <data name="NSC.Fatal.0001" xml:space="preserve">
     <value>Unable to get type {0}.</value>
   </data>
-  <data name="Compiler.Intro" xml:space="preserve">
-    <value>N# Compiler v0.1.4</value>
+  <data name="NSC.Warning.0000" xml:space="preserve">
+    <value>{0} has already been referenced.</value>
   </data>
 </root>

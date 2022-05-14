@@ -7,7 +7,7 @@ ns NSharp.Compiler.Tree
 
 public class State has IDisposable
     public fn TypeResolver TypeResolver
-    public fn Classes Dictionary{str, Class} = new()
+    public fn Classes List{Class} = new()
     public fn ClassOrder List{Class} = new()
     ; enums
     ; interfaces

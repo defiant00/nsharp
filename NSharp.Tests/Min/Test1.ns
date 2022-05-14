@@ -2,6 +2,11 @@ use System
 
 ns NSharp.Tests.Min
 
-class MyClass
-    fn Main(args []str)
-        Console.WriteLine("Hello from N#")
+public class A is System.String
+    ; empty
+
+class B is A
+    ; empty
+
+class C is B
+    ; empty

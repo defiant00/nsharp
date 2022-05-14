@@ -10,8 +10,7 @@ public class Assembly has IDisposable
     public fn PublicKey []byte is Meta.GetBlobBytes(Definition.PublicKey)
     public fn Definition AssemblyDefinition
     public fn Handle ?AssemblyReferenceHandle
-
-    private fn Items TypeItem
+    public fn Items TypeItem
 
     private fn Stream FileStream
     private fn Meta MetadataReader
@@ -32,7 +31,7 @@ public class Assembly has IDisposable
         var type = Meta.GetTypeDefinition(handle)
         var typeNamespace = Meta.GetString(type.Namespace)
         var typeName = Meta.GetString(type.Name)
-        Items.AddType(typeNamespace, typeName)
+        AddType(typeNamespace, typeName)
     
     private fn LoadType(handle ExportedTypeHandle)
         var type = Meta.GetExportedType(handle)
@@ -43,21 +42,10 @@ public class Assembly has IDisposable
             var asmRef = Meta.GetAssemblyReference(type.Implementation as AssemblyReferenceHandle)
             var asmName = Meta.GetString(asmRef.Name)
 
-        Items.AddType(typeNamespace, typeName)
+        AddType(typeNamespace, typeName)
     
-    public fn GetTypeItem(nsParts IEnumerable{str}, name str) ?TypeItem
-        var curr = Items
-
-        ; namespace
-        for part in nsParts
-            ; todo - dynamic loading
-            if !curr.ContainsKey(part)
-                ret null
-            curr = curr[part]
-        
-        ; type
-        var res ?TypeItem
-        curr.TryGetValue(name, out res)
-        ret res
+    public fn AddType(parent str, name str) is Items.AddType(parent, name)
+    
+    public fn GetTypeItem(parts IEnumerable{str}, name str) ?TypeItem is Items.GetTypeItem(parts, name)
     
     public fn Dispose() is Stream.Dispose()

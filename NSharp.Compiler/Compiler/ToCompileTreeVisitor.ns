@@ -16,7 +16,6 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
     public fn Visit(item Comment) is ; empty
     public fn Visit(item Space) is ; empty
 
-
     public fn Visit(item Core.Ast.Class)
         var newClass = new Tree.Class(Imports, Namespace, item)
 
@@ -28,8 +27,8 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
         if CurrentClass.Any()
             CurrentClass.Peek().Classes.Add(newClass)
         
-        ; todo - nested class names need to go into the global state for type resolution
-        State.Classes[newClass.FullName] = newClass
+        State.TypeResolver.Current.AddType(newClass)
+        State.Classes.Add(newClass)
 
     public fn Visit(item Core.Ast.Constant) is CurrentClass.Peek().Constants.Add(item)
 

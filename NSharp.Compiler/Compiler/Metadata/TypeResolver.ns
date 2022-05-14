@@ -5,7 +5,11 @@ use NSharp.Core
 ns NSharp.Compiler.Metadata
 
 public class TypeResolver has IDisposable
+    public fn Current TypeItem = new(TypeItemType.Assembly, str.Empty)
+
+    private fn AssemblyFileExtensions []str get = [".dll", ".exe"]
     private fn State State
+    private fn AssemblyPaths List{str} = new()
     private fn Assemblies Dictionary{str, Assembly} = new()
 
     public fn new(state State) is State = state
@@ -13,8 +17,18 @@ public class TypeResolver has IDisposable
     public fn Dispose()
         for asm in Assemblies.Values
             asm.Dispose()
+    
+    public fn AddAssemblyPath(path str) is AssemblyPaths.Add(path)
 
-    public fn AddAssemblyRef(fileName str)
+    public fn AddAssemblyRef(name str)
+        for path in AssemblyPaths
+            for extension in AssemblyFileExtensions
+                var fullPath = Path.Combine(path, "{name}{extension}")
+                if File.Exists(fullPath)
+                    AddAssemblyFileRef(fullPath)
+                    ret
+
+    public fn AddAssemblyFileRef(fileName str)
         ; load the assembly
         var asm = new Assembly(fileName)
         if Assemblies.ContainsKey(asm.Name)
@@ -22,22 +36,43 @@ public class TypeResolver has IDisposable
         
         Assemblies[asm.Name] = asm
     
-    public fn GetOrAddTypeRef(nspace str, name str) TypeReferenceHandle
-        var nsParts = nspace.Split('.')
+    public fn GetTypeItem(parent str, name str) ?TypeItem
+        var parts = parent.Split('.')
+        var types = new List{TypeItem}()
+        var locations = new List{str}()
+
+        ; check the current assembly
+        if type = Current.GetTypeItem(parts, name), type != null
+            types.Add(type)
+            locations.Add(Resources.GetString("Compiler.CurrentAssembly"))
+        
+        ; check all the referenced assemblies
+        for asm in Assemblies.Values
+            if type = asm.GetTypeItem(parts, name), type != null
+                types.Add(type)
+                locations.Add(asm.Name)
+        
+        if types.Count > 1
+            State.AddDiagnostic(Severity.Error, 0x0000, "{parent}.{name}", str.Join(", ", locations))
+        
+        ret types.Any() ? types[0], null
+
+    
+    public fn GetOrAddTypeRef(parent str, name str) TypeReferenceHandle
+        var parts = parent.Split('.')
 
         var assembly ?Assembly = null
         var type ?TypeItem = null
         for asm in Assemblies.Values
-            var t = asm.GetTypeItem(nsParts, name)
-            if t != null
+            if t = asm.GetTypeItem(parts, name), t != null
                 if type == null
                     assembly = asm
                     type = t
                 else
-                    throw new Exception(Resources.FormatFatal(0x0000, "{nspace}.{name}"))
+                    throw new Exception(Resources.FormatFatal(0x0000, "{parent}.{name}"))
         
         if assembly == null or type == null
-            throw new Exception(Resources.FormatFatal(0x0001, "{nspace}.{name}"))
+            throw new Exception(Resources.FormatFatal(0x0001, "{parent}.{name}"))
             
         ; create an assembly reference if necessary
         if assembly.Handle == null
@@ -54,7 +89,7 @@ public class TypeResolver has IDisposable
         if type.Handle == null
             type.Handle = State.PeMetadataBuilder.AddTypeReference(
                 assembly.Handle.Value,
-                State.PeMetadataBuilder.GetOrAddString(nspace),
+                State.PeMetadataBuilder.GetOrAddString(parent),
                 State.PeMetadataBuilder.GetOrAddString(name)
             )
         

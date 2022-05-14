@@ -8,8 +8,8 @@ public class Class
     public fn Handle ?EntityHandle
     public fn Imports List{str}
     public fn Namespace str
+    public fn Name str is TreeItem.Name
     public fn TreeItem Core.Ast.Class
-    public fn FullName str is str.IsNullOrEmpty(Namespace) ? TreeItem.Name, "{Namespace}.{TreeItem.Name}"
 
     public fn Classes List{Class} = new()
     public fn Enumerations List{Enumeration} = new()
