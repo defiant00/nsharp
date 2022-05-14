@@ -1,4 +1,11 @@
+use NSharp.Core.Ast
+
 ns NSharp.Language.Min
 
 public class Decompiler
-    ; empty
+    private fn Settings Settings
+
+    public fn new(settings Settings) is Settings = settings
+
+    public fn Decompile(item ISyntaxTreeItem) str
+        ret "decompiler output goes here"

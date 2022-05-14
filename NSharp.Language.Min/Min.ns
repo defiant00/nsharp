@@ -17,6 +17,6 @@ public class Min has ILanguage
 
     public fn Save(fileName str, item ISyntaxTreeItem) SaveResult
         var result = new SaveResult(fileName)
-        ; var code str = new Decompiler(Settings).Decompile(item)
-        ; System.IO.File.WriteAllText(fileName, code)
+        var code str = new Decompiler(Settings).Decompile(item)
+        System.IO.File.WriteAllText(fileName, code)
         ret result

@@ -26,14 +26,14 @@ public static class TokenHelper
             TokenType.Open is ModifierType.Open,
             TokenType.Override is ModifierType.Override,
             TokenType.Static is ModifierType.Static,
-            _ is throw new Exception("Could not match token type {this} to a modifier."),
+            _ is throw new Exception(Resources.FormatFatal(0x0000, this)),
         }
 
     public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType is this ?
         {
             TokenType.Out is ArgumentModifierType.Out,
             TokenType.Reference is ArgumentModifierType.Reference,
-            _ is throw new Exception("Could not match token type {this} to an argument modifier."),
+            _ is throw new Exception(Resources.FormatFatal(0x0001, this)),
         }
     
     public static ext{TokenType} fn ToParameterModifier() ParameterModifierType is this ?
@@ -41,7 +41,7 @@ public static class TokenHelper
             TokenType.Out is ParameterModifierType.Out,
             TokenType.Reference is ParameterModifierType.Reference,
             TokenType.Variable is ParameterModifierType.Parameters,
-            _ is throw new Exception("Could not match token type {this} to a parameter modifier."),
+            _ is throw new Exception(Resources.FormatFatal(0x0002, this)),
         }
 
     public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?
@@ -49,7 +49,7 @@ public static class TokenHelper
             TokenType.Subtract is UnaryOperatorType.Negate,
             TokenType.Not is UnaryOperatorType.Not,
             TokenType.BitwiseNot is UnaryOperatorType.BitwiseNot,
-            _ is UnaryOperatorType.None,
+            _ is throw new Exception(Resources.FormatFatal(0x0003, this)),
         }
 
     public static ext{TokenType} fn ToBinaryOperator() BinaryOperatorType is this ?
@@ -108,5 +108,5 @@ public static class TokenHelper
             TokenType.LeftShiftAssign is AssignmentOperatorType.LeftShift,
             TokenType.RightShiftAssign is AssignmentOperatorType.RightShift,
             TokenType.NullCoalesceAssign is AssignmentOperatorType.NullCoalesce,
-            _ is AssignmentOperatorType.None,
+            _ is throw new Exception(Resources.FormatFatal(0x0004, this)),
         }

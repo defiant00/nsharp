@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="NSC-Min.Fatal.0000" xml:space="preserve">
+    <value>Could not match token type {0} to a modifier.</value>
+  </data>
+  <data name="NSC-Min.Fatal.0001" xml:space="preserve">
+    <value>Could not match token type {0} to an argument modifier.</value>
+  </data>
+  <data name="NSC-Min.Fatal.0002" xml:space="preserve">
+    <value>Could not match token type {0} to a parameter modifier.</value>
+  </data>
+  <data name="NSC-Min.Fatal.0003" xml:space="preserve">
+    <value>Could not match token type {0} to a unary operator.</value>
+  </data>
+  <data name="NSC-Min.Fatal.0004" xml:space="preserve">
+    <value>Could not match token type {0} to an assignment operator.</value>
+  </data>
+</root>

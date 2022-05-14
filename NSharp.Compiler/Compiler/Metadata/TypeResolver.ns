@@ -1,5 +1,6 @@
 use System.Reflection.Metadata
 use NSharp.Compiler.Tree
+use NSharp.Core
 
 ns NSharp.Compiler.Metadata
 
@@ -17,7 +18,7 @@ public class TypeResolver has IDisposable
         ; load the assembly
         var asm = new Assembly(fileName)
         if Assemblies.ContainsKey(asm.Name)
-            throw new Exception("{asm.Name} has already been referenced.")
+            State.AddDiagnostic(Severity.Warning, 0x0000, asm.Name)
         
         Assemblies[asm.Name] = asm
     
@@ -33,10 +34,10 @@ public class TypeResolver has IDisposable
                     assembly = asm
                     type = t
                 else
-                    throw new Exception("Multiple types found for {nspace}.{name}")
+                    throw new Exception(Resources.FormatFatal(0x0000, "{nspace}.{name}"))
         
         if assembly == null or type == null
-            throw new Exception("Unable to get type {nspace}.{name}")
+            throw new Exception(Resources.FormatFatal(0x0001, "{nspace}.{name}"))
             
         ; create an assembly reference if necessary
         if assembly.Handle == null

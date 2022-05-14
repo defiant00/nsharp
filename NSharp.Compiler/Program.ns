@@ -12,7 +12,7 @@ public static class Program
     private val LANGUAGE_KEY str = "language"
 
     public static fn Main(args []str)
-        Console.WriteLine("N# Compiler v0.1.3")
+        Console.WriteLine(Resources.GetString("Compiler.Intro"))
 
         var stopwatch = new Stopwatch()
         stopwatch.Start()
@@ -21,18 +21,8 @@ public static class Program
 
         try
             if args.Length < 2 or arguments.Flags.ContainsKey("help")
-                Console.WriteLine(
-                    "" ..
-                    "Usage: nsc [command] [file(s)]" ..
-                    "" ..
-                    "Commands:" ..
-                    "    /build [project paths] - build projects" ..
-                    "    /compile [files]       - compile the specified files" ..
-                    "    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings" ..
-                    "    /format [files]        - format the specified files per the .nsedit and .nssave settings" ..
-                    "    /save [files]          - save the specified files per the .nssave settings" ..
-                    "    /validate [files]      - validate the specified files' syntax"
-                )
+                Console.WriteLine()
+                Console.WriteLine(Resources.GetString("Compiler.Usage"))
             else if arguments.Flags.ContainsKey("build")
                 Console.WriteLine("Build not yet supported.")
             else if arguments.Flags.ContainsKey("compile")
@@ -46,13 +36,13 @@ public static class Program
             else if arguments.Flags.ContainsKey("validate")
                 Validate(arguments)
             else
-                Console.WriteLine("No command found.")
+                Console.WriteLine(Resources.GetString("Compiler.NoCommandFound"))
         catch Exception ex
             SetConsoleColor(Severity.Fatal)
             Console.WriteLine(ex)
 
         ResetConsoleColor()
-        Console.WriteLine("Elapsed: {stopwatch.Elapsed}")
+        Console.WriteLine(Resources.FormatString("Compiler.Elapsed", stopwatch.Elapsed))
     
     private static fn Compile(args Arguments)
         if args.Flags.ContainsKey("tocs")
@@ -60,9 +50,9 @@ public static class Program
             for path in args.Paths
                 for file in Directory.EnumerateFiles(path, "*{SAVE_EXT}", SearchOption.AllDirectories)
                     if !File.Exists(file)
-                        throw new Exception("File '{file}' does not exist.")
+                        throw new Exception(Resources.FormatString("Compiler.FileDoesNotExist", file))
                     if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
-                        throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+                        throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, SAVE_EXT))
 
                     var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
 
@@ -74,7 +64,7 @@ public static class Program
 
         else
             var outFile = args.Flags.ContainsKey("out") ? args.Flags["out"],
-                throw new Exception("/out must be specified to compile.")
+                throw new Exception(Resources.GetString("Compiler.OutMustBeSpecified"))
             
             var files = new List{str}()
             for path in args.Paths
@@ -92,7 +82,7 @@ public static class Program
                 else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
                     language = GetLanguage(args, EDIT_SETTINGS, file)
                 else
-                    throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
+                    throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, "{SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}"))
 
                 var loadResult LoadResult = language.Load(file)
                 HandleResult(loadResult)
@@ -105,9 +95,9 @@ public static class Program
     private static fn Edit(args Arguments)
         for file in args.Paths
             if !File.Exists(file)
-                throw new Exception("File '{file}' does not exist.")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotExist", file))
             if !file.EndsWith(SAVE_EXT, StringComparison.OrdinalIgnoreCase)
-                throw new Exception("File '{file}' does not end with {SAVE_EXT}")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, SAVE_EXT))
 
             var loadLang = GetLanguage(args, SAVE_SETTINGS, file)
             var saveLang = GetLanguage(args, EDIT_SETTINGS, file)
@@ -120,7 +110,7 @@ public static class Program
     private static fn Format(args Arguments)
         for file in args.Paths
             if !File.Exists(file)
-                throw new Exception("File '{file}' does not exist.")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotExist", file))
 
             var language ILanguage
 
@@ -129,7 +119,7 @@ public static class Program
             else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
                 language = GetLanguage(args, EDIT_SETTINGS, file)
             else
-                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, "{SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}"))
 
             var loadResult = language.Load(file)
             HandleResult(loadResult)
@@ -139,9 +129,9 @@ public static class Program
     private static fn Save(args Arguments)
         for file in args.Paths
             if !File.Exists(file)
-                throw new Exception("File '{file}' does not exist.")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotExist", file))
             if !file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
-                throw new Exception("File '{file}' does not end with {SAVE_EXT}{EDIT_EXT}")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, "{SAVE_EXT}{EDIT_EXT}"))
 
             var loadLang = GetLanguage(args, EDIT_SETTINGS, file)
             var saveLang = GetLanguage(args, SAVE_SETTINGS, file)
@@ -154,7 +144,7 @@ public static class Program
     private static fn Validate(args Arguments)
         for file in args.Paths
             if !File.Exists(file)
-                throw new Exception("File '{file}' does not exist.")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotExist", file))
 
             var language ILanguage
 
@@ -163,7 +153,7 @@ public static class Program
             else if file.EndsWith("{SAVE_EXT}{EDIT_EXT}", StringComparison.OrdinalIgnoreCase)
                 language = GetLanguage(args, EDIT_SETTINGS, file)
             else
-                throw new Exception("File '{file}' does not end with {SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}")
+                throw new Exception(Resources.FormatString("Compiler.FileDoesNotEndWithExtension", file, "{SAVE_EXT} or {SAVE_EXT}{EDIT_EXT}"))
 
             var loadResult = language.Load(file)
             HandleResult(loadResult)
@@ -174,7 +164,17 @@ public static class Program
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
                 SetConsoleColor(diagnostic.Severity)
-                Console.WriteLine("  [{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+                var severity = SeverityString(diagnostic.Severity)
+                Console.WriteLine("  {severity} {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+
+    private static fn SeverityString(severity Severity) str is severity ?
+    {
+        Severity.Message is Resources.GetString("Diagnostic.Message"),
+        Severity.Warning is Resources.GetString("Diagnostic.Warning"),
+        Severity.Error is Resources.GetString("Diagnostic.Error"),
+        Severity.Fatal is Resources.GetString("Diagnostic.Fatal"),
+        _ is "[{severity}]"
+    }
 
     private static fn ResetConsoleColor() is Console.ForegroundColor = ConsoleColor.White
 
@@ -190,10 +190,11 @@ public static class Program
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
             SetConsoleColor(diagnostic.Severity)
-            Console.WriteLine("[{diagnostic.Severity}] {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+            var severity = SeverityString(diagnostic.Severity)
+            Console.WriteLine("{severity} {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
             ResetConsoleColor()
-            Console.WriteLine("Compile successful")
+            Console.WriteLine(Resources.GetString("Compiler.Success"))
 
     private static fn GetLanguage(args Arguments, configFileName str, startingPath str) ILanguage
         var config ?Dictionary{str, str} = null
@@ -209,7 +210,7 @@ public static class Program
 
         if config == null
             SetConsoleColor(Severity.Warning)
-            Console.WriteLine("'{configFileName}' not found, using default configuration.")
+            Console.WriteLine(Resources.FormatString("Compiler.ConfigNotFound", configFileName))
             config = new()
 
         var lang ?ILanguage = null

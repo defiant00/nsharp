@@ -1,7 +1,6 @@
 ns NSharp.Core
 
 public enum AssignmentOperatorType
-    None
     Assign
     Add
     Subtract

@@ -28,3 +28,21 @@ public class State has IDisposable
         FileName = Path.GetFileName(outFilePath)
     
     public fn Dispose() is TypeResolver.Dispose()
+
+    public fn AddDiagnostic(severity Severity, index int, var args []str) is AddDiagnostic(severity, index, default, args)
+
+    public fn AddDiagnostic(severity Severity, index int, position Position, var args []str)
+        var key str
+        if severity
+            is Severity.Message
+                key = Resources.GetMessageKey(index)
+            is Severity.Warning
+                key = Resources.GetWarningKey(index)
+            is Severity.Error
+                key = Resources.GetErrorKey(index)
+            is Severity.Fatal
+                key = Resources.GetFatalKey(index)
+            is _
+                key = severity.ToString()
+        var msg = Resources.FormatString(key, args)
+        Diagnostics.Add(new Diagnostic(severity, key, msg, position))
