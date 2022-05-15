@@ -2,8 +2,9 @@ use System.Reflection.Metadata
 
 ns NSharp.Compiler.Metadata
 
-public class Type has IType
-    public fn new(assembly Assembly, type TypeDefinition)
-        var nspace = assembly.Meta.GetString(type.Namespace)
-        var name = assembly.Meta.GetString(type.Name)
-        assembly.TypeResolver.AddType(str.IsNullOrEmpty(nspace) ? name : "{nspace}.{name}", this)
+public abstract class Type
+    public open fn IsReference bool is false
+    public fn TypeDefinitionHandle ?TypeDefinitionHandle
+    public fn TypeReferenceHandle ?TypeReferenceHandle
+    public fn Namespace str = str.Empty
+    public fn Name str = str.Empty

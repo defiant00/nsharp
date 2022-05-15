@@ -18,7 +18,12 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
     public fn Visit(item Space) is ; empty
 
     public fn Visit(item Core.Ast.Class)
-        var newClass = new Tree.Class(Imports, Namespace, item)
+        var newClass = new Tree.Class(
+            Imports,
+            Namespace,
+            item,
+            new BuildType(State.TypeResolver, Namespace, item.Name)
+        )
 
         CurrentClass.Push(newClass)
         for stmt in item.Statements
@@ -28,7 +33,6 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
         if CurrentClass.Any()
             CurrentClass.Peek().Classes.Add(newClass)
         
-        new BuildType(State.TypeResolver, newClass)
         State.Classes.Add(newClass)
 
     public fn Visit(item Core.Ast.Constant) is CurrentClass.Peek().Constants.Add(item)

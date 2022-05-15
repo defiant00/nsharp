@@ -2,8 +2,8 @@ use System.Reflection.Metadata
 
 ns NSharp.Compiler.Metadata
 
-public class ExportedType is ReferenceTypeBase
-    public fn new(assembly Assembly, type System.Reflection.Metadata.ExportedType) base(assembly)
+public class ReferenceType is ReferenceTypeBase
+    public fn new(assembly Assembly, type TypeDefinition) base(assembly)
         Namespace = Assembly.Meta.GetString(type.Namespace)
         Name = assembly.Meta.GetString(type.Name)
         Assembly.TypeResolver.AddType(str.IsNullOrEmpty(Namespace) ? Name : "{Namespace}.{Name}", this)

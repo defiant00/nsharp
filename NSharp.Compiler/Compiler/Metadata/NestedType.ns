@@ -2,18 +2,20 @@ use System.Reflection.Metadata
 
 ns NSharp.Compiler.Metadata
 
-public class NestedType has IType
-    public fn new(assembly Assembly, type TypeDefinition)
+public class NestedType is ReferenceTypeBase
+    public fn new(assembly Assembly, type TypeDefinition) base(assembly)
+        Namespace = Assembly.Meta.GetString(type.Namespace)
+        Name = assembly.Meta.GetString(type.Name)
         var parts = new List{str}()
-        parts.Add(assembly.Meta.GetString(type.Name))
+        parts.Add(Assembly.Meta.GetString(type.Name))
 
         var curr = type
         for curr.IsNested
-            curr = assembly.Meta.GetTypeDefinition(curr.GetDeclaringType())
-            parts.Add(assembly.Meta.GetString(curr.Name))
+            curr = Assembly.Meta.GetTypeDefinition(curr.GetDeclaringType())
+            parts.Add(Assembly.Meta.GetString(curr.Name))
         
-        if nspace = assembly.Meta.GetString(curr.Namespace), !str.IsNullOrEmpty(nspace)
+        if nspace = Assembly.Meta.GetString(curr.Namespace), !str.IsNullOrEmpty(nspace)
             parts.Add(nspace)
 
         parts.Reverse()
-        assembly.TypeResolver.AddType(str.Join(".", parts), this)
+        Assembly.TypeResolver.AddType(str.Join(".", parts), this)

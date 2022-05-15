@@ -1,5 +1,9 @@
+use System.Reflection.Metadata
+
 ns NSharp.Compiler.Metadata
 
-public class BuildType has IType
-    public fn new(typeResolver TypeResolver, cl Tree.Class)
-        ; todo
+public class BuildType is Type
+    public fn new(typeResolver TypeResolver, nspace str, name str)
+        Namespace = nspace
+        Name = name
+        typeResolver.AddType(str.IsNullOrEmpty(Namespace) ? Name : "{Namespace}.{Name}", this)

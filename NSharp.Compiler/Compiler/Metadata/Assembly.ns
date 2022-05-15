@@ -10,9 +10,9 @@ public class Assembly has IDisposable
     public fn Handle ?AssemblyReferenceHandle
     public fn Meta MetadataReader
     public fn TypeResolver TypeResolver
+    public fn Definition AssemblyDefinition
 
     private fn Stream FileStream
-    private fn Definition AssemblyDefinition
 
     public fn new(typeResolver TypeResolver, fileName str)
         TypeResolver = typeResolver
@@ -31,7 +31,7 @@ public class Assembly has IDisposable
                         or visibility == TypeAttributes.NestedFamORAssem
                     new NestedType(this, type)
             else if visibility == TypeAttributes.Public
-                new Type(this, type)
+                new ReferenceType(this, type)
         
         for handle in Meta.ExportedTypes
             var type = Meta.GetExportedType(handle)

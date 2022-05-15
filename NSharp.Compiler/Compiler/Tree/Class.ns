@@ -1,15 +1,16 @@
 use System.Reflection.Metadata
 use NSharp.Core.Ast
+use NSharp.Compiler.Metadata
 
 ns NSharp.Compiler.Tree
 
 public class Class
     public fn Emitting bool
-    public fn Handle ?EntityHandle
     public fn Imports List{str}
     public fn Namespace str
     public fn Name str is TreeItem.Name
     public fn TreeItem Core.Ast.Class
+    public fn Type BuildType
 
     public fn Classes List{Class} = new()
     public fn Enumerations List{Enumeration} = new()
@@ -21,7 +22,8 @@ public class Class
     public fn Fields List{Field} = new()
     public fn Constants List{Core.Ast.Constant} = new()
 
-    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class)
+    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class, type BuildType)
         Imports = imports
         Namespace = nspace
         TreeItem = treeItem
+        Type = type

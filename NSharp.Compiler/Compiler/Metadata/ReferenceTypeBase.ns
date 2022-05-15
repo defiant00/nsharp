@@ -1,0 +1,8 @@
+ns NSharp.Compiler.Metadata
+
+public abstract class ReferenceTypeBase is Type
+    public fn Assembly Assembly
+
+    public over fn IsReference bool is true
+
+    public fn new(assembly Assembly) is Assembly = assembly

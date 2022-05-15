@@ -83,21 +83,20 @@ public class CompilePass1
             ProcessClass(state, c)
     
     private fn ProcessClass(state State, cl Class)
-        if cl.Handle != null
+        if cl.Type.TypeDefinitionHandle != null
             ret
         
         cl.Emitting = true
 
         var parent = state.ObjectTypeRef
         if cl.TreeItem.Parent != null
-            ; parse the expression and look up the type
-            ; if it's part of the current assembly, emit it
+            ; todo - parse the expression and look up the type
         
         var attrs = TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit
         if cl.TreeItem.Modifiers.Any(fn(m) is m.Type == ModifierType.Public)
             attrs |= TypeAttributes.Public
 
-        state.PeMetadataBuilder.AddTypeDefinition(
+        cl.Type.TypeDefinitionHandle = state.PeMetadataBuilder.AddTypeDefinition(
             attrs,
             state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
             state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
