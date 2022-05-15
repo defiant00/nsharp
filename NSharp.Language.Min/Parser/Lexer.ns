@@ -70,9 +70,9 @@ public class Lexer
         LineCurrentIndex += 1
         ret next
 
-    private fn Peek char is (LineCurrentIndex >= Line.Length) ? EOL, Line[LineCurrentIndex]
+    private fn Peek char is (LineCurrentIndex >= Line.Length) ? EOL : Line[LineCurrentIndex]
 
-    private fn PeekNext char is ((LineCurrentIndex + 1) >= Line.Length) ? EOL, Line[LineCurrentIndex + 1]
+    private fn PeekNext char is ((LineCurrentIndex + 1) >= Line.Length) ? EOL : Line[LineCurrentIndex + 1]
 
     private fn Backup() is LineCurrentIndex -= 1
 
@@ -267,7 +267,7 @@ public class Lexer
         else
             var tokenType TokenType
             var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
-            Emit(found ? tokenType, TokenType.Literal)
+            Emit(found ? tokenType : TokenType.Literal)
         ret LexStatement
 
     private fn LexNumber() ?StateFunction

@@ -63,7 +63,7 @@ public static class Program
                         loadResult.Ast.Accept(visitor)
 
         else
-            var outFile = args.Flags.ContainsKey("out") ? args.Flags["out"],
+            var outFile = args.Flags.ContainsKey("out") ? args.Flags["out"] :
                 throw new Exception(Resources.GetString("Compiler.OutMustBeSpecified"))
             
             var files = new List{str}()

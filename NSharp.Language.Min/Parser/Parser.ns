@@ -279,9 +279,7 @@ public class Parser
                 ret new ParseResult{Expression}(left)
 
             var op = Next()
-            var right = op.Type.IsOperatorCanThrow() ?
-                ParseThrowOr(ParsePrimaryExpression),
-                ParsePrimaryExpression()
+            var right = op.Type.IsOperatorCanThrow() ? ParseThrowOr(ParsePrimaryExpression) : ParsePrimaryExpression()
             if right.Error
                 ToNextLine()
                 ret new ParseResult{Expression}(left, true)
@@ -694,7 +692,7 @@ public class Parser
         ret ParseBinaryOperatorRightSide(0, left.Result, acceptIs)
 
     private fn ParseExpressionStatement(acceptEol bool, isNested bool) ParseResult{Statement}
-        var expr = isNested ? ParseNestedPrimaryExpression(), ParseThrowOr(ParseExpression)
+        var expr = isNested ? ParseNestedPrimaryExpression() : ParseThrowOr(ParseExpression)
         if expr.Error and expr.Result is ErrorExpression ex
             ret ErrorStatement(ex)
 
@@ -1752,7 +1750,7 @@ public class Parser
                 ;     set(v)
                 ;         [statements]
 
-                var other = Peek.Type == TokenType.Get ? TokenType.Set, TokenType.Get
+                var other = Peek.Type == TokenType.Get ? TokenType.Set : TokenType.Get
 
                 var getSetResult = ParseGetSet(propDef)
                 if getSetResult != null

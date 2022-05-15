@@ -16,5 +16,5 @@ public class Settings
     public fn new(arguments Dictionary{str, str}, settings Dictionary{str, str})
         PrintTokens = arguments.ContainsKey(PRINT_TOKENS)
         PrintTree = arguments.ContainsKey(PRINT_TREE)
-        Indent = settings.ContainsKey(INDENT) ? settings[INDENT], "    "
+        Indent = settings.ContainsKey(INDENT) ? settings[INDENT] : "    "
         CTypes = settings.ContainsKey(CTYPES)
