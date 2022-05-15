@@ -1,0 +1,5 @@
+ns NSharp.Compiler.Metadata
+
+public class BuildType has IType
+    public fn new(typeResolver TypeResolver, cl Tree.Class)
+        ; todo

@@ -1,0 +1,7 @@
+ns NSharp.Compiler.Metadata
+
+public class ExportedType has IType
+    public fn new(assembly Assembly, type System.Reflection.Metadata.ExportedType)
+        var nspace = assembly.Meta.GetString(type.Namespace)
+        var name = assembly.Meta.GetString(type.Name)
+        assembly.TypeResolver.AddType(str.IsNullOrEmpty(nspace) ? name : "{nspace}.{name}", this)

@@ -1,51 +1,41 @@
-use System.Collections.Immutable
+use System.Reflection
 use System.Reflection.Metadata
-use System.Reflection.Metadata.Ecma335
 use System.Reflection.PortableExecutable
 
 ns NSharp.Compiler.Metadata
 
 public class Assembly has IDisposable
-    public fn Name str is Items.Value
+    public fn Name str
     public fn PublicKey []byte is Meta.GetBlobBytes(Definition.PublicKey)
-    public fn Definition AssemblyDefinition
     public fn Handle ?AssemblyReferenceHandle
-    public fn Items TypeItem
+    public fn Meta MetadataReader
+    public fn TypeResolver TypeResolver
 
     private fn Stream FileStream
-    private fn Meta MetadataReader
+    private fn Definition AssemblyDefinition
 
-    public fn new(fileName str)
+    public fn new(typeResolver TypeResolver, fileName str)
+        TypeResolver = typeResolver
+
         Stream = new FileStream(fileName, FileMode.Open, FileAccess.Read)
         Meta = new PEReader(Stream).GetMetadataReader()
         Definition = Meta.GetAssemblyDefinition()
-        Items = new TypeItem(TypeItemType.Assembly, Meta.GetString(Definition.Name))
+        Name = Meta.GetString(Definition.Name)
 
         for handle in Meta.TypeDefinitions
-            LoadType(handle)
+            var type = Meta.GetTypeDefinition(handle)
+            var visibility = type.Attributes & TypeAttributes.VisibilityMask
+            if type.IsNested
+                if visibility == TypeAttributes.NestedPublic
+                        or visibility == TypeAttributes.NestedFamily
+                        or visibility == TypeAttributes.NestedFamORAssem
+                    new NestedType(this, type)
+            else if visibility == TypeAttributes.Public
+                new Type(this, type)
         
         for handle in Meta.ExportedTypes
-            LoadType(handle)
-    
-    private fn LoadType(handle TypeDefinitionHandle)
-        var type = Meta.GetTypeDefinition(handle)
-        var typeNamespace = Meta.GetString(type.Namespace)
-        var typeName = Meta.GetString(type.Name)
-        AddType(typeNamespace, typeName)
-    
-    private fn LoadType(handle ExportedTypeHandle)
-        var type = Meta.GetExportedType(handle)
-        var typeNamespace = Meta.GetString(type.Namespace)
-        var typeName = Meta.GetString(type.Name)
-
-        if type.IsForwarder
-            var asmRef = Meta.GetAssemblyReference(type.Implementation as AssemblyReferenceHandle)
-            var asmName = Meta.GetString(asmRef.Name)
-
-        AddType(typeNamespace, typeName)
-    
-    public fn AddType(parent str, name str) is Items.AddType(parent, name)
-    
-    public fn GetTypeItem(parts IEnumerable{str}, name str) ?TypeItem is Items.GetTypeItem(parts, name)
+            var type = Meta.GetExportedType(handle)
+            if type.IsForwarder
+                new ExportedType(this, type)
     
     public fn Dispose() is Stream.Dispose()

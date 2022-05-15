@@ -35,10 +35,10 @@ public class CompilePass1
         state.TypeResolver.AddAssemblyRef("System.Runtime")
         state.TypeResolver.AddAssemblyRef("System.Console")
 
-        state.ObjectTypeRef = state.TypeResolver.GetOrAddTypeRef("System", "Object")
+        state.ObjectTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Object")
 
         ; TargetFrameworkAttribute
-        var targetFrameworkTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Runtime.Versioning", "TargetFrameworkAttribute")
+        var targetFrameworkTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Runtime.Versioning.TargetFrameworkAttribute")
 
         var targetFrameworkCtorSig = new BlobBuilder()
         new BlobEncoder(targetFrameworkCtorSig)

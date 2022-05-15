@@ -5,12 +5,11 @@ use NSharp.Core
 ns NSharp.Compiler.Metadata
 
 public class TypeResolver has IDisposable
-    public fn Current TypeItem = new(TypeItemType.Assembly, str.Empty)
-
-    private fn AssemblyFileExtensions []str get = [".dll", ".exe"]
+    private fn AssemblyFileExtensions []str get = ["dll", "exe"]
     private fn State State
     private fn AssemblyPaths List{str} = new()
     private fn Assemblies Dictionary{str, Assembly} = new()
+    private fn Types Dictionary{str, IType} = new()
 
     public fn new(state State) is State = state
 
@@ -18,79 +17,63 @@ public class TypeResolver has IDisposable
         for asm in Assemblies.Values
             asm.Dispose()
     
+    public fn AddType(name str, type IType)
+        if Types.ContainsKey(name)
+            throw new Exception(Resources.FormatFatal(0x0002, name))
+        Types[name] = type
+    
     public fn AddAssemblyPath(path str) is AssemblyPaths.Add(path)
 
     public fn AddAssemblyRef(name str)
         for path in AssemblyPaths
             for extension in AssemblyFileExtensions
-                var fullPath = Path.Combine(path, "{name}{extension}")
+                var fullPath = Path.Combine(path, "{name}.{extension}")
                 if File.Exists(fullPath)
                     AddAssemblyFileRef(fullPath)
                     ret
 
     public fn AddAssemblyFileRef(fileName str)
         ; load the assembly
-        var asm = new Assembly(fileName)
+        var asm = new Assembly(this, fileName)
         if Assemblies.ContainsKey(asm.Name)
             State.AddDiagnostic(Severity.Warning, 0x0000, asm.Name)
         
         Assemblies[asm.Name] = asm
     
-    public fn GetTypeItem(parent str, name str) ?TypeItem
-        var parts = parent.Split('.')
-        var types = new List{TypeItem}()
-        var locations = new List{str}()
+    public fn GetOrAddTypeRef(name str) TypeReferenceHandle
+        ret default
+        ; var parts = parent.Split('.')
 
-        ; check the current assembly
-        if type = Current.GetTypeItem(parts, name), type != null
-            types.Add(type)
-            locations.Add(Resources.GetString("Compiler.CurrentAssembly"))
+        ; var assembly ?Assembly = null
+        ; var type ?TypeItem = null
+        ; for asm in Assemblies.Values
+        ;     if t = asm.GetTypeItem(parts, name), t != null
+        ;         if type == null
+        ;             assembly = asm
+        ;             type = t
+        ;         else
+        ;             throw new Exception(Resources.FormatFatal(0x0000, "{parent}.{name}"))
         
-        ; check all the referenced assemblies
-        for asm in Assemblies.Values
-            if type = asm.GetTypeItem(parts, name), type != null
-                types.Add(type)
-                locations.Add(asm.Name)
-        
-        if types.Count > 1
-            State.AddDiagnostic(Severity.Error, 0x0000, "{parent}.{name}", str.Join(", ", locations))
-        
-        ret types.Any() ? types[0], null
-
-    
-    public fn GetOrAddTypeRef(parent str, name str) TypeReferenceHandle
-        var parts = parent.Split('.')
-
-        var assembly ?Assembly = null
-        var type ?TypeItem = null
-        for asm in Assemblies.Values
-            if t = asm.GetTypeItem(parts, name), t != null
-                if type == null
-                    assembly = asm
-                    type = t
-                else
-                    throw new Exception(Resources.FormatFatal(0x0000, "{parent}.{name}"))
-        
-        if assembly == null or type == null
-            throw new Exception(Resources.FormatFatal(0x0001, "{parent}.{name}"))
+        ; if assembly == null or type == null
+        ;     throw new Exception(Resources.FormatFatal(0x0001, "{parent}.{name}"))
             
-        ; create an assembly reference if necessary
-        if assembly.Handle == null
-            assembly.Handle = State.PeMetadataBuilder.AddAssemblyReference(
-                State.PeMetadataBuilder.GetOrAddString(assembly.Name),
-                assembly.Definition.Version,
-                default,
-                State.PeMetadataBuilder.GetOrAddBlob(assembly.PublicKey),
-                default,
-                default
-            )
+        ; ; create an assembly reference if necessary
+        ; if assembly.Handle == null
+        ;     assembly.Handle = State.PeMetadataBuilder.AddAssemblyReference(
+        ;         State.PeMetadataBuilder.GetOrAddString(assembly.Name),
+        ;         assembly.Definition.Version,
+        ;         default,
+        ;         State.PeMetadataBuilder.GetOrAddBlob(assembly.PublicKey),
+        ;         default,
+        ;         default
+        ;     )
         
-        ; create a type reference if necessary
-        if type.Handle == null
-            type.Handle = State.PeMetadataBuilder.AddTypeReference(
-                assembly.Handle.Value,
-                State.PeMetadataBuilder.GetOrAddString(parent),
-                State.PeMetadataBuilder.GetOrAddString(name)
-            )
+        ; ; create a type reference if necessary
+        ; if type.Handle == null
+        ;     type.Handle = State.PeMetadataBuilder.AddTypeReference(
+        ;         assembly.Handle.Value,
+        ;         State.PeMetadataBuilder.GetOrAddString(parent),
+        ;         State.PeMetadataBuilder.GetOrAddString(name)
+        ;     )
         
-        ret type.Handle.Value
+        ; ret type.Handle.Value

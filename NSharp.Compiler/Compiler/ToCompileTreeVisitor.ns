@@ -1,3 +1,4 @@
+use NSharp.Compiler.Metadata
 use NSharp.Compiler.Tree
 use NSharp.Core
 use NSharp.Core.Ast
@@ -27,7 +28,7 @@ public class ToCompileTreeVisitor has ISyntaxTreeVisitor
         if CurrentClass.Any()
             CurrentClass.Peek().Classes.Add(newClass)
         
-        State.TypeResolver.Current.AddType(newClass)
+        new BuildType(State.TypeResolver, newClass)
         State.Classes.Add(newClass)
 
     public fn Visit(item Core.Ast.Constant) is CurrentClass.Peek().Constants.Add(item)

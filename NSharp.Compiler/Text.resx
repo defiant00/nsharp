@@ -3,9 +3,6 @@
   <data name="Compiler.ConfigNotFound" xml:space="preserve">
     <value>'{0}' not found, using default configuration.</value>
   </data>
-  <data name="Compiler.CurrentAssembly" xml:space="preserve">
-    <value>current assembly</value>
-  </data>
   <data name="Compiler.Elapsed" xml:space="preserve">
     <value>Elapsed: {0}</value>
   </data>
@@ -50,14 +47,14 @@ Commands:
   <data name="Diagnostic.Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
-  <data name="NSC.Error.0000" xml:space="preserve">
-    <value>Type {0} found in locations {1}.</value>
-  </data>
   <data name="NSC.Fatal.0000" xml:space="preserve">
     <value>Multiple types found for {0}.</value>
   </data>
   <data name="NSC.Fatal.0001" xml:space="preserve">
     <value>Unable to get type {0}.</value>
+  </data>
+  <data name="NSC.Fatal.0002" xml:space="preserve">
+    <value>Type {0} is already defined.</value>
   </data>
   <data name="NSC.Warning.0000" xml:space="preserve">
     <value>{0} has already been referenced.</value>

@@ -1,0 +1,4 @@
+ns NSharp.Compiler.Metadata
+
+public interface IType
+    ; empty
