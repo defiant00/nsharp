@@ -84,7 +84,7 @@ public enum TokenType
     Is
     As
     Has
-    Colon
+    DoubleColon
     Discard
     Line_Continuation_Postfix_Start
     LeftParenthesis
@@ -112,6 +112,7 @@ public enum TokenType
     Operator_Can_Throw_End
     Comma
     Question
+    Colon
     Assignment_Start
     Assign
     AddAssign

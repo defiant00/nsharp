@@ -305,7 +305,7 @@ public class Parser
     private fn ParseBlock() ParseResult{Statement}
         var block = new Block(Peek.Position)
 
-        if res = Accept(TokenType.Colon, TokenType.EOL, TokenType.Indent), res.Failure
+        if res = Accept(TokenType.DoubleColon, TokenType.EOL, TokenType.Indent), res.Failure
             LogError("block", res)
             ToNextLine()
             ret new ParseResult{Statement}(block)
@@ -424,7 +424,7 @@ public class Parser
         ret commentResult
 
     private fn ParseConditional(expr Expression) ParseResult{Expression}
-        ; [expr] ? [true expr], [false expr]
+        ; [expr] ? [true expr] : [false expr]
         ; [expr] ? {[value] is [result], [value] is [result]}
 
         var res = Accept(TokenType.Question)
@@ -442,7 +442,7 @@ public class Parser
                 exprRes.Result.Position,
                 new LiteralToken(exprRes.Result.Position, LiteralType.True),
                 exprRes.Result))
-            res = Accept(TokenType.Comma)
+            res = Accept(TokenType.Colon)
             if res.Failure
                 ret InvalidTokenErrorExpression("Invalid token in conditional", res)
 
@@ -1422,9 +1422,9 @@ public class Parser
     private fn ParseMethodStatement(acceptEol bool = true, isNested bool = false) ParseResult{Statement} is Peek.Type ?
         {
             TokenType.Break is ParseBreak(),
-            TokenType.Colon is ParseBlock(),
             TokenType.Comment is ParseComment(acceptEol),
             TokenType.Continue is ParseContinue(),
+            TokenType.DoubleColon is ParseBlock(),
             TokenType.EOL is ParseSpace(),
             TokenType.For is ParseFor(),
             TokenType.If is ParseIf(),

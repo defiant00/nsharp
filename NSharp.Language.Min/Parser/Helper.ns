@@ -36,6 +36,7 @@ public static class Helper
             ("if", TokenType.If)
             ("else", TokenType.Else)
             (":", TokenType.Colon)
+            ("::", TokenType.DoubleColon)
             ("_", TokenType.Discard)
             ("public", TokenType.Public)
             ("protected", TokenType.Protected)
