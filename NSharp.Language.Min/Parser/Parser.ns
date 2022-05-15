@@ -2012,13 +2012,13 @@ public class Parser
             if Peek.Type == TokenType.LeftCurly
                 leftResult = ParseGeneric(leftResult.Result)
 
-            var res = Accept(TokenType.Dot, TokenType.Literal)
-            if res.Success
+            if res = Accept(TokenType.Dot, TokenType.Literal), res.Success
                 leftResult = new ParseResult{Expression}(new BinaryOperator(
                     leftResult.Result.Position,
                     leftResult.Result,
                     BinaryOperatorType.Dot,
-                    new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)))
+                    new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
+                ))
 
         ret leftResult
 

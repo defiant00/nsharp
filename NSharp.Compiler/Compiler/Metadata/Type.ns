@@ -4,7 +4,8 @@ ns NSharp.Compiler.Metadata
 
 public abstract class Type
     public open fn IsReference bool is false
-    public fn TypeDefinitionHandle ?TypeDefinitionHandle
-    public fn TypeReferenceHandle ?TypeReferenceHandle
+    public fn Handle EntityHandle
+    public fn TypeDefinitionHandle TypeDefinitionHandle is Handle as TypeDefinitionHandle
+    public fn TypeReferenceHandle TypeReferenceHandle is Handle as TypeReferenceHandle
     public fn Namespace str = str.Empty
     public fn Name str = str.Empty

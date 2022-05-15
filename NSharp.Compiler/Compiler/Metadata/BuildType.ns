@@ -1,9 +1,13 @@
 use System.Reflection.Metadata
+use NSharp.Compiler.Tree
 
 ns NSharp.Compiler.Metadata
 
 public class BuildType is Type
-    public fn new(typeResolver TypeResolver, nspace str, name str)
-        Namespace = nspace
-        Name = name
+    public fn Class Class
+
+    public fn new(typeResolver TypeResolver, cl Class)
+        Class = cl
+        Namespace = cl.Namespace
+        Name = cl.Name
         typeResolver.AddType(str.IsNullOrEmpty(Namespace) ? Name : "{Namespace}.{Name}", this)

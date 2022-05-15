@@ -19,8 +19,7 @@ public class State has IDisposable
     public fn FileName str
     public fn IlBuilder BlobBuilder = new()
     public fn PeMetadataBuilder MetadataBuilder = new()
-    public fn EntryPoint ?MethodDefinitionHandle
-    public fn ObjectTypeRef TypeReferenceHandle = default
+    public fn EntryPoint MethodDefinitionHandle
 
     public fn new(outFilePath str)
         TypeResolver = new(this)

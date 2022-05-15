@@ -15,7 +15,7 @@ public class Compiler has IDisposable
     
     public fn Compile() List{Diagnostic}
         ; Setup the assembly and class headers.
-        new CompilePass1().Run(State)
+        CompilePass1.Run(State)
         ret State.Diagnostics
     
     public fn Save()

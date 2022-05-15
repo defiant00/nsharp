@@ -35,20 +35,14 @@ Commands:
     /save [files]          - save the specified files per the .nssave settings
     /validate [files]      - validate the specified files' syntax</value>
   </data>
-  <data name="Diagnostic.Error" xml:space="preserve">
-    <value>Error</value>
-  </data>
-  <data name="Diagnostic.Fatal" xml:space="preserve">
-    <value>Fatal</value>
-  </data>
-  <data name="Diagnostic.Message" xml:space="preserve">
-    <value>Message</value>
-  </data>
-  <data name="Diagnostic.Warning" xml:space="preserve">
-    <value>Warning</value>
-  </data>
   <data name="NSC.Error.0000" xml:space="preserve">
-    <value>Unable to get type {0}.</value>
+    <value>Unable to get type {0}</value>
+  </data>
+  <data name="NSC.Error.0001" xml:space="preserve">
+    <value>Type {0} is ambiguous between {1}</value>
+  </data>
+  <data name="NSC.Fatal.0000" xml:space="preserve">
+    <value>Type {0} is part of a circular reference.</value>
   </data>
   <data name="NSC.Fatal.0002" xml:space="preserve">
     <value>Type {0} is already defined.</value>

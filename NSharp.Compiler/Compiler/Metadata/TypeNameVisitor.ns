@@ -1,112 +1,90 @@
-use NSharp.Compiler.Metadata
-use NSharp.Compiler.Tree
+use System.Text
 use NSharp.Core
 use NSharp.Core.Ast
 
-ns NSharp.Compiler
+ns NSharp.Compiler.Metadata
 
-public class ToCompileTreeVisitor has ISyntaxTreeVisitor
-    private fn State State
-    private fn Namespace str = str.Empty
-    private fn Imports List{str} = new()
-    private fn CurrentClass Stack{Tree.Class} = new()
+public static class TypeNameHelper
+    public static ext{Expression} fn ToTypeName() str
+        var visitor = new TypeNameVisitor()
+        this.Accept(visitor)
+        ret visitor.Name
 
-    public fn new(state State) is State = state
 
-    public fn Visit(item Comment) is ; empty
-    public fn Visit(item Space) is ; empty
+public class TypeNameVisitor has ISyntaxTreeVisitor
+    public fn Name str is Buffer.ToString()
 
-    public fn Visit(item Core.Ast.Class)
-        var newClass = new Tree.Class(
-            Imports,
-            Namespace,
-            item,
-            State.TypeResolver
-        )
+    private fn Buffer StringBuilder = new()
 
-        CurrentClass.Push(newClass)
-        for stmt in item.Statements
-            stmt.Accept(this)
-        CurrentClass.Pop()
+    public fn Visit(item Core.Ast.Array) is throw new NotImplementedException()
 
-        if CurrentClass.Any()
-            CurrentClass.Peek().Classes.Add(newClass)
-        
-        State.Classes.Add(newClass)
+    public fn Visit(item BinaryOperator)
+        if item.Operator != BinaryOperatorType.Dot
+            throw new InvalidItemException()
+        item.Left.Accept(this)
+        Buffer.Append(".")
+        item.Right.Accept(this)
 
-    public fn Visit(item Core.Ast.Constant) is CurrentClass.Peek().Constants.Add(item)
+    public fn Visit(item Generic) is item.Expr?.Accept(this)
 
-    public fn Visit(item ConstructorDefinition) is throw new NotImplementedException()
-
-    public fn Visit(item DelegateDefinition) is throw new NotImplementedException()
-
-    public fn Visit(item Enumeration) is throw new NotImplementedException()
-
-    public fn Visit(item Field) is CurrentClass.Peek().Fields.Add(item)
-
-    public fn Visit(item Core.Ast.File)
-        Imports = new List{str}()
-        for stmt in item.Statements
-            stmt.Accept(this)
-
-    public fn Visit(item Import) is Imports.Add(str.Join(".", item.NameParts))
-
-    public fn Visit(item Interface) is throw new NotImplementedException()
-
-    public fn Visit(item MethodDefinition) is CurrentClass.Peek().Methods.Add(item)
-
-    public fn Visit(item Namespace) is Namespace = str.Join(".", item.NameParts)
-
-    public fn Visit(item Property) is CurrentClass.Peek().Properties.Add(item)
-
-    public fn Visit(item Struct) is throw new NotImplementedException()
-
+    public fn Visit(item Identifier) is Buffer.Append(item.Value)
 
     public fn Visit(item Expression) is throw new InvalidItemException()
     public fn Visit(item Statement) is throw new InvalidItemException()
     public fn Visit(item AnonymousFunction) is throw new InvalidItemException()
     public fn Visit(item Argument) is throw new InvalidItemException()
-    public fn Visit(item Core.Ast.Array) is throw new InvalidItemException()
     public fn Visit(item ArrayLiteral) is throw new InvalidItemException()
     public fn Visit(item Assignment) is throw new InvalidItemException()
-    public fn Visit(item BinaryOperator) is throw new InvalidItemException()
     public fn Visit(item Block) is throw new InvalidItemException()
     public fn Visit(item Break) is throw new InvalidItemException()
     public fn Visit(item Case) is throw new InvalidItemException()
     public fn Visit(item Catch) is throw new InvalidItemException()
     public fn Visit(item Character) is throw new InvalidItemException()
+    public fn Visit(item Class) is throw new InvalidItemException()
+    public fn Visit(item Comment) is throw new InvalidItemException()
     public fn Visit(item Condition) is throw new InvalidItemException()
     public fn Visit(item Conditional) is throw new InvalidItemException()
+    public fn Visit(item Constant) is throw new InvalidItemException()
     public fn Visit(item ConstructorCall) is throw new InvalidItemException()
+    public fn Visit(item ConstructorDefinition) is throw new InvalidItemException()
     public fn Visit(item Continue) is throw new InvalidItemException()
     public fn Visit(item CurrentObjectInstance) is throw new InvalidItemException()
     public fn Visit(item DefaultValue) is throw new InvalidItemException()
+    public fn Visit(item DelegateDefinition) is throw new InvalidItemException()
     public fn Visit(item Discard) is throw new InvalidItemException()
+    public fn Visit(item Enumeration) is throw new InvalidItemException()
     public fn Visit(item EnumerationItem) is throw new InvalidItemException()
     public fn Visit(item ErrorExpression) is throw new InvalidItemException()
     public fn Visit(item ErrorStatement) is throw new InvalidItemException()
     public fn Visit(item ExpressionStatement) is throw new InvalidItemException()
+    public fn Visit(item Field) is throw new InvalidItemException()
+    public fn Visit(item Core.Ast.File) is throw new InvalidItemException()
     public fn Visit(item For) is throw new InvalidItemException()
     public fn Visit(item ForEach) is throw new InvalidItemException()
-    public fn Visit(item Generic) is throw new InvalidItemException()
-    public fn Visit(item Identifier) is throw new InvalidItemException()
     public fn Visit(item If) is throw new InvalidItemException()
     public fn Visit(item ImplicitConstructorCall) is throw new InvalidItemException()
+    public fn Visit(item Import) is throw new InvalidItemException()
     public fn Visit(item Indexer) is throw new InvalidItemException()
+    public fn Visit(item Interface) is throw new InvalidItemException()
     public fn Visit(item LiteralToken) is throw new InvalidItemException()
     public fn Visit(item LocalConstant) is throw new InvalidItemException()
     public fn Visit(item LocalVariable) is throw new InvalidItemException()
     public fn Visit(item MethodCall) is throw new InvalidItemException()
+    public fn Visit(item MethodDefinition) is throw new InvalidItemException()
     public fn Visit(item MethodSignature) is throw new InvalidItemException()
     public fn Visit(item Modifier) is throw new InvalidItemException()
     public fn Visit(item NamedExpression) is throw new InvalidItemException()
+    public fn Visit(item Namespace) is throw new InvalidItemException()
     public fn Visit(item Core.Ast.Nullable) is throw new InvalidItemException()
     public fn Visit(item Number) is throw new InvalidItemException()
     public fn Visit(item Parameter) is throw new InvalidItemException()
+    public fn Visit(item Property) is throw new InvalidItemException()
     public fn Visit(item PropertySignature) is throw new InvalidItemException()
     public fn Visit(item Return) is throw new InvalidItemException()
+    public fn Visit(item Space) is throw new InvalidItemException()
     public fn Visit(item Core.Ast.String) is throw new InvalidItemException()
     public fn Visit(item StringLiteral) is throw new InvalidItemException()
+    public fn Visit(item Struct) is throw new InvalidItemException()
     public fn Visit(item Switch) is throw new InvalidItemException()
     public fn Visit(item Throw) is throw new InvalidItemException()
     public fn Visit(item Try) is throw new InvalidItemException()

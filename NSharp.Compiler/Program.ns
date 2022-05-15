@@ -164,17 +164,7 @@ public static class Program
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
                 SetConsoleColor(diagnostic.Severity)
-                var severity = SeverityString(diagnostic.Severity)
-                Console.WriteLine("  {severity} {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
-
-    private static fn SeverityString(severity Severity) str is severity ?
-    {
-        Severity.Message is Resources.GetString("Diagnostic.Message"),
-        Severity.Warning is Resources.GetString("Diagnostic.Warning"),
-        Severity.Error is Resources.GetString("Diagnostic.Error"),
-        Severity.Fatal is Resources.GetString("Diagnostic.Fatal"),
-        _ is "[{severity}]"
-    }
+                Console.WriteLine("  {diagnostic.Code} {diagnostic.Message} ({diagnostic.Position})")
 
     private static fn ResetConsoleColor() is Console.ForegroundColor = ConsoleColor.White
 
@@ -190,8 +180,7 @@ public static class Program
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
             SetConsoleColor(diagnostic.Severity)
-            var severity = SeverityString(diagnostic.Severity)
-            Console.WriteLine("{severity} {diagnostic.Code}: {diagnostic.Message} ({diagnostic.Position})")
+            Console.WriteLine("{diagnostic.Code} {diagnostic.Message} ({diagnostic.Position})")
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
             ResetConsoleColor()
             Console.WriteLine(Resources.GetString("Compiler.Success"))

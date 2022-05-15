@@ -32,7 +32,7 @@ public class SavePass1
 
         use peStream = new FileStream(dllPath, FileMode.Create, FileAccess.ReadWrite)
             var headerCharacteristics = Characteristics.ExecutableImage | Characteristics.LargeAddressAware
-            if state.EntryPoint == null
+            if state.EntryPoint.IsNil
                 headerCharacteristics |= Characteristics.Dll
             
             var peHeaderBuilder = new PEHeaderBuilder(imageCharacteristics = headerCharacteristics)
@@ -41,7 +41,7 @@ public class SavePass1
                 new MetadataRootBuilder(state.PeMetadataBuilder),
                 state.IlBuilder,
                 debugDirectoryBuilder = debugDirBuilder,
-                entryPoint = state.EntryPoint ?? default,
+                entryPoint = state.EntryPoint,
                 deterministicIdProvider = fn(x) is contentId)
             var peBlob = new BlobBuilder()
             var blobContentId = peBuilder.Serialize(peBlob)

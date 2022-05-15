@@ -42,16 +42,37 @@ public class TypeResolver has IDisposable
     
     public fn GetOrAddTypeRef(name str) TypeReferenceHandle is GetOrAddType(name)?.TypeReferenceHandle ?? default
 
-    public fn GetOrAddType(name str) ?Type
+    public fn GetOrAddType(name str, nspace ?str = null, imports ?IEnumerable{str} = null) ?Type
         var type ?Type
+        ; check name directly
         if !Types.TryGetValue(name, out type)
+            var matches = new List{str}()
+            ; check with namespace appended
+            if !str.IsNullOrEmpty(nspace)
+                var nsName = "{nspace}.{name}"
+                var nsType ?Type
+                if Types.TryGetValue(nsName, out nsType)
+                    matches.Add(nsName)
+                    type = nsType
+            ; check with imports appended
+            if imports != null
+                for import in imports
+                    var impName = "{import}.{name}"
+                    var impType ?Type
+                    if Types.TryGetValue(impName, out impType)
+                        matches.Add(impName)
+                        type = impType
+            if matches.Count > 1
+                State.AddDiagnostic(Severity.Error, 0x0001, name, str.Join(" and ", matches))
+        
+        if type == null
             State.AddDiagnostic(Severity.Error, 0x0000, name)
             ret null
         
         if type.IsReference
             var refType = type as ReferenceTypeBase
             ; create the assembly reference if necessary
-            if refType.Assembly.Handle == null
+            if refType.Assembly.Handle.IsNil
                 refType.Assembly.Handle = State.PeMetadataBuilder.AddAssemblyReference(
                     State.PeMetadataBuilder.GetOrAddString(refType.Assembly.Name),
                     refType.Assembly.Definition.Version,
@@ -62,11 +83,13 @@ public class TypeResolver has IDisposable
                 )
             
             ; create the type reference if necessary
-            if refType.TypeReferenceHandle == null
-                refType.TypeReferenceHandle = State.PeMetadataBuilder.AddTypeReference(
-                    refType.Assembly.Handle.Value,
+            if refType.Handle.IsNil
+                refType.Handle = State.PeMetadataBuilder.AddTypeReference(
+                    refType.Assembly.Handle,
                     State.PeMetadataBuilder.GetOrAddString(refType.Namespace),
                     State.PeMetadataBuilder.GetOrAddString(refType.Name)
                 )
+        else if type.Handle.IsNil
+            CompilePass1.ProcessClass(State, (type as BuildType).Class)
         
         ret type

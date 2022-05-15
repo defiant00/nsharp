@@ -1,6 +1,7 @@
 use System.Reflection
 use System.Reflection.Metadata
 use System.Reflection.Metadata.Ecma335
+use NSharp.Compiler.Metadata
 use NSharp.Compiler.Tree
 use NSharp.Core
 
@@ -9,8 +10,8 @@ ns NSharp.Compiler
 ; Pass 1, creates:
 ;   * The module and assembly.
 ;   * Class headers.
-public class CompilePass1
-    public fn Run(state State)
+public static class CompilePass1
+    public static fn Run(state State)
         var guid = Guid.NewGuid()
 
         state.PeMetadataBuilder.AddModule(
@@ -34,8 +35,6 @@ public class CompilePass1
             state.TypeResolver.AddAssemblyPath(path)
         state.TypeResolver.AddAssemblyRef("System.Runtime")
         state.TypeResolver.AddAssemblyRef("System.Console")
-
-        state.ObjectTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Object")
 
         ; TargetFrameworkAttribute
         var targetFrameworkTypeRef = state.TypeResolver.GetOrAddTypeRef("System.Runtime.Versioning.TargetFrameworkAttribute")
@@ -82,28 +81,40 @@ public class CompilePass1
         for c in state.Classes
             ProcessClass(state, c)
     
-    private fn ProcessClass(state State, cl Class)
-        if cl.Type.TypeDefinitionHandle != null
+    public static fn ProcessClass(state State, cl Class)
+        if !cl.Type.Handle.IsNil
             ret
+        
+        if cl.Emitting
+            throw new Exception(Resources.FormatFatal(0x0000, "{cl.Namespace}.{cl.Name}"))
         
         cl.Emitting = true
 
-        var parent = state.ObjectTypeRef
-        if cl.TreeItem.Parent != null
-            ; todo - parse the expression and look up the type
+        var parentName = cl.TreeItem.Parent == null ? "System.Object" : cl.TreeItem.Parent.ToTypeName()
+        var parentType = state.TypeResolver.GetOrAddType(parentName, cl.Namespace, cl.Imports)
         
         var attrs = TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit
         if cl.TreeItem.Modifiers.Any(fn(m) is m.Type == ModifierType.Public)
             attrs |= TypeAttributes.Public
 
-        cl.Type.TypeDefinitionHandle = state.PeMetadataBuilder.AddTypeDefinition(
-            attrs,
-            state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
-            state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
-            parent,
-            MetadataTokens.FieldDefinitionHandle(1),
-            MetadataTokens.MethodDefinitionHandle(1)
-        )
+        if parentType == null or parentType.IsReference
+            cl.Type.Handle = state.PeMetadataBuilder.AddTypeDefinition(
+                attrs,
+                state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
+                state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
+                parentType?.TypeReferenceHandle ?? default,
+                MetadataTokens.FieldDefinitionHandle(1),
+                MetadataTokens.MethodDefinitionHandle(1)
+            )
+        else
+            cl.Type.Handle = state.PeMetadataBuilder.AddTypeDefinition(
+                attrs,
+                state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
+                state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
+                parentType.TypeDefinitionHandle,
+                MetadataTokens.FieldDefinitionHandle(1),
+                MetadataTokens.MethodDefinitionHandle(1)
+            )
 
         cl.Emitting = false
         state.ClassOrder.Add(cl)

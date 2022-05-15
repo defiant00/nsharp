@@ -22,8 +22,8 @@ public class Class
     public fn Fields List{Field} = new()
     public fn Constants List{Core.Ast.Constant} = new()
 
-    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class, type BuildType)
+    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class, typeResolver TypeResolver)
         Imports = imports
         Namespace = nspace
         TreeItem = treeItem
-        Type = type
+        Type = new BuildType(typeResolver, this)

@@ -2,11 +2,11 @@ use System
 
 ns NSharp.Tests.Min
 
-public class A is System.String
+public class A is NSharp.Tests.Min.B
     ; empty
 
-class B is A
+class B is C
     ; empty
 
-class C is B
+class C is str
     ; empty
