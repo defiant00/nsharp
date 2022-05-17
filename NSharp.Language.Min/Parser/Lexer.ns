@@ -44,6 +44,8 @@ public class Lexer
     ; Literals can contain letters, numbers, and _
     private fn IsValidLiteral(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
 
+    private fn IsValidOperator(c char) bool is OPERATOR_CHARACTERS.IndexOf(c) >= 0
+
     private fn IsLineEnd(c char) bool is c == EOF or c == '\r' or c == '\n'
 
     private fn IsValidBinary(c char) bool is c == '0' or c == '1'
@@ -218,7 +220,7 @@ public class Lexer
                         ret LexLiteral
                     else if char.IsDigit(peekVal)
                         ret LexNumber
-                    else if Accept(OPERATOR_CHARACTERS)
+                    else if IsValidOperator(peekVal)
                         ret LexOperator
                     ret Error("Invalid character '{peekVal}'")
 
@@ -246,12 +248,16 @@ public class Lexer
     private fn LexComment() ?StateFunction
         ; discard the ;
         Discard(1)
+
         for c = Peek, !IsLineEnd(c), c = Peek
             Next()
         Emit(TokenType.Comment)
         ret LexIndent
 
     private fn LexLiteral() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         ; accept the starting literal character
         var isLiteral = Next() == Constants.LITERAL_INDICATOR
         ; if it starts with ` discard it
@@ -272,6 +278,9 @@ public class Lexer
         ret LexStatement
 
     private fn LexNumber() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         if Peek == '0'
             Next()
             if Peek == 'b'
@@ -302,6 +311,9 @@ public class Lexer
         ret LexStatement
 
     private fn LexOperator() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         AcceptRun(OPERATOR_CHARACTERS)
         var initialIndex = CurrentIndex
         var tokenType TokenType
@@ -315,6 +327,9 @@ public class Lexer
         ret Error("Invalid operator '{Input.Substring(StartIndex, initialIndex - StartIndex)}'")
 
     private fn LexString() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+        
         ; accept the " or }
         if Next() == '"'
             Emit(TokenType.StringStart)
