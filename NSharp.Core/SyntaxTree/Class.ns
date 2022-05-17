@@ -1,0 +1,12 @@
+ns NSharp.Core.SyntaxTree
+
+public class Class is Node
+    public fn Name Node
+    public fn GenericNames List{Node} = new()
+    public fn Base ?Node
+    public fn Interfaces List{Node} = new()
+    public fn Statements List{Node} = new()
+
+    public fn new(position Position, name Node) base(position) is Name = name
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

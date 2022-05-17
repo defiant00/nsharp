@@ -1,0 +1,16 @@
+ns NSharp.Core.SyntaxTree
+
+public enum NumberType
+    Binary
+    Decimal
+    Hexadecimal
+
+public class NumberToken is Node
+    public fn Type NumberType
+    public fn Value str
+
+    public fn new(position Position, type NumberType, value str) base(position)
+        Type = type
+        Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -1,0 +1,12 @@
+ns NSharp.Core.SyntaxTree
+
+public class For is Node
+    public fn LocalName ?Node
+    public fn Init ?Node
+    public fn Condition ?Node
+    public fn Post ?Node
+    public fn Statements List{Node} = new()
+
+    public fn new(position Position) base(position) is ; empty
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

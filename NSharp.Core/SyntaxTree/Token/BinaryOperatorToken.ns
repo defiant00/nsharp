@@ -1,0 +1,34 @@
+ns NSharp.Core.SyntaxTree
+
+public enum BinaryOperatorType
+    None
+    Dot
+    NullDot
+    NullCoalesce
+    Is
+    As
+    Add
+    Subtract
+    Multiply
+    Divide
+    Modulus
+    Equal
+    NotEqual
+    LessThan
+    GreaterThan
+    LessThanOrEqual
+    GreaterThanOrEqual
+    And
+    Or
+    BitwiseAnd
+    BitwiseOr
+    BitwiseXor
+    LeftShift
+    RightShift
+
+public class BinaryOperatorToken is Node
+    public fn Value BinaryOperatorType
+
+    public fn new(position Position, value BinaryOperatorType) base(position) is Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

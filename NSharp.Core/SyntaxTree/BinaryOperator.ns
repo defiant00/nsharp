@@ -1,0 +1,13 @@
+ns NSharp.Core.SyntaxTree
+
+public class BinaryOperator is Node
+    public fn LeftOperand Node
+    public fn Operator Node
+    public fn RightOperand Node
+
+    public fn new(position Position, leftOperand Node, op Node, rightOperand Node) base(position)
+        LeftOperand = leftOperand
+        Operator = op
+        RightOperand = rightOperand
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -1,0 +1,11 @@
+ns NSharp.Core.SyntaxTree
+
+public class Initializer is Node
+    public fn Name Node
+    public fn Value Node
+
+    public fn new(position Position, name Node, value Node) base(position)
+        Name = name
+        Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
