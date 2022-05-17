@@ -3,47 +3,38 @@ use NSharp.Core
 ns NSharp.Language.Min
 
 public class Lexer
-    private val EOL char = '\0'
+    private val EOF char = '\0'
     private val OPERATOR_CHARACTERS str = "()[]{{}}<>:?!=+-*/%,.&|^~"
     private val REPEATED_ESCAPE_STRING_CHARACTERS str = "{{}}"""
 
     private del StateFunction() ?StateFunction
 
-    private fn Line str
-    private fn LineNumber int
-    private fn LineStartIndex int
-    private fn LineCurrentIndex int
+    private fn Input str = str.Empty
+    private fn StartIndex int = 0
+    private fn CurrentIndex int = 0
+    private fn LineNumber int = 1
+    private fn LineStartIndex int = 0
     private fn State ?StateFunction
-    private fn IndentationLevels Stack{int}
-    private fn HeldTokens Queue{Token}
-    private fn HeldIndents Queue{int}
-    private fn LastEmittedWasLineContinuation bool
-    private fn StringTerminators Stack{TokenType}
+    private fn IndentationLevels Stack{int} = new()
+    private fn HeldTokens Queue{Token} = new()
+    private fn HeldIndents Queue{int} = new()
+    private fn LastEmittedWasLineContinuation bool = false
+    private fn StringTerminators Stack{TokenType} = new()
 
-    public fn Tokens List{Token}
+    public fn Tokens List{Token} = new()
 
-    public fn new()
-        IndentationLevels = new Stack{int}()
+    public fn new(input str)
+        Input = input
         IndentationLevels.Push(0)
-        Tokens = new List{Token}()
-        Line = str.Empty
-        LineNumber = 0
-        HeldTokens = new Queue{Token}()
-        HeldIndents = new Queue{int}()
-        LastEmittedWasLineContinuation = false
-        StringTerminators = new Stack{TokenType}()
 
-    public fn Lex(line str)
-        LineNumber += 1
-        Line = line
-        LineStartIndex = 0
-        LineCurrentIndex = 0
+    public fn Lex()
         State = LexIndent
 
         for State != null
             State = State()
-
-    public fn EndOfFile()
+        
+        if !HeldTokens.Any(fn(t) is t.Type == TokenType.EOL)
+            Emit(TokenType.EOL)
         EmitIndent(0)
         Emit(TokenType.EOF)
 
@@ -53,32 +44,32 @@ public class Lexer
     ; Literals can contain letters, numbers, and _
     private fn IsValidLiteral(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
 
-    private fn IsLineEnd(c char) bool is c == EOL or c == '\r' or c == '\n'
+    private fn IsLineEnd(c char) bool is c == EOF or c == '\r' or c == '\n'
 
     private fn IsValidBinary(c char) bool is c == '0' or c == '1'
 
     private fn IsValidHex(c char) bool is char.IsDigit(c) or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F')
 
-    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = LineStartIndex + 1 }
+    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = (StartIndex - LineStartIndex) + 1 }
 
-    private fn CurrentValue str is Line.Substring(LineStartIndex, CurrentLength)
+    private fn CurrentValue str is Input.Substring(StartIndex, CurrentLength)
 
-    private fn CurrentLength int is LineCurrentIndex - LineStartIndex
+    private fn CurrentLength int is CurrentIndex - StartIndex
 
     private fn Next() char
         var next = Peek
-        LineCurrentIndex += 1
+        CurrentIndex += 1
         ret next
 
-    private fn Peek char is (LineCurrentIndex >= Line.Length) ? EOL : Line[LineCurrentIndex]
+    private fn Peek char is (CurrentIndex >= Input.Length) ? EOF : Input[CurrentIndex]
 
-    private fn PeekNext char is ((LineCurrentIndex + 1) >= Line.Length) ? EOL : Line[LineCurrentIndex + 1]
+    private fn PeekNext char is ((CurrentIndex + 1) >= Input.Length) ? EOF : Input[CurrentIndex + 1]
 
-    private fn Backup() is LineCurrentIndex -= 1
+    private fn Backup() is CurrentIndex -= 1
 
     private fn Discard(increment int = 0)
-        LineCurrentIndex += increment
-        LineStartIndex = LineCurrentIndex
+        CurrentIndex += increment
+        StartIndex = CurrentIndex
 
     private fn Accept(valid str) bool
         if valid.IndexOf(Next()) >= 0
@@ -161,7 +152,11 @@ public class Lexer
 
             LastEmittedWasLineContinuation = token.IsLineContinuationPostfix()
 
-        LineStartIndex = LineCurrentIndex
+        StartIndex = CurrentIndex
+
+        if token == TokenType.EOL
+            LineNumber += 1
+            LineStartIndex = StartIndex
 
     private fn EmitIndent(indent int) is Emit(TokenType.Indent, indent)
 
@@ -169,17 +164,21 @@ public class Lexer
         var indent = 0
         for
             if Next()
-                is EOL
-                is '\r'
-                is '\n'
+                is EOF
                     Backup()
                     Discard()
-                    Emit(TokenType.EOL)
                     ret null
+                is '\r'
+                    ; empty
+                is '\n'
+                    indent = 0
+                    Emit(TokenType.EOL)
                 is ' '
                     indent += 1
+                    Discard()
                 is '\t'
                     indent += 4
+                    Discard()
                 is ';'
                     Backup()
                     Discard()
@@ -194,15 +193,18 @@ public class Lexer
     private fn LexStatement() ?StateFunction
         for
             if peekVal = Peek, peekVal
+                is EOF
+                    Discard()
+                    ret null
                 is ' '
                 is '\t'
                     Discard(1)
-                is EOL
                 is '\r'
+                    Next()
                 is '\n'
-                    Discard()
+                    Next()
                     Emit(TokenType.EOL)
-                    ret null
+                    ret LexIndent
                 is ';'
                     ret LexComment
                 is '\''
@@ -247,8 +249,7 @@ public class Lexer
         for c = Peek, !IsLineEnd(c), c = Peek
             Next()
         Emit(TokenType.Comment)
-        Emit(TokenType.EOL)
-        ret null
+        ret LexIndent
 
     private fn LexLiteral() ?StateFunction
         ; accept the starting literal character
@@ -302,16 +303,16 @@ public class Lexer
 
     private fn LexOperator() ?StateFunction
         AcceptRun(OPERATOR_CHARACTERS)
-        var initialIndex = LineCurrentIndex
+        var initialIndex = CurrentIndex
         var tokenType TokenType
         for found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
-                !found and LineCurrentIndex > LineStartIndex,
+                !found and CurrentIndex > StartIndex,
                 found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Backup()
-        if LineCurrentIndex > LineStartIndex
+        if CurrentIndex > StartIndex
             Emit(tokenType)
             ret LexStatement
-        ret Error("Invalid operator '{Line.Substring(LineStartIndex, initialIndex - LineStartIndex)}'")
+        ret Error("Invalid operator '{Input.Substring(StartIndex, initialIndex - StartIndex)}'")
 
     private fn LexString() ?StateFunction
         ; accept the " or }
