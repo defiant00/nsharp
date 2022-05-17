@@ -9,35 +9,26 @@ public class Lexer
 
     private del StateFunction() ?StateFunction
 
-    private fn Line str
-    private fn LineNumber int
-    private fn LineStartIndex int
-    private fn LineCurrentIndex int
+    private fn Line str = str.Empty
+    private fn LineNumber int = 0
+    private fn StartIndex int
+    private fn CurrentIndex int
     private fn State ?StateFunction
-    private fn IndentationLevels Stack{int}
-    private fn HeldTokens Queue{Token}
-    private fn HeldIndents Queue{int}
-    private fn LastEmittedWasLineContinuation bool
-    private fn StringTerminators Stack{TokenType}
+    private fn IndentationLevels Stack{int} = new()
+    private fn HeldTokens Queue{Token} = new()
+    private fn HeldIndents Queue{int} = new()
+    private fn LastEmittedWasLineContinuation bool = false
+    private fn StringTerminators Stack{TokenType} = new()
 
-    public fn Tokens List{Token}
+    public fn Tokens List{Token} = new()
 
-    public fn new()
-        IndentationLevels = new Stack{int}()
-        IndentationLevels.Push(0)
-        Tokens = new List{Token}()
-        Line = str.Empty
-        LineNumber = 0
-        HeldTokens = new Queue{Token}()
-        HeldIndents = new Queue{int}()
-        LastEmittedWasLineContinuation = false
-        StringTerminators = new Stack{TokenType}()
+    public fn new() is IndentationLevels.Push(0)
 
     public fn Lex(line str)
         LineNumber += 1
         Line = line
-        LineStartIndex = 0
-        LineCurrentIndex = 0
+        StartIndex = 0
+        CurrentIndex = 0
         State = LexIndent
 
         for State != null
@@ -53,32 +44,34 @@ public class Lexer
     ; Literals can contain letters, numbers, and _
     private fn IsValidLiteral(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
 
+    private fn IsValidOperator(c char) bool is OPERATOR_CHARACTERS.IndexOf(c) >= 0
+
     private fn IsLineEnd(c char) bool is c == EOL or c == '\r' or c == '\n'
 
     private fn IsValidBinary(c char) bool is c == '0' or c == '1'
 
     private fn IsValidHex(c char) bool is char.IsDigit(c) or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F')
 
-    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = LineStartIndex + 1 }
+    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = StartIndex + 1 }
 
-    private fn CurrentValue str is Line.Substring(LineStartIndex, CurrentLength)
+    private fn CurrentValue str is Line.Substring(StartIndex, CurrentLength)
 
-    private fn CurrentLength int is LineCurrentIndex - LineStartIndex
+    private fn CurrentLength int is CurrentIndex - StartIndex
 
     private fn Next() char
         var next = Peek
-        LineCurrentIndex += 1
+        CurrentIndex += 1
         ret next
 
-    private fn Peek char is (LineCurrentIndex >= Line.Length) ? EOL : Line[LineCurrentIndex]
+    private fn Peek char is (CurrentIndex >= Line.Length) ? EOL : Line[CurrentIndex]
 
-    private fn PeekNext char is ((LineCurrentIndex + 1) >= Line.Length) ? EOL : Line[LineCurrentIndex + 1]
+    private fn PeekNext char is ((CurrentIndex + 1) >= Line.Length) ? EOL : Line[CurrentIndex + 1]
 
-    private fn Backup() is LineCurrentIndex -= 1
+    private fn Backup() is CurrentIndex -= 1
 
     private fn Discard(increment int = 0)
-        LineCurrentIndex += increment
-        LineStartIndex = LineCurrentIndex
+        CurrentIndex += increment
+        StartIndex = CurrentIndex
 
     private fn Accept(valid str) bool
         if valid.IndexOf(Next()) >= 0
@@ -161,7 +154,7 @@ public class Lexer
 
             LastEmittedWasLineContinuation = token.IsLineContinuationPostfix()
 
-        LineStartIndex = LineCurrentIndex
+        StartIndex = CurrentIndex
 
     private fn EmitIndent(indent int) is Emit(TokenType.Indent, indent)
 
@@ -216,7 +209,7 @@ public class Lexer
                         ret LexLiteral
                     else if char.IsDigit(peekVal)
                         ret LexNumber
-                    else if Accept(OPERATOR_CHARACTERS)
+                    else if IsValidOperator(peekVal)
                         ret LexOperator
                     ret Error("Invalid character '{peekVal}'")
 
@@ -244,6 +237,7 @@ public class Lexer
     private fn LexComment() ?StateFunction
         ; discard the ;
         Discard(1)
+
         for c = Peek, !IsLineEnd(c), c = Peek
             Next()
         Emit(TokenType.Comment)
@@ -251,6 +245,9 @@ public class Lexer
         ret null
 
     private fn LexLiteral() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         ; accept the starting literal character
         var isLiteral = Next() == Constants.LITERAL_INDICATOR
         ; if it starts with ` discard it
@@ -271,6 +268,9 @@ public class Lexer
         ret LexStatement
 
     private fn LexNumber() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         if Peek == '0'
             Next()
             if Peek == 'b'
@@ -301,19 +301,25 @@ public class Lexer
         ret LexStatement
 
     private fn LexOperator() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+
         AcceptRun(OPERATOR_CHARACTERS)
-        var initialIndex = LineCurrentIndex
+        var initialIndex = CurrentIndex
         var tokenType TokenType
         for found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
-                !found and LineCurrentIndex > LineStartIndex,
+                !found and CurrentIndex > StartIndex,
                 found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Backup()
-        if LineCurrentIndex > LineStartIndex
+        if CurrentIndex > StartIndex
             Emit(tokenType)
             ret LexStatement
-        ret Error("Invalid operator '{Line.Substring(LineStartIndex, initialIndex - LineStartIndex)}'")
+        ret Error("Invalid operator '{Line.Substring(StartIndex, initialIndex - StartIndex)}'")
 
     private fn LexString() ?StateFunction
+        ; discard any leading whitespace
+        Discard()
+        
         ; accept the " or }
         if Next() == '"'
             Emit(TokenType.StringStart)
