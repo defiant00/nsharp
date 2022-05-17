@@ -79,9 +79,13 @@ public class Parser
         ret new ErrorStatement(token.Position, error)
 
     public fn Parse(fileName str) ParseResult{Statement}
-        var input = System.IO.File.ReadAllText(fileName)
-        var lexer = new Lexer(input)
-        lexer.Lex()
+        var lexer = new Lexer()
+
+        use reader = new StreamReader(fileName)
+        for line = reader.ReadLine(), line != null, line = reader.ReadLine()
+            lexer.Lex(line)
+        lexer.EndOfFile()
+
         Tokens = lexer.Tokens
 
         if Settings.PrintTokens
