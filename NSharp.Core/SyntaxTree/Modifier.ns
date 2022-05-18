@@ -1,9 +1,9 @@
 ns NSharp.Core.SyntaxTree
 
 public class Modifier is Node
-    public fn Type Node
-    public fn Arguments List{Node} = new()
+    public fn Type ModifierToken
+    public fn Arguments List{Expression} = new()
 
-    public fn new(position Position, type Node) base(position) is Type = type
+    public fn new(position Position, type ModifierToken) base(position) is Type = type
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

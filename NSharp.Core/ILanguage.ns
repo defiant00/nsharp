@@ -2,4 +2,4 @@ ns NSharp.Core
 
 public interface ILanguage
     public fn Load(fileName str) LoadResult
-    public fn Save(fileName str, item TypedTree.File) SaveResult
+    public fn Save(fileName str, item SyntaxTree.File) SaveResult

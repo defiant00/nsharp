@@ -1,11 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class ForEach is Node
-    public fn LocalName Node
-    public fn Value Node
-    public fn Statements List{Node} = new()
+public class ForEach is Statement
+    public fn LocalName IdentifierToken
+    public fn Value Expression
+    public fn Statements List{Statement} = new()
 
-    public fn new(position Position, localName Node, value Node) base(position)
+    public fn new(position Position, localName IdentifierToken, value Expression) base(position)
         LocalName = localName
         Value = value
     

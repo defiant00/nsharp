@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class NamespaceToken is Node
+public class NamespaceToken is Statement
     public fn NameParts List{str} = new()
 
     public fn new(position Position) base(position) is ; empty

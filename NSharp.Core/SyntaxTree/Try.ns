@@ -1,9 +1,9 @@
 ns NSharp.Core.SyntaxTree
 
-public class Try is Node
-    public fn Statements List{Node} = new()
-    public fn Catches List{Node} = new()
-    public fn FinallyStatements List{Node} = new()
+public class Try is Statement
+    public fn Statements List{Statement} = new()
+    public fn Catches List{Catch} = new()
+    public fn FinallyStatements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

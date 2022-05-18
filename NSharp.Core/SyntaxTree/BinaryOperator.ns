@@ -1,11 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class BinaryOperator is Node
-    public fn LeftOperand Node
-    public fn Operator Node
-    public fn RightOperand Node
+public class BinaryOperator is Expression
+    public fn LeftOperand Expression
+    public fn Operator BinaryOperatorToken
+    public fn RightOperand Expression
 
-    public fn new(position Position, leftOperand Node, op Node, rightOperand Node) base(position)
+    public fn new(position Position, leftOperand Expression, op BinaryOperatorToken, rightOperand Expression) base(position)
         LeftOperand = leftOperand
         Operator = op
         RightOperand = rightOperand

@@ -1,9 +1,9 @@
 ns NSharp.Core.SyntaxTree
 
-public class Enumeration is Node
-    public fn Name Node
-    public fn Values List{Node} = new()
+public class Enumeration is Statement
+    public fn Name IdentifierToken
+    public fn Values List{EnumerationItem} = new()
 
-    public fn new(position Position, name Node) base(position) is Name = name
+    public fn new(position Position, name IdentifierToken) base(position) is Name = name
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

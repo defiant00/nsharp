@@ -1,12 +1,12 @@
 ns NSharp.Core.SyntaxTree
 
-public class If is Node
-    public fn LocalName ?Node
-    public fn LocalValue ?Node
-    public fn Condition Node
-    public fn Statements List{Node} = new()
-    public fn ElseStatements List{Node} = new()
+public class If is Statement
+    public fn LocalName ?IdentifierToken
+    public fn LocalValue ?Expression
+    public fn Condition Expression
+    public fn Statements List{Statement} = new()
+    public fn ElseStatements List{Statement} = new()
 
-    public fn new(position Position, condition Node) base(position) is Condition = condition
+    public fn new(position Position, condition Expression) base(position) is Condition = condition
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

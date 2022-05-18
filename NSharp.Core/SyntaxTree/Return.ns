@@ -1,7 +1,7 @@
 ns NSharp.Core.SyntaxTree
 
-public class Return is Node
-    public fn Value ?Node
+public class Return is Statement
+    public fn Value ?Expression
 
     public fn new(position Position) base(position) is ; empty
     

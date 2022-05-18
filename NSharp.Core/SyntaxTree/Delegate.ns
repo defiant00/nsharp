@@ -1,11 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class Delegate is Node
-    public fn ReturnType ?Node
-    public fn Name Node
-    public fn GenericNames List{Node} = new()
-    public fn Parameters List{Node} = new()
+public class Delegate is Statement
+    public fn ReturnType ?Expression
+    public fn Name IdentifierToken
+    public fn GenericNames List{IdentifierToken} = new()
+    public fn Parameters List{Parameter} = new()
 
-    public fn new(position Position, name Node) base(position) is Name = name
+    public fn new(position Position, name IdentifierToken) base(position) is Name = name
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

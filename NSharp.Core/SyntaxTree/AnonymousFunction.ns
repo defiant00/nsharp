@@ -1,9 +1,9 @@
 ns NSharp.Core.SyntaxTree
 
-public class AnonymousFunction is Node
-    public fn ReturnType ?Node
-    public fn Parameters List{Node} = new()
-    public fn Statements List{Node} = new()
+public class AnonymousFunction is Expression
+    public fn ReturnType ?Expression
+    public fn Parameters List{Parameter} = new()
+    public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class CommentToken is Node
+public class CommentToken is Statement
     public fn Value str
     public fn IsDocumentation bool
 

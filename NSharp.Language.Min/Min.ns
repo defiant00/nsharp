@@ -14,7 +14,7 @@ public class Min has ILanguage
         result.SyntaxTree = parser.Parse(fileName)
         ret result
 
-    public fn Save(fileName str, item Core.TypedTree.File) SaveResult
+    public fn Save(fileName str, item Core.SyntaxTree.File) SaveResult
         var result = new SaveResult(fileName)
         var code str = new Decompiler(Settings).Decompile(item)
         System.IO.File.WriteAllText(fileName, code)

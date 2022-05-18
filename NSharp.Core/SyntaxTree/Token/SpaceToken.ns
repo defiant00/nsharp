@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class SpaceToken is Node
+public class SpaceToken is Statement
     public fn Size int
 
     public fn new(position Position, size int) base(position) is Size = size

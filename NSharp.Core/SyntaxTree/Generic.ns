@@ -1,8 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
-public class Generic is Node
-    public fn Value ?Node
-    public fn Arguments List{Node} = new()
+public class Generic is Expression
+    public fn Value ?Expression
+    public fn Arguments List{Expression} = new()
 
     public fn new(position Position) base(position) is ; empty
     

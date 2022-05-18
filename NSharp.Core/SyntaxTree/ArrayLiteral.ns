@@ -1,7 +1,7 @@
 ns NSharp.Core.SyntaxTree
 
-public class ArrayLiteral is Node
-    public fn Values List{Node} = new()
+public class ArrayLiteral is Expression
+    public fn Values List{Expression} = new()
 
     public fn new(position Position) base(position) is ; empty
     

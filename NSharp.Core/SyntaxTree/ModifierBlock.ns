@@ -1,8 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
-public class ModifierBlock is Node
-    public fn Modifiers List{Node} = new()
-    public fn Statements List{Node} = new()
+public class ModifierBlock is Statement
+    public fn Modifiers List{Modifier} = new()
+    public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

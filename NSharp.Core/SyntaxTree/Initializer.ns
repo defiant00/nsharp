@@ -1,10 +1,10 @@
 ns NSharp.Core.SyntaxTree
 
 public class Initializer is Node
-    public fn Name Node
-    public fn Value Node
+    public fn Name IdentifierToken
+    public fn Value Expression
 
-    public fn new(position Position, name Node, value Node) base(position)
+    public fn new(position Position, name IdentifierToken, value Expression) base(position)
         Name = name
         Value = value
     

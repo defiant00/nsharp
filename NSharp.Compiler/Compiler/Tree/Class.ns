@@ -1,5 +1,5 @@
 use NSharp.Compiler.Metadata
-use NSharp.Core.TypedTree
+use NSharp.Core.SyntaxTree
 
 ns NSharp.Compiler.Tree
 
@@ -8,7 +8,7 @@ public class Class
     public fn Imports List{str}
     public fn Namespace str
     public fn Name str is TreeItem.Name.Value
-    public fn TreeItem Core.TypedTree.Class
+    public fn TreeItem Core.SyntaxTree.Class
     public fn Type BuildType
 
     public fn Classes List{Class} = new()
@@ -21,7 +21,7 @@ public class Class
     public fn Fields List{Field} = new()
     public fn Constants List{Constant} = new()
 
-    public fn new(imports List{str}, nspace str, treeItem Core.TypedTree.Class, typeResolver TypeResolver)
+    public fn new(imports List{str}, nspace str, treeItem Core.SyntaxTree.Class, typeResolver TypeResolver)
         Imports = imports
         Namespace = nspace
         TreeItem = treeItem

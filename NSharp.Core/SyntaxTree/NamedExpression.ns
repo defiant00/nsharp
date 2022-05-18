@@ -1,10 +1,10 @@
 ns NSharp.Core.SyntaxTree
 
-public class NamedExpression is Node
-    public fn Value Node
-    public fn Name Node
+public class NamedExpression is Expression
+    public fn Value Expression
+    public fn Name IdentifierToken
 
-    public fn new(position Position, value Node, name Node) base(position)
+    public fn new(position Position, value Expression, name IdentifierToken) base(position)
         Value = value
         Name = name
     

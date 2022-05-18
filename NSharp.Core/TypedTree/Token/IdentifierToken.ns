@@ -1,8 +1,0 @@
-ns NSharp.Core.TypedTree
-
-public class IdentifierToken is Expression
-    public fn Value str
-
-    public fn new(position Position, value str) base(position) is Value = value
-    
-    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

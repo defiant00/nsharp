@@ -1,8 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
-public class NullableType is Node
-    public fn Type Node
+public class NullableType is Expression
+    public fn Type Expression
 
-    public fn new(position Position, type Node) base(position) is Type = type
+    public fn new(position Position, type Expression) base(position) is Type = type
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

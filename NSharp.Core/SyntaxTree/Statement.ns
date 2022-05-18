@@ -1,0 +1,6 @@
+ns NSharp.Core.SyntaxTree
+
+public open class Statement is Node
+    public fn new(position Position) base(position) is ; empty
+    
+    public open over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

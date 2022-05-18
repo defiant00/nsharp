@@ -1,7 +1,7 @@
 ns NSharp.Core.SyntaxTree
 
-public class Block is Node
-    public fn Statements List{Node} = new()
+public class Block is Statement
+    public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

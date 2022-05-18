@@ -1,16 +1,16 @@
 ns NSharp.Core.SyntaxTree
 
-public class Property is Node
-    public fn Name Node
-    public fn Type Node
-    public fn Value ?Node
+public class Property is Statement
+    public fn Name IdentifierToken
+    public fn Type Expression
+    public fn Value ?Expression
     public fn GetSpecified bool = true
     public fn SetSpecified bool = true
-    public fn SetParameterName ?Node
-    public fn GetStatements List{Node} = new()
-    public fn SetStatements List{Node} = new()
+    public fn SetParameterName ?IdentifierToken
+    public fn GetStatements List{Statement} = new()
+    public fn SetStatements List{Statement} = new()
 
-    public fn new(position Position, name Node, type Node) base(position)
+    public fn new(position Position, name IdentifierToken, type Expression) base(position)
         Name = name
         Type = type
     

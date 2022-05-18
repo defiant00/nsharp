@@ -1,11 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class Using is Node
-    public fn Name Node
-    public fn Value Node
-    public fn Statements List{Node} = new()
+public class Using is Statement
+    public fn Name IdentifierToken
+    public fn Value Expression
+    public fn Statements List{Statement} = new()
 
-    public fn new(position Position, name Node, value Node) base(position)
+    public fn new(position Position, name IdentifierToken, value Expression) base(position)
         Name = name
         Value = value
     

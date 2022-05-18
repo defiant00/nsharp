@@ -59,9 +59,8 @@ public static class Program
                     var loadResult = loadLang.Load(file)
                     HandleResult(loadResult)
                     if loadResult.SyntaxTree != null
-                        var typedTree = ValidateGetTypedTree(loadResult.SyntaxTree)
                         use visitor = new ToCsVisitor("{file}.cs")
-                        typedTree.Accept(visitor)
+                        loadResult.SyntaxTree.Accept(visitor)
 
         else
             var outFile = args.Flags.ContainsKey("out") ? args.Flags["out"] :
@@ -88,8 +87,7 @@ public static class Program
                 var loadResult LoadResult = language.Load(file)
                 HandleResult(loadResult)
                 if loadResult.SyntaxTree != null
-                    var typedTree = ValidateGetTypedTree(loadResult.SyntaxTree)
-                    compiler.Add(typedTree)
+                    compiler.Add(loadResult.SyntaxTree)
 
             HandleCompileResult(compiler.Compile())
             compiler.Save()
@@ -107,8 +105,7 @@ public static class Program
             var loadResult = loadLang.Load(file)
             HandleResult(loadResult)
             if loadResult.SyntaxTree != null
-                var typedTree = ValidateGetTypedTree(loadResult.SyntaxTree)
-                HandleResult(saveLang.Save("{file}{EDIT_EXT}", typedTree))
+                HandleResult(saveLang.Save("{file}{EDIT_EXT}", loadResult.SyntaxTree))
 
     private static fn Format(args Arguments)
         for file in args.Paths
@@ -127,8 +124,7 @@ public static class Program
             var loadResult = language.Load(file)
             HandleResult(loadResult)
             if loadResult.SyntaxTree != null
-                var typedTree = ValidateGetTypedTree(loadResult.SyntaxTree)
-                HandleResult(language.Save(file, typedTree))
+                HandleResult(language.Save(file, loadResult.SyntaxTree))
 
     private static fn Save(args Arguments)
         for file in args.Paths
@@ -143,8 +139,7 @@ public static class Program
             var loadResult = loadLang.Load(file)
             HandleResult(loadResult)
             if loadResult.SyntaxTree != null
-                var typedTree = ValidateGetTypedTree(loadResult.SyntaxTree)
-                HandleResult(saveLang.Save(file.Substring(0, file.Length - EDIT_EXT.Length), typedTree))
+                HandleResult(saveLang.Save(file.Substring(0, file.Length - EDIT_EXT.Length), loadResult.SyntaxTree))
 
     private static fn Validate(args Arguments)
         for file in args.Paths
@@ -189,10 +184,6 @@ public static class Program
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
             ResetConsoleColor()
             Console.WriteLine(Resources.GetString("Compiler.Success"))
-    
-    private static fn ValidateGetTypedTree(syntaxTree Core.SyntaxTree.File) Core.TypedTree.File
-        ; todo - validation
-        ret new Core.TypedTree.File(syntaxTree)
 
     private static fn GetLanguage(args Arguments, configFileName str, startingPath str) ILanguage
         var config ?Dictionary{str, str} = null

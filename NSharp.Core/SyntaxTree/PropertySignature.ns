@@ -1,12 +1,12 @@
 ns NSharp.Core.SyntaxTree
 
-public class PropertySignature is Node
-    public fn Name Node
-    public fn Type Node
+public class PropertySignature is Statement
+    public fn Name IdentifierToken
+    public fn Type Expression
     public fn GetSpecified bool = true
     public fn SetSpecified bool = true
 
-    public fn new(position Position, name Node, type Node) base(position)
+    public fn new(position Position, name IdentifierToken, type Expression) base(position)
         Name = name
         Type = type
     

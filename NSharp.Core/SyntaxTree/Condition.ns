@@ -1,10 +1,10 @@
 ns NSharp.Core.SyntaxTree
 
 public class Condition is Node
-    public fn Value Node
-    public fn Result Node
+    public fn Value Expression
+    public fn Result Expression
 
-    public fn new(position Position, value Node, result Node) base(position)
+    public fn new(position Position, value Expression, result Expression) base(position)
         Value = value
         Result = result
     

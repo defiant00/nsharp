@@ -1,8 +1,0 @@
-ns NSharp.Core.TypedTree
-
-public class NullableType is Expression
-    public fn Type Expression
-
-    public fn new(position Position, type Expression) base(position) is Type = type
-    
-    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

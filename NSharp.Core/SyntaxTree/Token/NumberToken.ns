@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class NumberToken is Node
+public class NumberToken is Expression
     public fn Type NumberType
     public fn Value str
 

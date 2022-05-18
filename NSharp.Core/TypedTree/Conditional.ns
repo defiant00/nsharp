@@ -1,9 +1,0 @@
-ns NSharp.Core.TypedTree
-
-public class Conditional is Expression
-    public fn Value Expression
-    public fn Conditions List{Condition} = new()
-
-    public fn new(position Position, value Expression) base(position) is Value = value
-    
-    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

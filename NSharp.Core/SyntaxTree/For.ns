@@ -1,11 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class For is Node
-    public fn LocalName ?Node
-    public fn Init ?Node
-    public fn Condition ?Node
-    public fn Post ?Node
-    public fn Statements List{Node} = new()
+public class For is Statement
+    public fn LocalName ?IdentifierToken
+    public fn Init ?Expression
+    public fn Condition ?Expression
+    public fn Post ?Statement
+    public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

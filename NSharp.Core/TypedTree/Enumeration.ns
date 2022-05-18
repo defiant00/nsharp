@@ -1,9 +1,0 @@
-ns NSharp.Core.TypedTree
-
-public class Enumeration is Statement
-    public fn Name IdentifierToken
-    public fn Values List{EnumerationItem} = new()
-
-    public fn new(position Position, name IdentifierToken) base(position) is Name = name
-    
-    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

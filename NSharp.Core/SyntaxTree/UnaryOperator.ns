@@ -1,10 +1,10 @@
 ns NSharp.Core.SyntaxTree
 
-public class UnaryOperator is Node
-    public fn Operator Node
-    public fn Value Node
+public class UnaryOperator is Expression
+    public fn Operator UnaryOperatorToken
+    public fn Value Expression
 
-    public fn new(position Position, op Node, value Node) base(position)
+    public fn new(position Position, op UnaryOperatorToken, value Expression) base(position)
         Operator = op
         Value = value
     

@@ -1,8 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
-public class MethodCall is Node
-    public fn Value ?Node
-    public fn Arguments List{Node} = new()
+public class MethodCall is Expression
+    public fn Value ?Expression
+    public fn Arguments List{Argument} = new()
 
     public fn new(position Position) base(position) is ; empty
     

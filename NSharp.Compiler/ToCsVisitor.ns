@@ -1,8 +1,8 @@
-use NSharp.Core.TypedTree
+use NSharp.Core.SyntaxTree
 
 ns NSharp.Compiler
 
-public class ToCsVisitor has ITypedTreeVisitor, IDisposable
+public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn new(fileName str) is ; empty
 
     public fn Dispose() is ; empty
@@ -43,13 +43,13 @@ public class ToCsVisitor has ITypedTreeVisitor, IDisposable
     public fn Visit(item Constant) is throw new NotImplementedException()
     public fn Visit(item ConstructorCall) is throw new NotImplementedException()
     public fn Visit(item ConstructorDefinition) is throw new NotImplementedException()
-    public fn Visit(item Core.TypedTree.Delegate) is throw new NotImplementedException()
+    public fn Visit(item Core.SyntaxTree.Delegate) is throw new NotImplementedException()
     public fn Visit(item Enumeration) is throw new NotImplementedException()
     public fn Visit(item EnumerationItem) is throw new NotImplementedException()
     public fn Visit(item Expression) is throw new NotImplementedException()
     public fn Visit(item ExpressionBlock) is throw new NotImplementedException()
     public fn Visit(item Field) is throw new NotImplementedException()
-    public fn Visit(item Core.TypedTree.File) is throw new NotImplementedException()
+    public fn Visit(item Core.SyntaxTree.File) is throw new NotImplementedException()
     public fn Visit(item For) is throw new NotImplementedException()
     public fn Visit(item ForEach) is throw new NotImplementedException()
     public fn Visit(item Generic) is throw new NotImplementedException()
@@ -72,7 +72,7 @@ public class ToCsVisitor has ITypedTreeVisitor, IDisposable
     public fn Visit(item PropertySignature) is throw new NotImplementedException()
     public fn Visit(item Return) is throw new NotImplementedException()
     public fn Visit(item Statement) is throw new NotImplementedException()
-    public fn Visit(item Core.TypedTree.String) is throw new NotImplementedException()
+    public fn Visit(item Core.SyntaxTree.String) is throw new NotImplementedException()
     public fn Visit(item Struct) is throw new NotImplementedException()
     public fn Visit(item Switch) is throw new NotImplementedException()
     public fn Visit(item Throw) is throw new NotImplementedException()

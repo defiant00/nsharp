@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class IdentifierToken is Node
+public class IdentifierToken is Expression
     public fn Value str
 
     public fn new(position Position, value str) base(position) is Value = value

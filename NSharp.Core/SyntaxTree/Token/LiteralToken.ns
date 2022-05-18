@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class LiteralToken is Node
+public class LiteralToken is Expression
     public fn Value LiteralType
 
     public fn new(position Position, value LiteralType) base(position) is Value = value
