@@ -1,10 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum ParameterModifierType
-    Out
-    Parameters
-    Reference
-
 public class ParameterModifierToken is Node
     public fn Value ParameterModifierType
 

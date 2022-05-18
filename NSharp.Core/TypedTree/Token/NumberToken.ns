@@ -1,0 +1,11 @@
+ns NSharp.Core.TypedTree
+
+public class NumberToken is Expression
+    public fn Type NumberType
+    public fn Value str
+
+    public fn new(position Position, type NumberType, value str) base(position)
+        Type = type
+        Value = value
+    
+    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

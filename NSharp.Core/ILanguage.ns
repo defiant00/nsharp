@@ -1,7 +1,5 @@
-use NSharp.Core.Ast
-
 ns NSharp.Core
 
 public interface ILanguage
     public fn Load(fileName str) LoadResult
-    public fn Save(fileName str, item ISyntaxTreeItem) SaveResult
+    public fn Save(fileName str, item TypedTree.File) SaveResult

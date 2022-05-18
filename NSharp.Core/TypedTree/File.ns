@@ -1,0 +1,12 @@
+ns NSharp.Core.TypedTree
+
+public class File is Node
+    public fn Name str
+    public fn Statements List{Statement} = new()
+
+    public fn new(name str) base(default) is Name = name
+
+    public fn new(item SyntaxTree.File) base(item.Position)
+        Name = item.Name
+    
+    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

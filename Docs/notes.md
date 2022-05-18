@@ -18,18 +18,6 @@ Attributes
 @assembly:Special
 ```
 
-```
-MyClass.SubClass
-    Property = val
-    Method()
-    AnotherSubClass
-        Prop = val
-        ["indexer"] += val
-```
+do a first pass that determines inheritance and class order
 
-Modifiers in general should be allowing things.
-    Default all to private/internal, so you pick what you share
-    Default to final, you have to declare them open (abstract is always open)
-
-
-implicit types wherever possible
+make statement blocks on classes, interfaces, constructors, etc. optional

@@ -1,0 +1,9 @@
+ns NSharp.Core.TypedTree
+
+public class Modifier is Node
+    public fn Type ModifierToken
+    public fn Arguments List{Expression} = new()
+
+    public fn new(position Position, type ModifierToken) base(position) is Type = type
+    
+    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

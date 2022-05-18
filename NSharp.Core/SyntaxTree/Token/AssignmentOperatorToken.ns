@@ -1,19 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum AssignmentOperatorType
-    Assign
-    Add
-    Subtract
-    Multiply
-    Divide
-    Modulus
-    BitwiseAnd
-    BitwiseOr
-    BitwiseXor
-    LeftShift
-    RightShift
-    NullCoalesce
-
 public class AssignmentOperatorToken is Node
     public fn Value AssignmentOperatorType
 

@@ -1,10 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum UnaryOperatorType
-    Negate
-    Not
-    BitwiseNot
-
 public class UnaryOperatorToken is Node
     public fn Value UnaryOperatorType
 

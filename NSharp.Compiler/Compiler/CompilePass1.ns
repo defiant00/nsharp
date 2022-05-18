@@ -90,19 +90,19 @@ public static class CompilePass1
         
         cl.Emitting = true
 
-        var parentName = cl.TreeItem.Parent == null ? "System.Object" : cl.TreeItem.Parent.ToTypeName()
-        var parentType = state.TypeResolver.GetOrAddType(parentName, cl.Namespace, cl.Imports)
+        var baseName = cl.TreeItem.Base == null ? "System.Object" : cl.TreeItem.Base.ToTypeName()
+        var baseType = state.TypeResolver.GetOrAddType(baseName, cl.Namespace, cl.Imports)
         
         var attrs = TypeAttributes.Class | TypeAttributes.AutoLayout | TypeAttributes.BeforeFieldInit
-        if cl.TreeItem.Modifiers.Any(fn(m) is m.Type == ModifierType.Public)
-            attrs |= TypeAttributes.Public
+        ; if cl.TreeItem.Modifiers.Any(fn(m) is m.Type == ModifierType.Public)
+        ;     attrs |= TypeAttributes.Public
 
-        if parentType == null or parentType.IsReference
+        if baseType == null or baseType.IsReference
             cl.Type.Handle = state.PeMetadataBuilder.AddTypeDefinition(
                 attrs,
                 state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
-                state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
-                parentType?.TypeReferenceHandle ?? default,
+                state.PeMetadataBuilder.GetOrAddString(cl.Name),
+                baseType?.TypeReferenceHandle ?? default,
                 MetadataTokens.FieldDefinitionHandle(1),
                 MetadataTokens.MethodDefinitionHandle(1)
             )
@@ -110,8 +110,8 @@ public static class CompilePass1
             cl.Type.Handle = state.PeMetadataBuilder.AddTypeDefinition(
                 attrs,
                 state.PeMetadataBuilder.GetOrAddString(cl.Namespace),
-                state.PeMetadataBuilder.GetOrAddString(cl.TreeItem.Name),
-                parentType.TypeDefinitionHandle,
+                state.PeMetadataBuilder.GetOrAddString(cl.Name),
+                baseType.TypeDefinitionHandle,
                 MetadataTokens.FieldDefinitionHandle(1),
                 MetadataTokens.MethodDefinitionHandle(1)
             )

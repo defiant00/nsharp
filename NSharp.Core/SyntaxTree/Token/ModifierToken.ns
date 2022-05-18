@@ -1,16 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum ModifierType
-    Public
-    Protected
-    Internal
-    Private
-    Abstract
-    Extension
-    Open
-    Override
-    Static
-
 public class ModifierToken is Node
     public fn Value ModifierType
 

@@ -1,31 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum BinaryOperatorType
-    None
-    Dot
-    NullDot
-    NullCoalesce
-    Is
-    As
-    Add
-    Subtract
-    Multiply
-    Divide
-    Modulus
-    Equal
-    NotEqual
-    LessThan
-    GreaterThan
-    LessThanOrEqual
-    GreaterThanOrEqual
-    And
-    Or
-    BitwiseAnd
-    BitwiseOr
-    BitwiseXor
-    LeftShift
-    RightShift
-
 public class BinaryOperatorToken is Node
     public fn Value BinaryOperatorType
 

@@ -1,10 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum NumberType
-    Binary
-    Decimal
-    Hexadecimal
-
 public class NumberToken is Node
     public fn Type NumberType
     public fn Value str

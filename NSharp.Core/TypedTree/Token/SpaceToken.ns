@@ -1,0 +1,8 @@
+ns NSharp.Core.TypedTree
+
+public class SpaceToken is Statement
+    public fn Size int
+
+    public fn new(position Position, size int) base(position) is Size = size
+    
+    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

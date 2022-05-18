@@ -1,5 +1,4 @@
 use NSharp.Core
-use NSharp.Core.Ast
 
 ns NSharp.Language.Min
 
@@ -12,10 +11,10 @@ public class Min has ILanguage
     public fn Load(fileName str) LoadResult
         var result = new LoadResult(fileName)
         var parser = new Parser(Settings, result)
-        result.Ast = parser.Parse(fileName).Result as Core.Ast.File
+        result.SyntaxTree = parser.Parse(fileName)
         ret result
 
-    public fn Save(fileName str, item ISyntaxTreeItem) SaveResult
+    public fn Save(fileName str, item Core.TypedTree.File) SaveResult
         var result = new SaveResult(fileName)
         var code str = new Decompiler(Settings).Decompile(item)
         System.IO.File.WriteAllText(fileName, code)

@@ -1,6 +1,5 @@
-use System.Reflection.Metadata
-use NSharp.Core.Ast
 use NSharp.Compiler.Metadata
+use NSharp.Core.TypedTree
 
 ns NSharp.Compiler.Tree
 
@@ -8,8 +7,8 @@ public class Class
     public fn Emitting bool
     public fn Imports List{str}
     public fn Namespace str
-    public fn Name str is TreeItem.Name
-    public fn TreeItem Core.Ast.Class
+    public fn Name str is TreeItem.Name.Value
+    public fn TreeItem Core.TypedTree.Class
     public fn Type BuildType
 
     public fn Classes List{Class} = new()
@@ -17,12 +16,12 @@ public class Class
     ; interfaces
     ; structs
     ; delegates
-    public fn Methods List{Core.Ast.MethodDefinition} = new()
+    public fn Methods List{MethodDefinition} = new()
     public fn Properties List{Property} = new()
     public fn Fields List{Field} = new()
-    public fn Constants List{Core.Ast.Constant} = new()
+    public fn Constants List{Constant} = new()
 
-    public fn new(imports List{str}, nspace str, treeItem Core.Ast.Class, typeResolver TypeResolver)
+    public fn new(imports List{str}, nspace str, treeItem Core.TypedTree.Class, typeResolver TypeResolver)
         Imports = imports
         Namespace = nspace
         TreeItem = treeItem

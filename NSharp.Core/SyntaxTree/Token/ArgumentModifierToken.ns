@@ -1,9 +1,5 @@
 ns NSharp.Core.SyntaxTree
 
-public enum ArgumentModifierType
-    Out
-    Reference
-
 public class ArgumentModifierToken is Node
     public fn Value ArgumentModifierType
 

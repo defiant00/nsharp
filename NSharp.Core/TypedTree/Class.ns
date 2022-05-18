@@ -1,0 +1,12 @@
+ns NSharp.Core.TypedTree
+
+public class Class is Statement
+    public fn Name IdentifierToken
+    public fn GenericNames List{IdentifierToken} = new()
+    public fn Base ?Expression
+    public fn Interfaces List{Expression} = new()
+    public fn Statements List{Statement} = new()
+
+    public fn new(position Position, name IdentifierToken) base(position) is Name = name
+    
+    public over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)

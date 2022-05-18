@@ -1,4 +1,4 @@
-use NSharp.Core.Ast
+use NSharp.Core.TypedTree
 
 ns NSharp.Language.Min
 
@@ -7,5 +7,5 @@ public class Decompiler
 
     public fn new(settings Settings) is Settings = settings
 
-    public fn Decompile(item ISyntaxTreeItem) str
+    public fn Decompile(item Node) str
         ret "decompiler output goes here"

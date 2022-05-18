@@ -10,7 +10,7 @@ public class Compiler has IDisposable
 
     public fn Dispose() is State.Dispose()
 
-    public fn Add(file Core.Ast.File)
+    public fn Add(file Core.TypedTree.File)
         file.Accept(new ToCompileTreeVisitor(State))
     
     public fn Compile() List{Diagnostic}

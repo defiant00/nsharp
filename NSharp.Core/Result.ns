@@ -9,7 +9,7 @@ public abstract class Result
 
 
 public class LoadResult is Result
-    public fn Ast ?Ast.File
+    public fn SyntaxTree ?SyntaxTree.File
     public fn new(fileName str) base(fileName) is ; empty
 
 

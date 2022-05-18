@@ -1,0 +1,6 @@
+ns NSharp.Core.TypedTree
+
+public open class Expression is Statement
+    public fn new(position Position) base(position) is ; empty
+    
+    public open over fn Accept(visitor ITypedTreeVisitor) is visitor.Visit(this)
