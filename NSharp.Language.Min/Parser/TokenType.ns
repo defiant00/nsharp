@@ -14,7 +14,7 @@ public enum TokenType
     StringLiteral
     StringEnd
     NumberLiteral
-    Literal
+    Identifier
     This
     Type_Start
     String

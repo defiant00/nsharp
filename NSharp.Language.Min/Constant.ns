@@ -1,0 +1,5 @@
+ns NSharp.Language.Min
+
+public static class Constant
+    public val IDENTIFIER_INDICATOR char = '`'
+    public val FUNCTION_END str = "/fn"

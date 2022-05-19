@@ -218,7 +218,7 @@ public class Parser
 ;         if Peek.Type != TokenType.RightParenthesis
 ;             ; Named arguments
 ;             var name ?str = null
-;             if res = Accept(TokenType.Literal, TokenType.Assign), res.Success
+;             if res = Accept(TokenType.Identifier, TokenType.Assign), res.Success
 ;                 name = GetToken(res).Value
 
 ;             ; Argument modifiers
@@ -235,7 +235,7 @@ public class Parser
 ;             for Accept(TokenType.Comma).Success
 ;                 ; Named arguments
 ;                 name = null
-;                 if res = Accept(TokenType.Literal, TokenType.Assign), res.Success
+;                 if res = Accept(TokenType.Identifier, TokenType.Assign), res.Success
 ;                     name = GetToken(res).Value
 
 ;                 ; Argument modifiers
@@ -322,7 +322,7 @@ public class Parser
             
 ;             ; If it's a named expression (currently only 'is') then accept the
 ;             ; next token as the name if it's a literal.
-;             if op.Type == TokenType.Is and Peek.Type == TokenType.Literal
+;             if op.Type == TokenType.Is and Peek.Type == TokenType.Identifier
 ;                 right = new ParseResult{Expression}(new NamedExpression(right.Result.Position, right.Result, Next().Value))
 
 ;             ; If the binary operator binds less tightly with the right than the operator
@@ -362,7 +362,7 @@ public class Parser
 ;         ret new ParseResult{Statement}(new Break(GetToken(res).Position))
 
 ;     private fn ParseClass(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Class, TokenType.Literal)
+;         var res = Accept(TokenType.Class, TokenType.Identifier)
 ;         if res.Failure
 ;             ret new ParseResult{Statement}(ErrorStmt("class", res))
 
@@ -526,7 +526,7 @@ public class Parser
 ;         ; accept val
 ;         var start = Next()
 
-;         var res = Accept(TokenType.Literal)
+;         var res = Accept(TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in constant", res)
 
@@ -567,7 +567,7 @@ public class Parser
 ;         var res AcceptResult
 ;         if Accept(TokenType.LeftCurly).Success
 ;             for Peek.Type != TokenType.RightCurly
-;                 res = Accept(TokenType.Literal, TokenType.Assign)
+;                 res = Accept(TokenType.Identifier, TokenType.Assign)
 ;                 if res.Failure
 ;                     ret InvalidTokenErrorExpression("Invalid token in constructor call", res)
 
@@ -658,7 +658,7 @@ public class Parser
 ;         ; accept del
 ;         Next()
 
-;         var res = Accept(TokenType.Literal)
+;         var res = Accept(TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in delegate", res)
 
@@ -687,14 +687,14 @@ public class Parser
 ;         ;     Val3 ; comment
 ;         ;     Val4 = 5 ; comment
 
-;         var res = Accept(TokenType.Enum, TokenType.Literal, TokenType.EOL, TokenType.Indent)
+;         var res = Accept(TokenType.Enum, TokenType.Identifier, TokenType.EOL, TokenType.Indent)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in enum", res)
 
 ;         var enumDef = new Enumeration(GetToken(res).Position, modifiers, GetToken(res, 1).Value)
 
 ;         for Peek.Type != TokenType.Dedent
-;             res = Accept(TokenType.Literal)
+;             res = Accept(TokenType.Identifier)
 ;             if res.Failure
 ;                 ret InvalidTokenErrorStatement("Invalid token in enum", res)
 ;             var enumItem = new EnumerationItem(GetToken(res).Position, GetToken(res).Value)
@@ -759,7 +759,7 @@ public class Parser
 ;         ; accept var
 ;         var start = Next()
 
-;         var res = Accept(TokenType.Literal)
+;         var res = Accept(TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in field", res)
 
@@ -812,7 +812,7 @@ public class Parser
 ;         ;     [statements]
 ;         ; bet
 ;         ;     [statements]
-;         res = Accept(TokenType.Literal, TokenType.In)
+;         res = Accept(TokenType.Identifier, TokenType.In)
 ;         if res.Success
 ;             ; for [name] in [expr]
 ;             ;     [statements]
@@ -844,7 +844,7 @@ public class Parser
 
 ;         var forDef = new For(pos)
 
-;         res = Accept(TokenType.Literal, TokenType.Assign)
+;         res = Accept(TokenType.Identifier, TokenType.Assign)
 ;         if res.Success
 ;             ; for [name] = [expr], [expr], [stmt]
 
@@ -935,13 +935,13 @@ public class Parser
 ;         if Peek.Type != TokenType.LeftCurly
 ;             ret
 
-;         if res = Accept(TokenType.LeftCurly, TokenType.Literal), res.Success
+;         if res = Accept(TokenType.LeftCurly, TokenType.Identifier), res.Success
 ;             genericNames.Add(GetToken(res, 1).Value)
 ;         else
 ;             LogError("generic", res)
 ;             ret
 
-;         for res = Accept(TokenType.Comma, TokenType.Literal), res.Success, res = Accept(TokenType.Comma, TokenType.Literal)
+;         for res = Accept(TokenType.Comma, TokenType.Identifier), res.Success, res = Accept(TokenType.Comma, TokenType.Identifier)
 ;             genericNames.Add(GetToken(res, 1).Value)
 
 ;         if res = Accept(TokenType.RightCurly), res.Failure
@@ -980,7 +980,7 @@ public class Parser
 ;                 if res.Failure
 ;                     ret InvalidTokenErrorStatement("Invalid token in get", res)
 ;         else
-;             res = Accept(TokenType.Set, TokenType.LeftParenthesis, TokenType.Literal, TokenType.RightParenthesis)
+;             res = Accept(TokenType.Set, TokenType.LeftParenthesis, TokenType.Identifier, TokenType.RightParenthesis)
 ;             if res.Failure
 ;                 ret InvalidTokenErrorStatement("Invalid token in set", res)
 ;             propDef.SetParameterName = GetToken(res, 2).Value
@@ -1020,7 +1020,7 @@ public class Parser
 ;         ; accept if
 ;         var start = Next()
 ;         ; if [name] = [expr], [expr]
-;         var res = Accept(TokenType.Literal, TokenType.Assign)
+;         var res = Accept(TokenType.Identifier, TokenType.Assign)
 ;         var name ?str = null
 ;         var assignmentExpr ?ParseResult{Expression} = null
 ;         if res.Success
@@ -1126,7 +1126,7 @@ public class Parser
 
 ;         if Accept(TokenType.LeftCurly).Success
 ;             for Peek.Type != TokenType.RightCurly
-;                 res = Accept(TokenType.Literal, TokenType.Assign)
+;                 res = Accept(TokenType.Identifier, TokenType.Assign)
 ;                 if res.Failure
 ;                     ret InvalidTokenErrorExpression("Invalid token in implicit constructor", res)
 
@@ -1148,16 +1148,16 @@ public class Parser
 ;         ret new ParseResult{Expression}(ctorDef)
 
 ;     private fn ParseImport() ParseResult{Statement}
-;         var res = Accept(TokenType.Use, TokenType.Literal)
+;         var res = Accept(TokenType.Use, TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in use", res)
 
 ;         var import = new Import(GetToken(res).Position, GetToken(res, 1).Value)
 
-;         res = Accept(TokenType.Dot, TokenType.Literal)
+;         res = Accept(TokenType.Dot, TokenType.Identifier)
 ;         for res.Success
 ;             import.NameParts.Add(GetToken(res, 1).Value)
-;             res = Accept(TokenType.Dot, TokenType.Literal)
+;             res = Accept(TokenType.Dot, TokenType.Identifier)
 
 ;         res = Accept(TokenType.EOL)
 ;         if res.Failure
@@ -1188,7 +1188,7 @@ public class Parser
 ;         ret new ParseResult{Expression}(indexer)
 
 ;     private fn ParseInterface(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Interface, TokenType.Literal)
+;         var res = Accept(TokenType.Interface, TokenType.Identifier)
 
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
@@ -1241,7 +1241,7 @@ public class Parser
 ;         if modRes != null
 ;             ret modRes
 
-;         var res = Accept(TokenType.Function, TokenType.Literal)
+;         var res = Accept(TokenType.Function, TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
 
@@ -1256,7 +1256,7 @@ public class Parser
 ;     private fn ParseLocalConstant() ParseResult{Statement}
 ;         ; val [name] [type] = [expr]
 
-;         var res = Accept(TokenType.Value, TokenType.Literal)
+;         var res = Accept(TokenType.Value, TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in val", res)
 
@@ -1286,7 +1286,7 @@ public class Parser
 ;         ; var [name] = [expr]
 ;         ; var [name] [type] = [expr]
 
-;         var res = Accept(TokenType.Variable, TokenType.Literal)
+;         var res = Accept(TokenType.Variable, TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in var", res)
 
@@ -1390,7 +1390,7 @@ public class Parser
 ;         if Peek.Type == TokenType.New
 ;             ret ParseConstructorDefinition(modifiers, start)
 
-;         var res = Accept(TokenType.Literal)
+;         var res = Accept(TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in method or property", res)
 
@@ -1460,16 +1460,16 @@ public class Parser
 ;         ret null
 
 ;     private fn ParseNamespace() ParseResult{Statement}
-;         var res = Accept(TokenType.Namespace, TokenType.Literal)
+;         var res = Accept(TokenType.Namespace, TokenType.Identifier)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in namespace", res)
 
 ;         var nsRes = new Namespace(GetToken(res).Position, GetToken(res, 1).Value)
 
-;         res = Accept(TokenType.Dot, TokenType.Literal)
+;         res = Accept(TokenType.Dot, TokenType.Identifier)
 ;         for res.Success
 ;             nsRes.NameParts.Add(GetToken(res, 1).Value)
-;             res = Accept(TokenType.Dot, TokenType.Literal)
+;             res = Accept(TokenType.Dot, TokenType.Identifier)
 
 ;         res = Accept(TokenType.EOL)
 ;         if res.Failure
@@ -1479,7 +1479,7 @@ public class Parser
     
 ;     private fn ParseNestedPrimaryExpression() ParseResult{Expression}
 ;         var leftResult ParseResult{Expression}
-;         if Peek.Type == TokenType.Literal
+;         if Peek.Type == TokenType.Identifier
 ;             leftResult = ParseIdentifier()
 ;         else if Peek.Type == TokenType.LeftParenthesis
 ;             leftResult = ParseMethodCall(null)
@@ -1497,7 +1497,7 @@ public class Parser
 ;         var loop bool
 ;         for
 ;             loop = true
-;             var res = Accept(TokenType.Dot, TokenType.Literal)
+;             var res = Accept(TokenType.Dot, TokenType.Identifier)
 ;             if res.Success
 ;                 leftResult = new ParseResult{Expression}(new BinaryOperator(
 ;                     leftResult.Result.Position,
@@ -1506,7 +1506,7 @@ public class Parser
 ;                     new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
 ;                 ))
 ;             else
-;                 res = Accept(TokenType.NullDot, TokenType.Literal)
+;                 res = Accept(TokenType.NullDot, TokenType.Identifier)
 ;                 if res.Success
 ;                     leftResult = new ParseResult{Expression}(new BinaryOperator(
 ;                         leftResult.Result.Position,
@@ -1569,7 +1569,7 @@ public class Parser
 ;             for Peek.Type.IsParameterModifier()
 ;                 modifiers.Add(Next().Type.ToParameterModifier())
 
-;             res = Accept(TokenType.Literal)
+;             res = Accept(TokenType.Identifier)
 ;             if res.Failure
 ;                 LogError("parameters", res)
 ;                 To(TokenType.Comma)
@@ -1611,7 +1611,7 @@ public class Parser
 ;             leftResult = ParseParenthesizedExpression()
 ;         else if Peek.Type == TokenType.LeftBracket
 ;             leftResult = ParseArrayLiteral()
-;         else if Peek.Type == TokenType.Literal
+;         else if Peek.Type == TokenType.Identifier
 ;             leftResult = ParseIdentifier()
 ;         else if Peek.Type == TokenType.StringStart
 ;             leftResult = ParseString()
@@ -1649,7 +1649,7 @@ public class Parser
 ;         var loop bool
 ;         for
 ;             loop = true
-;             var res = Accept(TokenType.Dot, TokenType.Literal)
+;             var res = Accept(TokenType.Dot, TokenType.Identifier)
 ;             if res.Success
 ;                 leftResult = new ParseResult{Expression}(new BinaryOperator(
 ;                     leftResult.Result.Position,
@@ -1658,7 +1658,7 @@ public class Parser
 ;                     new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
 ;                 ))
 ;             else
-;                 res = Accept(TokenType.NullDot, TokenType.Literal)
+;                 res = Accept(TokenType.NullDot, TokenType.Identifier)
 ;                 if res.Success
 ;                     leftResult = new ParseResult{Expression}(new BinaryOperator(
 ;                         leftResult.Result.Position,
@@ -1879,7 +1879,7 @@ public class Parser
 ;         ret new ParseResult{Expression}(stringResult)
 
 ;     private fn ParseStruct(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Struct, TokenType.Literal)
+;         var res = Accept(TokenType.Struct, TokenType.Identifier)
 
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in struct", res)
@@ -1965,7 +1965,7 @@ public class Parser
 ;                     ret ErrorStatement(ex)
 
 ;                 catchStmt.Type = typeRes.Result
-;                 res = Accept(TokenType.Literal)
+;                 res = Accept(TokenType.Identifier)
 ;                 if res.Success
 ;                     catchStmt.Name = GetToken(res).Value
 
@@ -2006,7 +2006,7 @@ public class Parser
 ;             ret ParseNullable()
 ;         else if Peek.Type.IsType()
 ;             leftResult = ParseTypeToken()
-;         else if Peek.Type == TokenType.Literal
+;         else if Peek.Type == TokenType.Identifier
 ;             leftResult = ParseIdentifier()
 ;         else
 ;             ret ErrorExpression("Invalid token in type: " + Peek.Type, Peek.Position)
@@ -2018,7 +2018,7 @@ public class Parser
 ;             if Peek.Type == TokenType.LeftCurly
 ;                 leftResult = ParseGeneric(leftResult.Result)
 
-;             if res = Accept(TokenType.Dot, TokenType.Literal), res.Success
+;             if res = Accept(TokenType.Dot, TokenType.Identifier), res.Success
 ;                 leftResult = new ParseResult{Expression}(new BinaryOperator(
 ;                     leftResult.Result.Position,
 ;                     leftResult.Result,
@@ -2063,7 +2063,7 @@ public class Parser
 ;         ; use [name] = [expr]
 ;         ;     [statements]
 
-;         var res = Accept(TokenType.Use, TokenType.Literal, TokenType.Assign)
+;         var res = Accept(TokenType.Use, TokenType.Identifier, TokenType.Assign)
 ;         if res.Failure
 ;             ret InvalidTokenErrorStatement("Invalid token in use", res)
 

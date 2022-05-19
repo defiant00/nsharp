@@ -38,11 +38,11 @@ public class Lexer
         EmitIndent(0)
         Emit(TokenType.EOF)
 
-    ; Literals can start with a letter, _, or ` to indicate an identifier that matches a keyword
-    private fn IsValidLiteralStart(c char) bool is char.IsLetter(c) or c == '_' or c == Constants.LITERAL_INDICATOR
+    ; Identifiers can start with a letter, _, or ` to indicate an identifier that matches a keyword
+    private fn IsValidIdentifierStart(c char) bool is char.IsLetter(c) or c == '_' or c == Constant.IDENTIFIER_INDICATOR
 
-    ; Literals can contain letters, numbers, and _
-    private fn IsValidLiteral(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
+    ; Identifiers can contain letters, numbers, and _
+    private fn IsValidIdentifier(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
 
     private fn IsValidOperator(c char) bool is OPERATOR_CHARACTERS.IndexOf(c) >= 0
 
@@ -83,6 +83,16 @@ public class Lexer
         for valid.IndexOf(Next()) >= 0
             ; empty
         Backup()
+    
+    private fn StartsWithThenNotIdentifier(value str) bool
+        if CurrentIndex + value.Length > Line.Length
+            ret false
+        for i = 0, i < value.Length, i += 1
+            if value[i] != Line[CurrentIndex + i]
+                ret false
+        if CurrentIndex + value.Length < Line.Length
+            ret !IsValidIdentifier(Line[CurrentIndex + value.Length])
+        ret true
 
     private fn Error(error str) ?StateFunction
         Tokens.Add(new Token(TokenType.Error, CurrentPosition, error))
@@ -173,11 +183,6 @@ public class Lexer
                     indent += 1
                 is '\t'
                     indent += 4
-                is ';'
-                    Backup()
-                    Discard()
-                    EmitIndent(indent)
-                    ret LexComment
                 is _
                     Backup()
                     Discard()
@@ -205,13 +210,18 @@ public class Lexer
                 is _
                     if peekVal == '}' and StringTerminators.Any() and StringTerminators.Peek() == TokenType.RightCurly
                         ret LexString
-                    else if IsValidLiteralStart(peekVal)
-                        ret LexLiteral
+                    else if StartsWithThenNotIdentifier(Constant.FUNCTION_END)
+                        Discard()
+                        CurrentIndex += Constant.FUNCTION_END.Length
+                        Emit(TokenType.FunctionEnd)
+                    else if IsValidIdentifierStart(peekVal)
+                        ret LexIdentifier
                     else if char.IsDigit(peekVal)
                         ret LexNumber
                     else if IsValidOperator(peekVal)
                         ret LexOperator
-                    ret Error("Invalid character '{peekVal}'")
+                    else
+                        ret Error("Invalid character '{peekVal}'")
 
     private fn LexCharacter() ?StateFunction
         ; discard the '
@@ -244,27 +254,27 @@ public class Lexer
         Emit(TokenType.EOL)
         ret null
 
-    private fn LexLiteral() ?StateFunction
+    private fn LexIdentifier() ?StateFunction
         ; discard any leading whitespace
         Discard()
 
-        ; accept the starting literal character
-        var isLiteral = Next() == Constants.LITERAL_INDICATOR
+        ; accept the starting identifier character
+        var isIdentifier = Next() == Constant.IDENTIFIER_INDICATOR
         ; if it starts with ` discard it
-        if isLiteral
+        if isIdentifier
             Discard()
 
-        for c = Peek, IsValidLiteral(c), c = Peek
+        for c = Peek, IsValidIdentifier(c), c = Peek
             Next()
 
         if CurrentLength == 0
-            Error("A literal must have a value")
-        else if isLiteral
-            Emit(TokenType.Literal)
+            Error("An identifier must have a value")
+        else if isIdentifier
+            Emit(TokenType.Identifier)
         else
             var tokenType TokenType
             var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
-            Emit(found ? tokenType : TokenType.Literal)
+            Emit(found ? tokenType : TokenType.Identifier)
         ret LexStatement
 
     private fn LexNumber() ?StateFunction
