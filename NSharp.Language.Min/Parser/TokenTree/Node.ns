@@ -1,3 +1,5 @@
+use NSharp.Core
+
 ns NSharp.Language.Min.TokenTree
 
 ; file - can contain lines, blocks
@@ -9,9 +11,12 @@ ns NSharp.Language.Min.TokenTree
 ; tokens - values
 
 public abstract class Node
+    public fn Position Position
     public fn Parent ?Node
 
-    public fn new(parent ?Node) is Parent = parent
+    public fn new(position Position, parent ?Node)
+        Position = position
+        Parent = parent
 
     public fn FirstBlock ?Block
         var current = this
@@ -19,6 +24,30 @@ public abstract class Node
             current = current.Parent
         ret current as ?Block
     
+    public fn FirstBracketGroup ?BracketGroup
+        var current = this
+        for current != null and !(current is BracketGroup)
+            current = current.Parent
+        ret current as ?BracketGroup
+    
+    public fn FirstCurlyGroup ?CurlyGroup
+        var current = this
+        for current != null and !(current is CurlyGroup)
+            current = current.Parent
+        ret current as ?CurlyGroup
+    
+    public fn FirstParenthesisGroup ?ParenthesisGroup
+        var current = this
+        for current != null and !(current is ParenthesisGroup)
+            current = current.Parent
+        ret current as ?ParenthesisGroup
+
+    public fn FirstStringGroup ?StringGroup
+        var current = this
+        for current != null and !(current is StringGroup)
+            current = current.Parent
+        ret current as ?StringGroup
+
     protected fn PrintIndent(indent int)
         for i = 0, i < indent, i += 1
             Console.Write("| ")

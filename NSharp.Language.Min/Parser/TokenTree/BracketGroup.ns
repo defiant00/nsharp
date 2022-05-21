@@ -2,7 +2,7 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public abstract class Group is Collection
+public class BracketGroup is Group
     public fn new(position Position, parent ?Node) base(position, parent) is ; empty
 
-    public open over fn Name str is "group"
+    public over fn Name str is "[group]"

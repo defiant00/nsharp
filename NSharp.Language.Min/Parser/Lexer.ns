@@ -5,6 +5,7 @@ ns NSharp.Language.Min
 
 public class Lexer
     public fn Tokens TokenTree.File = new()
+    public fn Diagnostics List{Diagnostic} = new()
 
     private val EOL char = '\0'
     private val OPERATOR_CHARACTERS str = "()[]{{}}<>:?!=+-*/%,.&|^~"
@@ -40,7 +41,10 @@ public class Lexer
 
     public fn EndOfFile()
         EmitIndent(0)
-        Emit(TokenType.EOF)
+        EmitHeld(false)
+    
+    private fn AddError(position Position, code str, message str)
+        Diagnostics.Add(new Diagnostic(Severity.Error, code, message, position))
 
     ; Identifiers can start with a letter, _, or ` to indicate an identifier that matches a keyword
     private fn IsValidIdentifierStart(c char) bool is char.IsLetter(c) or c == '_' or c == Constant.IDENTIFIER_INDICATOR
@@ -66,10 +70,12 @@ public class Lexer
         var next = Peek
         CurrentIndex += 1
         ret next
-
+    
     private fn Peek char is (CurrentIndex >= Line.Length) ? EOL : Line[CurrentIndex]
 
     private fn PeekNext char is ((CurrentIndex + 1) >= Line.Length) ? EOL : Line[CurrentIndex + 1]
+
+    private fn PeekNextNext char is ((CurrentIndex + 2) >= Line.Length) ? EOL : Line[CurrentIndex + 2]
 
     private fn Backup() is CurrentIndex -= 1
 
@@ -98,22 +104,34 @@ public class Lexer
             ret !IsValidIdentifier(Line[CurrentIndex + value.Length])
         ret true
 
-    private fn Error(error str) ?StateFunction
-        AddToken(new Token(CurrentPosition, TokenType.Error, error))
-        ret null
+    private fn VerifyUpTo(target Node)
+        var current = CurrentNode
+        for current != target and current.Parent != null
+            if current is BracketGroup
+                AddError(current.Position, "code", "unclosed [")
+            else if current is CurlyGroup
+                AddError(current.Position, "code", "unclosed {{")
+            else if current is ParenthesisGroup
+                AddError(current.Position, "code", "unclosed (")
+            else if current is StringGroup
+                AddError(current.Position, "code", "unclosed """)
+            current = current.Parent
+        if current != target
+            throw new Exception("Unable to verify to {target}")
     
     private fn AddEol()
-        if block = CurrentNode.FirstBlock, block != null
-            if CurrentNode is Block
-                block.Children.Add(new Line(block))
-            else
-                CurrentNode = block
+        if CurrentNode is Block b
+            b.Children.Add(new Line(CurrentPosition, b))
+        else if block = CurrentNode.FirstBlock, block != null
+            VerifyUpTo(block)
+            CurrentNode = block
         else
             throw new Exception("block is null for eol")
     
     private fn AddIndent()
         if block = CurrentNode.FirstBlock, block != null
-            var indent = new IndentBlock(block)
+            VerifyUpTo(block)
+            var indent = new IndentBlock(CurrentPosition, block)
             block.Children.Add(indent)
             CurrentNode = indent
         else
@@ -121,32 +139,73 @@ public class Lexer
     
     private fn AddDedent()
         if block = CurrentNode.FirstBlock, block != null and block is IndentBlock and block.Parent != null
+            VerifyUpTo(block.Parent)
             CurrentNode = block.Parent
         else
             throw new Exception("dedent?")
+    
+    private fn EnsureGroup()
+        if CurrentNode is Block block
+            var line = new Line(CurrentPosition, block)
+            block.Children.Add(line)
+            CurrentNode = line
 
     private fn AddToken(token Token)
         token.Parent = CurrentNode
         if token.Type
+            is TokenType.LeftBracket
+                EnsureGroup()
+                var group = new BracketGroup(token.Position, CurrentNode)
+                (CurrentNode as Group).Children.Add(group)
+                CurrentNode = group
+            is TokenType.RightBracket
+                if group = CurrentNode.FirstBracketGroup, group?.Parent != null
+                    VerifyUpTo(group)
+                    CurrentNode = group.Parent
+                else
+                    AddError(token.Position, "code", "unexpected ]")
+            is TokenType.LeftCurly
+                EnsureGroup()
+                var group = new CurlyGroup(token.Position, CurrentNode)
+                (CurrentNode as Group).Children.Add(group)
+                CurrentNode = group
+            is TokenType.RightCurly
+                if group = CurrentNode.FirstCurlyGroup, group?.Parent != null
+                    VerifyUpTo(group)
+                    CurrentNode = group.Parent
+                else
+                    AddError(token.Position, "code", "unexpected }")
+            is TokenType.LeftParenthesis
+                EnsureGroup()
+                var group = new ParenthesisGroup(token.Position, CurrentNode)
+                (CurrentNode as Group).Children.Add(group)
+                CurrentNode = group
+            is TokenType.RightParenthesis
+                if group = CurrentNode.FirstParenthesisGroup, group?.Parent != null
+                    VerifyUpTo(group)
+                    CurrentNode = group.Parent
+                else
+                    AddError(token.Position, "code", "unexpected )")
+            is TokenType.StringStart
+                EnsureGroup()
+                var group = new StringGroup(token.Position, CurrentNode)
+                (CurrentNode as Group).Children.Add(group)
+                CurrentNode = group
+            is TokenType.StringEnd
+                if group = CurrentNode.FirstStringGroup, group?.Parent != null
+                    VerifyUpTo(group)
+                    CurrentNode = group.Parent
+                else
+                    AddError(token.Position, "code", "unexpected """)
             is _
-                if CurrentNode is Group group
-                    group.Children.Add(token)
-                else if CurrentNode is Block block
-                    var line = new Line(block)
-                    block.Children.Add(line)
-                    line.Children.Add(token)
-                    CurrentNode = line
+                EnsureGroup()
+                (CurrentNode as Group).Children.Add(token)
 
     private fn EmitEol() is HeldEols += 1
     
     private fn EmitIndent(indent int) is HeldIndents.Enqueue(indent)
 
-    private fn Emit(token TokenType)
-        ; If the previous or current token is a line continuation, clear the held tokens.
-        if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
-            HeldIndents.Clear()
-            HeldEols = 0
-        
+    private fn EmitHeld(needsDedent bool)
         ; Emit any held tokens.
         ; For normal code we emit:
         ;   [first EOL] [dedents] [remaining EOLs]
@@ -165,7 +224,7 @@ public class Lexer
                 IndentationLevels.Push(indent)
             else
                 for IndentationLevels.Any() and indent < currentIndent
-                    if token.NeedsDedent()
+                    if needsDedent
                         if emitFinalDedent
                             AddDedent()
                         emitFinalDedent = true
@@ -174,7 +233,7 @@ public class Lexer
                     IndentationLevels.Pop()
                     currentIndent = IndentationLevels.Peek()
                 if !IndentationLevels.Any() or currentIndent != indent
-                    Error("Mismatched indentation level")
+                    AddError(CurrentPosition, "code", "mismatched indentation level")
         ; add any remaining EOLs
         for i = 1, i < HeldEols, i += 1
             AddEol()
@@ -182,6 +241,18 @@ public class Lexer
         
         if emitFinalDedent
             AddDedent()
+
+    private fn MoveEmit(count int, token TokenType)
+        CurrentIndex += count
+        Emit(token)
+
+    private fn Emit(token TokenType)
+        ; If the previous or current token is a line continuation, clear the held tokens.
+        if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
+            HeldIndents.Clear()
+            HeldEols = 0
+        else
+            EmitHeld(token.NeedsDedent())
 
         ; String terminators.
         if token == TokenType.LeftCurly
@@ -245,8 +316,7 @@ public class Lexer
                         ret LexString
                     else if StartsWithThenNotIdentifier(Constant.FUNCTION_END)
                         Discard()
-                        CurrentIndex += Constant.FUNCTION_END.Length
-                        Emit(TokenType.FunctionEnd)
+                        MoveEmit(Constant.FUNCTION_END.Length, TokenType.FunctionEnd)
                     else if IsValidIdentifierStart(peekVal)
                         ret LexIdentifier
                     else if char.IsDigit(peekVal)
@@ -254,23 +324,24 @@ public class Lexer
                     else if IsValidOperator(peekVal)
                         ret LexOperator
                     else
-                        ret Error("Invalid character '{peekVal}'")
+                        AddError(CurrentPosition, "code", "Invalid character '{peekVal}'")
+                        Discard(1)
 
     private fn LexCharacter() ?StateFunction
         ; discard the '
         Discard(1)
 
         if c = Next(), IsLineEnd(c)
-            Error("Unclosed '")
+            AddError(CurrentPosition, "code", "unclosed '")
             ret LexStatement
         else if c == '\\'
             c = Next()
             if IsLineEnd(c)
-                Error("Unclosed '")
+                AddError(CurrentPosition, "code", "unclosed '")
                 ret LexStatement
 
         if Peek != '\''
-            Error("Unclosed '")
+            AddError(CurrentPosition, "code", "unclosed '")
         else
             Emit(TokenType.CharacterLiteral)
             Discard(1)
@@ -301,7 +372,7 @@ public class Lexer
             Next()
 
         if CurrentLength == 0
-            Error("An identifier must have a value")
+            AddError(CurrentPosition, "code", "an identifier must have a value")
         else if isIdentifier
             Emit(TokenType.Identifier)
         else
@@ -347,17 +418,117 @@ public class Lexer
         ; discard any leading whitespace
         Discard()
 
-        AcceptRun(OPERATOR_CHARACTERS)
-        var initialIndex = CurrentIndex
-        var tokenType TokenType
-        for found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
-                !found and CurrentIndex > StartIndex,
-                found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
-            Backup()
-        if CurrentIndex > StartIndex
-            Emit(tokenType)
-            ret LexStatement
-        ret Error("Invalid operator '{Line.Substring(StartIndex, initialIndex - StartIndex)}'")
+        if Peek
+            is '.'
+                if PeekNext == '.'
+                    MoveEmit(2, TokenType.DoubleDot)
+                else
+                    MoveEmit(1, TokenType.Dot)
+            is ','
+                MoveEmit(1, TokenType.Comma)
+            is '?'
+                if next = PeekNext, next == '.'
+                    MoveEmit(2, TokenType.NullDot)
+                else if next == '?'
+                    if PeekNextNext == '='
+                        MoveEmit(3, TokenType.NullCoalesceAssign)
+                    else
+                        MoveEmit(2, TokenType.NullCoalesce)
+                else
+                    MoveEmit(1, TokenType.Question)
+            is ':'
+                if PeekNext == ':'
+                    MoveEmit(2, TokenType.DoubleColon)
+                else
+                    MoveEmit(1, TokenType.Colon)
+            is '='
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.Equal)
+                else
+                    MoveEmit(1, TokenType.Assign)
+            is '!'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.NotEqual)
+                else
+                    MoveEmit(1, TokenType.Not)
+            is '<'
+                if next = PeekNext, next == '<'
+                    if PeekNextNext == '='
+                        MoveEmit(3, TokenType.LeftShiftAssign)
+                    else
+                        MoveEmit(2, TokenType.LeftShift)
+                else if next == '='
+                    MoveEmit(2, TokenType.LessThanOrEqual)
+                else
+                    MoveEmit(1, TokenType.LessThan)
+            is '>'
+                if next = PeekNext, next == '>'
+                    if PeekNextNext == '='
+                        MoveEmit(3, TokenType.RightShiftAssign)
+                    else
+                        MoveEmit(2, TokenType.RightShift)
+                else if next == '='
+                    MoveEmit(2, TokenType.GreaterThanOrEqual)
+                else
+                    MoveEmit(1, TokenType.GreaterThan)
+            is '+'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.AddAssign)
+                else
+                    MoveEmit(1, TokenType.Add)
+            is '-'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.SubtractAssign)
+                else
+                    MoveEmit(1, TokenType.Subtract)
+            is '*'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.MultiplyAssign)
+                else
+                    MoveEmit(1, TokenType.Multiply)
+            is '/'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.DivideAssign)
+                else
+                    MoveEmit(1, TokenType.Divide)
+            is '%'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.ModulusAssign)
+                else
+                    MoveEmit(1, TokenType.Modulus)
+            is '&'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.BitwiseAndAssign)
+                else
+                    MoveEmit(1, TokenType.BitwiseAnd)
+            is '|'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.BitwiseOrAssign)
+                else
+                    MoveEmit(1, TokenType.BitwiseOr)
+            is '^'
+                if PeekNext == '='
+                    MoveEmit(2, TokenType.BitwiseXorAssign)
+                else
+                    MoveEmit(1, TokenType.BitwiseXor)
+            is '~'
+                MoveEmit(1, TokenType.BitwiseNot)
+            is '('
+                MoveEmit(1, TokenType.LeftParenthesis)
+            is ')'
+                MoveEmit(1, TokenType.RightParenthesis)
+            is '['
+                MoveEmit(1, TokenType.LeftBracket)
+            is ']'
+                MoveEmit(1, TokenType.RightBracket)
+            is '{'
+                MoveEmit(1, TokenType.LeftCurly)
+            is '}'
+                MoveEmit(1, TokenType.RightCurly)
+
+        ; todo - error handling
+
+        ret LexStatement
 
     private fn LexString() ?StateFunction
         ; discard any leading whitespace
@@ -387,10 +558,8 @@ public class Lexer
             else if c == '\\'
                 Next()
                 if IsLineEnd(Peek)
-                    Error("Unclosed \"")
                     break
             else if IsLineEnd(c)
-                Error("Unclosed \"")
                 break
             Next()
 

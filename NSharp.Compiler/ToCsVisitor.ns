@@ -49,7 +49,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item Expression) is throw new NotImplementedException()
     public fn Visit(item ExpressionBlock) is throw new NotImplementedException()
     public fn Visit(item Field) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.File) is throw new NotImplementedException()
+    public fn Visit(item Core.SyntaxTree.File) is ; empty
     public fn Visit(item For) is throw new NotImplementedException()
     public fn Visit(item ForEach) is throw new NotImplementedException()
     public fn Visit(item Generic) is throw new NotImplementedException()

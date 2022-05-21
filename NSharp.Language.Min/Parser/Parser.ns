@@ -42,14 +42,15 @@ public class Parser
         lexer.EndOfFile()
 
         Tokens = lexer.Tokens
+        Result.Diagnostics.AddRange(lexer.Diagnostics)
 
         if Settings.PrintTokens
             Tokens.Print(0)
 
         var file = ParseFileStatement(fileName)
 
-        if Settings.PrintTree
-            file.Accept(new SyntaxTreePrinterVisitor())
+        ; if Settings.PrintTree
+        ;     file.Accept(new SyntaxTreePrinterVisitor())
 
         ret file
 
