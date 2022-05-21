@@ -1,0 +1,6 @@
+ns NSharp.Language.Min.TokenTree
+
+public class Line is Group
+    public fn new(parent ?Node) base(parent) is ; empty
+
+    public over fn Name str is "line"

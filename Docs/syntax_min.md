@@ -105,12 +105,13 @@ all others | the escaped character
 
 ## Extensions
 
-Extensions are declared with the `ext` modifier that takes a generic type. This modifier is valid on methods and properties contained with in a `static` class. The method or property is declared as usual, and `this` is used to access the instance.
+Extensions are declared with the `ext` modifier that takes a generic type. This modifier is valid on methods and properties contained within a `static` class. The method or property is declared as usual, and `this` is used to access the instance.
 ```
 public static class MyClass
-    public ext{str} fn Lower: str.ToLower(this)
+    public ext{str} fn Lower str: str.ToLower(this)
 
-    public ext{str} fn Greet(): "Hello {this}!"
+    public ext{str} fn Greet() str
+        ret "Hello {this}!"
 ```
 
 ---

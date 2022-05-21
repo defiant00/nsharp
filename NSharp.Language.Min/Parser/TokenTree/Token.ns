@@ -1,0 +1,16 @@
+use NSharp.Core
+
+ns NSharp.Language.Min.TokenTree
+
+public class Token is Node
+    public fn Position Position
+    public fn Type TokenType
+    public fn Value str
+
+    public fn new(position Position, type TokenType, value str) base(null)
+        Type = type
+        Value = value
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine("{Type} {Position} '{Value}'")

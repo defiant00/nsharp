@@ -1,8 +1,11 @@
 use NSharp.Core
+use NSharp.Language.Min.TokenTree
 
 ns NSharp.Language.Min
 
 public class Lexer
+    public fn Tokens TokenTree.File = new()
+
     private val EOL char = '\0'
     private val OPERATOR_CHARACTERS str = "()[]{{}}<>:?!=+-*/%,.&|^~"
     private val REPEATED_ESCAPE_STRING_CHARACTERS str = "{{}}"""
@@ -15,14 +18,15 @@ public class Lexer
     private fn CurrentIndex int
     private fn State ?StateFunction
     private fn IndentationLevels Stack{int} = new()
-    private fn HeldTokens Queue{Token} = new()
     private fn HeldIndents Queue{int} = new()
+    private fn HeldEols int = 0
     private fn LastEmittedWasLineContinuation bool = false
     private fn StringTerminators Stack{TokenType} = new()
+    private fn CurrentNode Node
 
-    public fn Tokens List{Token} = new()
-
-    public fn new() is IndentationLevels.Push(0)
+    public fn new()
+        IndentationLevels.Push(0)
+        CurrentNode = Tokens
 
     public fn Lex(line str)
         LineNumber += 1
@@ -95,78 +99,107 @@ public class Lexer
         ret true
 
     private fn Error(error str) ?StateFunction
-        Tokens.Add(new Token(TokenType.Error, CurrentPosition, error))
+        AddToken(new Token(CurrentPosition, TokenType.Error, error))
         ret null
-
-    private fn Emit(token TokenType, indent int = 0)
-        ; Hold certain tokens in case the next line is a prefix line continuation.
-        if token.IsLineContinuationHeld()
-            HeldTokens.Enqueue(new Token(token, CurrentPosition, CurrentValue))
-            HeldIndents.Enqueue(indent)
+    
+    private fn AddEol()
+        if block = CurrentNode.FirstBlock, block != null
+            if CurrentNode is Block
+                block.Children.Add(new Line(block))
+            else
+                CurrentNode = block
         else
-            ; If the previous or current token is a line continuation, clear the
-            ; held tokens.
-            if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
-                HeldTokens.Clear()
-                HeldIndents.Clear()
-            
-            ; Emit any held tokens.
-            ; For normal code we emit:
-            ;   [first EOL] [dedents] [remaining EOLs]
-            ; If the token needs a dedent (else) emit:
-            ;   [first EOL] [all but the last dedent] [remaining EOLs] [last dedent]
-            var eols = new List{Token}()
-            var firstEol = true
-            var lastDedent ?Token = null
-            for HeldTokens.Any()
-                var tok = HeldTokens.Dequeue()
-                var ind = HeldIndents.Dequeue()
-                if tok.Type == TokenType.EOL
-                    if firstEol
-                        Tokens.Add(tok)
-                        firstEol = false
+            throw new Exception("block is null for eol")
+    
+    private fn AddIndent()
+        if block = CurrentNode.FirstBlock, block != null
+            var indent = new IndentBlock(block)
+            block.Children.Add(indent)
+            CurrentNode = indent
+        else
+            throw new Exception("block is null for indent")
+    
+    private fn AddDedent()
+        if block = CurrentNode.FirstBlock, block != null and block is IndentBlock and block.Parent != null
+            CurrentNode = block.Parent
+        else
+            throw new Exception("dedent?")
+
+    private fn AddToken(token Token)
+        token.Parent = CurrentNode
+        if token.Type
+            is _
+                if CurrentNode is Group group
+                    group.Children.Add(token)
+                else if CurrentNode is Block block
+                    var line = new Line(block)
+                    block.Children.Add(line)
+                    line.Children.Add(token)
+                    CurrentNode = line
+
+    private fn EmitEol() is HeldEols += 1
+    
+    private fn EmitIndent(indent int) is HeldIndents.Enqueue(indent)
+
+    private fn Emit(token TokenType)
+        ; If the previous or current token is a line continuation, clear the held tokens.
+        if LastEmittedWasLineContinuation or token.IsLineContinuationPrefix()
+            HeldIndents.Clear()
+            HeldEols = 0
+        
+        ; Emit any held tokens.
+        ; For normal code we emit:
+        ;   [first EOL] [dedents] [remaining EOLs]
+        ; If the token needs a dedent (such as an else) emit:
+        ;   [first EOL] [all but the last dedent] [remaining EOLs] [last dedent]
+
+        ; add the first EOL
+        if HeldEols > 0
+            AddEol()
+        var emitFinalDedent = false
+        for HeldIndents.Any()
+            var indent = HeldIndents.Dequeue()
+            var currentIndent = IndentationLevels.Peek()
+            if indent > currentIndent
+                AddIndent()
+                IndentationLevels.Push(indent)
+            else
+                for IndentationLevels.Any() and indent < currentIndent
+                    if token.NeedsDedent()
+                        if emitFinalDedent
+                            AddDedent()
+                        emitFinalDedent = true
                     else
-                        eols.Add(tok)
-                else
-                    var currentIndent = IndentationLevels.Peek()
-                    if ind > currentIndent
-                        Tokens.Add(new Token(TokenType.Indent, tok.Position, str.Empty))
-                        IndentationLevels.Push(ind)
-                    else
-                        for IndentationLevels.Any() and ind < currentIndent
-                            if token.NeedsDedent()
-                                if lastDedent != null
-                                    Tokens.Add(lastDedent)
-                                lastDedent = new Token(TokenType.Dedent, tok.Position, str.Empty)
-                            else
-                                Tokens.Add(new Token(TokenType.Dedent, tok.Position, str.Empty))
-                            IndentationLevels.Pop()
-                            currentIndent = IndentationLevels.Peek()
-                        if !IndentationLevels.Any() or currentIndent != ind
-                            Error("Mismatched indentation level")
-            Tokens.AddRange(eols)
-            if lastDedent != null
-                Tokens.Add(lastDedent)
+                        AddDedent()
+                    IndentationLevels.Pop()
+                    currentIndent = IndentationLevels.Peek()
+                if !IndentationLevels.Any() or currentIndent != indent
+                    Error("Mismatched indentation level")
+        ; add any remaining EOLs
+        for i = 1, i < HeldEols, i += 1
+            AddEol()
+        HeldEols = 0
+        
+        if emitFinalDedent
+            AddDedent()
 
-            ; String terminators.
-            if token == TokenType.LeftCurly
-                StringTerminators.Push(TokenType.RightCurly)
-            else if token == TokenType.StringStart
-                StringTerminators.Push(TokenType.StringEnd)
-            else if StringTerminators.Any() and StringTerminators.Peek() == token
-                StringTerminators.Pop()
+        ; String terminators.
+        if token == TokenType.LeftCurly
+            StringTerminators.Push(TokenType.RightCurly)
+        else if token == TokenType.StringStart
+            StringTerminators.Push(TokenType.StringEnd)
+        else if StringTerminators.Any() and StringTerminators.Peek() == token
+            StringTerminators.Pop()
 
-            ; Emit the current token.
-            var curVal = CurrentValue
-            if token == TokenType.StringLiteral
-                curVal = curVal.Unescape()
-            Tokens.Add(new Token(token, CurrentPosition, curVal))
+        ; Emit the current token.
+        var curVal = CurrentValue
+        if token == TokenType.StringLiteral
+            curVal = curVal.Unescape()
+        AddToken(new Token(CurrentPosition, token, curVal))
 
-            LastEmittedWasLineContinuation = token.IsLineContinuationPostfix()
+        LastEmittedWasLineContinuation = token.IsLineContinuationPostfix()
 
         StartIndex = CurrentIndex
-
-    private fn EmitIndent(indent int) is Emit(TokenType.Indent, indent)
 
     private fn LexIndent() ?StateFunction
         var indent = 0
@@ -177,7 +210,7 @@ public class Lexer
                 is '\n'
                     Backup()
                     Discard()
-                    Emit(TokenType.EOL)
+                    EmitEol()
                     ret null
                 is ' '
                     indent += 1
@@ -199,7 +232,7 @@ public class Lexer
                 is '\r'
                 is '\n'
                     Discard()
-                    Emit(TokenType.EOL)
+                    EmitEol()
                     ret null
                 is ';'
                     ret LexComment
@@ -251,7 +284,7 @@ public class Lexer
         for c = Peek, !IsLineEnd(c), c = Peek
             Next()
         Emit(TokenType.Comment)
-        Emit(TokenType.EOL)
+        EmitEol()
         ret null
 
     private fn LexIdentifier() ?StateFunction
@@ -273,7 +306,7 @@ public class Lexer
             Emit(TokenType.Identifier)
         else
             var tokenType TokenType
-            var found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+            var found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Emit(found ? tokenType : TokenType.Identifier)
         ret LexStatement
 
@@ -317,9 +350,9 @@ public class Lexer
         AcceptRun(OPERATOR_CHARACTERS)
         var initialIndex = CurrentIndex
         var tokenType TokenType
-        for found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
+        for found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType),
                 !found and CurrentIndex > StartIndex,
-                found = Helper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
+                found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Backup()
         if CurrentIndex > StartIndex
             Emit(tokenType)

@@ -1,0 +1,6 @@
+ns NSharp.Language.Min.TokenTree
+
+public class File is Block
+    public fn new() base(null) is ; empty
+
+    public over fn Name str is "file"

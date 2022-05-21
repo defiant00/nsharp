@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public open class Expression is Statement
+public abstract class Expression is Statement
     public fn new(position Position) base(position) is ; empty
     
     public open over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

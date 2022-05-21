@@ -1,0 +1,14 @@
+ns NSharp.Language.Min.TokenTree
+
+public abstract class Collection is Node
+    public fn Children List{Node} = new()
+
+    public fn new(parent ?Node) base(parent) is ; empty
+
+    public open over fn Name str is "collection"
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine(Name)
+        for c in Children
+            c.Print(indent + 1)

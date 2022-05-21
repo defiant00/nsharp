@@ -39,6 +39,3 @@ for x < 7 : Add()
 
 for i in list : Print(i)
 ```
-
-use `/fn` to end an anonymous function
-* check if the first 3 characters match and the next character is not an identifier character

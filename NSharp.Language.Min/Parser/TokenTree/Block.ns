@@ -1,0 +1,6 @@
+ns NSharp.Language.Min.TokenTree
+
+public abstract class Block is Collection
+    public fn new(parent ?Node) base(parent) is ; empty
+
+    public open over fn Name str is "block"

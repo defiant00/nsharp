@@ -1,0 +1,30 @@
+ns NSharp.Language.Min.TokenTree
+
+; file - can contain lines, blocks
+; blocks - can contain lines, blocks
+
+; lines - can contain groups, tokens
+; groups - can contain groups, tokens
+
+; tokens - values
+
+public abstract class Node
+    public fn Parent ?Node
+
+    public fn new(parent ?Node) is Parent = parent
+
+    public fn FirstBlock ?Block
+        var current = this
+        for current != null and !(current is Block)
+            current = current.Parent
+        ret current as ?Block
+    
+    protected fn PrintIndent(indent int)
+        for i = 0, i < indent, i += 1
+            Console.Write("| ")
+    
+    public open fn Name str is "node"
+
+    public open fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine(Name)

@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public open class Node
+public abstract class Node
     public fn Parent ?Node
     public fn Position Position
 

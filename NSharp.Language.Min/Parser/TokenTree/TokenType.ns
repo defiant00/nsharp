@@ -1,12 +1,9 @@
-ns NSharp.Language.Min
+ns NSharp.Language.Min.TokenTree
 
 public enum TokenType
     Error
-    Line_Continuation_Held_Start
     Indent
     Dedent
-    EOL
-    Line_Continuation_Held_End
     EOF
     Comment
     CharacterLiteral
