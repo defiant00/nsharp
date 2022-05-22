@@ -18,6 +18,8 @@ public abstract class Node
         Position = position
         Parent = parent
 
+    ; todo - update with generics once generic constraints are added
+
     public fn FirstBlock ?Block
         var current = this
         for current != null and !(current is Block)

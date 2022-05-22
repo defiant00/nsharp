@@ -2,6 +2,19 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
+
+public struct AcceptResult
+    public fn Success bool = true
+    public fn Failure bool is !Success
+    public fn StartingIndex int
+    public fn Count int = 0
+    public fn SearchItems []TokenType
+
+    public fn new(startingIndex int, items []TokenType)
+        StartingIndex = startingIndex
+        SearchItems = items
+
+
 public abstract class Collection is Node
     public fn Children List{Node} = new()
 
@@ -14,3 +27,35 @@ public abstract class Collection is Node
         Console.WriteLine("{Name} {Position}")
         for c in Children
             c.Print(indent + 1)
+    
+    private fn CurrentIndex int = 0
+
+    private fn Backup() is CurrentIndex -= 1
+
+    private fn Next() ?Node
+        if CurrentIndex >= Children.Count
+            ret null
+        var node = Children[CurrentIndex]
+        CurrentIndex += 1
+        ret node
+    
+    public fn Accept(var tokenTypes []TokenType) AcceptResult
+        var result = new AcceptResult(CurrentIndex, tokenTypes)
+        for tokenType in tokenTypes
+            if current = Next(), current == null
+                    or !(current is Token token)
+                    or token.Type != tokenType
+                CurrentIndex = result.StartingIndex
+                result.Success = false
+                ret result
+            result.Count += 1
+        ret result
+    
+    public fn Token(result AcceptResult, index int = 0) Token is Children[result.StartingIndex + index] as Token
+
+    public fn MissedTokenType(result AcceptResult) TokenType is result.SearchItems[result.Count]
+
+    public fn ErrorToken(result AcceptResult) Token
+        ret result.StartingIndex + result.Count < Children.Count ?
+            Children[result.StartingIndex + result.Count] as Token :
+            new Token(default, TokenType.Missing, str.Empty)

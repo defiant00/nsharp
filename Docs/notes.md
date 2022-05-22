@@ -39,3 +39,16 @@ for x < 7 : Add()
 
 for i in list : Print(i)
 ```
+
+generic type constraints
+```
+class GenericClass{T [constraints]}
+
+class GenericClass{T class}
+```
+
+`any` for System.Object
+
+change parameter order to `name [modifiers] type [= value]`
+
+allow named expressions in switch cases so you can do `is Token token`

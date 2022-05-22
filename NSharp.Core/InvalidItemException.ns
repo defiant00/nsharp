@@ -1,4 +1,4 @@
-ns NSharp.Compiler
+ns NSharp.Core
 
 public class InvalidItemException is Exception
     ; empty

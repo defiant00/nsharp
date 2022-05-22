@@ -56,7 +56,7 @@ public class TypeNameVisitor has ISyntaxTreeVisitor
     public fn Visit(item Enumeration) is throw new NotImplementedException()
     public fn Visit(item EnumerationItem) is throw new NotImplementedException()
     public fn Visit(item Expression) is throw new NotImplementedException()
-    public fn Visit(item ExpressionBlock) is throw new NotImplementedException()
+    public fn Visit(item ExpressionStatement) is throw new NotImplementedException()
     public fn Visit(item Field) is throw new NotImplementedException()
     public fn Visit(item Core.SyntaxTree.File) is throw new NotImplementedException()
     public fn Visit(item For) is throw new NotImplementedException()

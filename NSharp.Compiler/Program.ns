@@ -164,7 +164,7 @@ public static class Program
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
                 SetConsoleColor(diagnostic.Severity)
-                Console.WriteLine("  {diagnostic.Code} {diagnostic.Message} ({diagnostic.Position})")
+                Console.WriteLine("  {diagnostic.Code} {diagnostic.Message} {diagnostic.Position}")
 
     private static fn ResetConsoleColor() is Console.ForegroundColor = ConsoleColor.White
 
@@ -180,7 +180,7 @@ public static class Program
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
             SetConsoleColor(diagnostic.Severity)
-            Console.WriteLine("{diagnostic.Code} {diagnostic.Message} ({diagnostic.Position})")
+            Console.WriteLine("{diagnostic.Code} {diagnostic.Message} {diagnostic.Position}")
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
             ResetConsoleColor()
             Console.WriteLine(Resources.GetString("Compiler.Success"))

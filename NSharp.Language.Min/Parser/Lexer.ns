@@ -4,7 +4,7 @@ use NSharp.Language.Min.TokenTree
 ns NSharp.Language.Min
 
 public class Lexer
-    public fn Tokens TokenTree.File = new()
+    public fn TokenTree TokenTree.File = new()
     public fn Diagnostics List{Diagnostic} = new()
 
     private val EOL char = '\0'
@@ -27,7 +27,7 @@ public class Lexer
 
     public fn new()
         IndentationLevels.Push(0)
-        CurrentNode = Tokens
+        CurrentNode = TokenTree
 
     public fn Lex(line str)
         LineNumber += 1

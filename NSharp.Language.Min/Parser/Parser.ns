@@ -4,34 +4,23 @@ use NSharp.Language.Min.TokenTree
 
 ns NSharp.Language.Min
 
-
-; public struct AcceptResult
-;     public fn Success bool = true
-;     public fn Failure bool is !Success
-;     public fn StartingIndex int
-;     public fn Count int = 0
-
-;     public fn new(startingIndex int) is StartingIndex = startingIndex
-
-
-; public class ParseResult{T}
-;     public fn Result T
-;     public fn Error bool
-
-;     public fn new(result T, error bool = false)
-;         Result = result
-;         Error = error
-
-
 public class Parser
     private fn Settings Settings
     private fn Result LoadResult
-    private fn Tokens TokenTree.File = new()
     private fn CurrentIndex int = 0
 
     public fn new(settings Settings, result LoadResult)
         Settings = settings
         Result = result
+    
+    private fn AddError(code str, message str, position Position)
+        Result.Diagnostics.Add(new Diagnostic(Severity.Error, code, message, position))
+    
+    private fn InvalidToken(collection Collection, type str, result AcceptResult)
+        var token = collection.ErrorToken(result)
+        var missed = collection.MissedTokenType(result)
+        var error = "Invalid token in {type} when looking for {missed}: {token}"
+        AddError("[code]", error, token.Position)
 
     public fn Parse(fileName str) Core.SyntaxTree.File
         var lexer = new Lexer()
@@ -41,21 +30,51 @@ public class Parser
             lexer.Lex(line)
         lexer.EndOfFile()
 
-        Tokens = lexer.Tokens
         Result.Diagnostics.AddRange(lexer.Diagnostics)
 
         if Settings.PrintTokens
-            Tokens.Print(0)
+            lexer.TokenTree.Print(0)
 
-        var file = ParseFileStatement(fileName)
+        var file = ParseFile(lexer.TokenTree, fileName)
 
-        ; if Settings.PrintTree
-        ;     file.Accept(new SyntaxTreePrinterVisitor())
+        if Settings.PrintTree
+            file.Accept(new SyntaxTreePrinterVisitor())
 
         ret file
 
-    private fn ParseFileStatement(fileName str) Core.SyntaxTree.File
+    private fn ParseFile(tokenTree TokenTree.File, fileName str) Core.SyntaxTree.File
         var file = new Core.SyntaxTree.File(Path.GetFileName(fileName))
+
+        ; A file can contain lines and blocks.
+        ; However, a block on its own is an error.
+        var emptyCount = 0
+        var spacePosition Position = default
+        for node in tokenTree.Children
+            if node is Line line
+                if line.Children.Any()
+                    if emptyCount > 0
+                        file.Statements.Add(new SpaceToken(spacePosition, emptyCount))
+                        emptyCount = 0
+                    file.Statements.Add(ParseFileLine(line))
+                else
+                    if emptyCount == 0
+                        spacePosition = line.Position
+                    emptyCount += 1
+            else
+                throw new InvalidItemException()
+        if emptyCount > 0
+            file.Statements.Add(new SpaceToken(spacePosition, emptyCount))
+
+        ret file
+    
+    private fn ParseFileLine(line Line) Statement
+        if item = line.Children[0], item is Token token
+            if token.Type
+                is TokenType.Namespace
+                    ret ParseNamespace(line)
+                is TokenType.Use
+                    ret ParseImport(line)
+        ret new BreakToken(default)
         ; var error = false
         ; for CurrentIndex < Tokens.Count
         ;     if Peek.Type
@@ -72,10 +91,6 @@ public class Parser
         ;             Next()
         ;         is TokenType.EOL
         ;             file.Statements.Add(ParseSpace().Result)
-        ;         is TokenType.Namespace
-        ;             file.Statements.Add(ParseNamespace().Result)
-        ;         is TokenType.Use
-        ;             file.Statements.Add(ParseImport().Result)
         ;         is _
         ;             if Peek.Type.IsModifier()
         ;                 file.Statements.Add(ParseFileModifiableStatement().Result)
@@ -86,7 +101,46 @@ public class Parser
 
         ; ret new ParseResult{Statement}(file, error)
 
-        ret file
+    private fn ParseImport(line Line) ImportToken
+        var importToken = new ImportToken(line.Position)
+
+        var res = line.Accept(TokenType.Use, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(line, "use", res)
+            ret importToken
+        
+        importToken.Position = line.Token(res).Position
+        importToken.NameParts.Add(line.Token(res, 1).Value)
+
+        ; res = Accept(TokenType.Dot, TokenType.Identifier)
+        ; for res.Success
+        ;     import.NameParts.Add(GetToken(res, 1).Value)
+        ;     res = Accept(TokenType.Dot, TokenType.Identifier)
+
+        ; res = Accept(TokenType.EOL)
+        ; if res.Failure
+        ;     ret InvalidTokenErrorStatement("Invalid token in use", res)
+
+        ret importToken
+    
+    private fn ParseNamespace(line Line) NamespaceToken
+        ret new NamespaceToken(line.Position)
+        ; var res = Accept(TokenType.Namespace, TokenType.Identifier)
+        ; if res.Failure
+        ;     ret InvalidTokenErrorStatement("Invalid token in namespace", res)
+
+        ; var nsRes = new Namespace(GetToken(res).Position, GetToken(res, 1).Value)
+
+        ; res = Accept(TokenType.Dot, TokenType.Identifier)
+        ; for res.Success
+        ;     nsRes.NameParts.Add(GetToken(res, 1).Value)
+        ;     res = Accept(TokenType.Dot, TokenType.Identifier)
+
+        ; res = Accept(TokenType.EOL)
+        ; if res.Failure
+        ;     ret InvalidTokenErrorStatement("Invalid token in namespace", res)
+
+        ; ret new ParseResult{Statement}(nsRes)
 
 ;     private fn Peek Token is Tokens[CurrentIndex]
 
@@ -136,16 +190,7 @@ public class Parser
 ;         ret new ErrorStatement(token.Position, error)
 
 
-;     private fn Accept(var tokens []TokenType) AcceptResult
-;         var result = new AcceptResult(CurrentIndex)
-;         for token in tokens
-;             var current = Next()
-;             if current.Type != token
-;                 CurrentIndex = result.StartingIndex
-;                 result.Success = false
-;                 ret result
-;             result.Count += 1
-;         ret result
+
 
 ;     private fn GetToken(result AcceptResult, index int = 0) Token is Tokens[result.StartingIndex + index]
 
@@ -1143,24 +1188,6 @@ public class Parser
 
 ;         ret new ParseResult{Expression}(ctorDef)
 
-;     private fn ParseImport() ParseResult{Statement}
-;         var res = Accept(TokenType.Use, TokenType.Identifier)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in use", res)
-
-;         var import = new Import(GetToken(res).Position, GetToken(res, 1).Value)
-
-;         res = Accept(TokenType.Dot, TokenType.Identifier)
-;         for res.Success
-;             import.NameParts.Add(GetToken(res, 1).Value)
-;             res = Accept(TokenType.Dot, TokenType.Identifier)
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in use", res)
-
-;         ret new ParseResult{Statement}(import)
-
 ;     private fn ParseIndexer(expr ?Expression) ParseResult{Expression}
 ;         var start = Peek
 ;         if res = Accept(TokenType.LeftBracket), res.Failure
@@ -1455,24 +1482,6 @@ public class Parser
 
 ;         ret null
 
-;     private fn ParseNamespace() ParseResult{Statement}
-;         var res = Accept(TokenType.Namespace, TokenType.Identifier)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in namespace", res)
-
-;         var nsRes = new Namespace(GetToken(res).Position, GetToken(res, 1).Value)
-
-;         res = Accept(TokenType.Dot, TokenType.Identifier)
-;         for res.Success
-;             nsRes.NameParts.Add(GetToken(res, 1).Value)
-;             res = Accept(TokenType.Dot, TokenType.Identifier)
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in namespace", res)
-
-;         ret new ParseResult{Statement}(nsRes)
-    
 ;     private fn ParseNestedPrimaryExpression() ParseResult{Expression}
 ;         var leftResult ParseResult{Expression}
 ;         if Peek.Type == TokenType.Identifier

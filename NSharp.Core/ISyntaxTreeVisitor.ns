@@ -41,7 +41,7 @@ public interface ISyntaxTreeVisitor
     public fn Visit(item Enumeration)
     public fn Visit(item EnumerationItem)
     public fn Visit(item Expression)
-    public fn Visit(item ExpressionBlock)
+    public fn Visit(item ExpressionStatement)
     public fn Visit(item Field)
     public fn Visit(item File)
     public fn Visit(item For)

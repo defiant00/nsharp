@@ -4,7 +4,6 @@ public abstract class Node
     public fn Parent ?Node
     public fn Position Position
 
-    public fn new(position Position)
-        Position = position
+    public fn new(position Position) is Position = position
 
     public open fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -1,6 +1,7 @@
 ns NSharp.Language.Min.TokenTree
 
 public enum TokenType
+    Missing
     Comment
     CharacterLiteral
     StringStart
