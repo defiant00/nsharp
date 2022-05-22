@@ -2,7 +2,15 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public abstract class Block is Collection
+public abstract class Block is Node
+    public fn Children List{Node} = new()
+    
     public fn new(position Position, parent ?Node) base(position, parent) is ; empty
 
     public open over fn Name str is "block"
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine("{Name} {Position}")
+        for child in Children
+            child.Print(indent + 1)

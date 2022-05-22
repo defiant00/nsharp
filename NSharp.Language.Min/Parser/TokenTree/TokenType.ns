@@ -2,6 +2,10 @@ ns NSharp.Language.Min.TokenTree
 
 public enum TokenType
     Missing
+    BracketGroup
+    CurlyGroup
+    ParenthesisGroup
+    StringGroup
     Comment
     CharacterLiteral
     StringStart

@@ -2,13 +2,17 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-; file - can contain lines, blocks
-; blocks - can contain lines, blocks
-
-; lines - can contain groups, tokens
-; groups - can contain groups, tokens
-
-; tokens - values
+; Node
+;   Block - lines and blocks
+;       File
+;       IndentBlock
+;   Line - tokens
+;   Token
+;       Group - tokens
+;           BracketGroup
+;           CurlyGroup
+;           ParenthesisGroup
+;           StringGroup
 
 public abstract class Node
     public fn Position Position

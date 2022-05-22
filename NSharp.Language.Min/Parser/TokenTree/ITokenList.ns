@@ -1,0 +1,5 @@
+ns NSharp.Language.Min.TokenTree
+
+public interface ITokenList
+    public fn Tokens List{Token}
+    public fn CurrentIndex int

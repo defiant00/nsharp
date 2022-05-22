@@ -2,7 +2,7 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public class Token is Node
+public open class Token is Node
     public fn Type TokenType
     public fn Value str
 
@@ -12,6 +12,6 @@ public class Token is Node
     
     public open over fn ToString() str is "{Type} {Position} '{Value}'"
 
-    public over fn Print(indent int)
+    public open over fn Print(indent int)
         PrintIndent(indent)
         Console.WriteLine(this)

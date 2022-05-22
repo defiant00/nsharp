@@ -1,0 +1,43 @@
+ns NSharp.Language.Min.TokenTree
+
+public struct AcceptResult
+    public fn Success bool = true
+    public fn Failure bool is !Success
+    public fn StartingIndex int
+    public fn Count int = 0
+    public fn SearchItems []TokenType
+    public fn MissedTokenType TokenType is SearchItems[Count]
+
+    public fn new(startingIndex int, items []TokenType)
+        StartingIndex = startingIndex
+        SearchItems = items
+
+
+public static class ParseHelper
+    public static fn MISSING_TOKEN Token = new Token(default, TokenType.Missing, str.Empty)
+
+    public static ext{ITokenList} fn Backup() is this.CurrentIndex -= 1
+
+    public static ext{ITokenList} fn Next() Token
+        if this.CurrentIndex >= this.Tokens.Count
+            ret MISSING_TOKEN
+        var token = this.Tokens[this.CurrentIndex]
+        this.CurrentIndex += 1
+        ret token
+    
+    public static ext{ITokenList} fn Accept(var tokenTypes []TokenType) AcceptResult
+        var result = new AcceptResult(this.CurrentIndex, tokenTypes)
+        for tokenType in tokenTypes
+            if current = this.Next(), current.Type != tokenType
+                this.CurrentIndex = result.StartingIndex
+                result.Success = false
+                ret result
+            result.Count += 1
+        ret result
+    
+    public static ext{ITokenList} fn Token(result AcceptResult, index int = 0) Token is this.Tokens[result.StartingIndex + index]
+
+    public static ext{ITokenList} fn ErrorToken(result AcceptResult) Token
+        ret result.StartingIndex + result.Count < this.Tokens.Count ?
+            this.Tokens[result.StartingIndex + result.Count] :
+            MISSING_TOKEN

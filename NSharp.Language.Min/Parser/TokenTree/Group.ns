@@ -2,7 +2,17 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public abstract class Group is Collection
-    public fn new(position Position, parent ?Node) base(position, parent) is ; empty
+public abstract class Group is Token has ITokenList
+    public fn Tokens List{Token} = new()
+    public fn CurrentIndex int = 0
+
+    public fn new(position Position, type TokenType, parent ?Node) base(position, type, str.Empty)
+        Parent = parent
 
     public open over fn Name str is "group"
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine("{Name} {Position}")
+        for token in Tokens
+            token.Print(indent + 1)

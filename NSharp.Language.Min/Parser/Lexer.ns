@@ -144,7 +144,7 @@ public class Lexer
         else
             throw new Exception("dedent?")
     
-    private fn EnsureGroup()
+    private fn EnsureTokenList()
         if CurrentNode is Block block
             var line = new Line(CurrentPosition, block)
             block.Children.Add(line)
@@ -154,9 +154,9 @@ public class Lexer
         token.Parent = CurrentNode
         if token.Type
             is TokenType.LeftBracket
-                EnsureGroup()
+                EnsureTokenList()
                 var group = new BracketGroup(token.Position, CurrentNode)
-                (CurrentNode as Group).Children.Add(group)
+                (CurrentNode as ITokenList).Tokens.Add(group)
                 CurrentNode = group
             is TokenType.RightBracket
                 if group = CurrentNode.FirstBracketGroup, group?.Parent != null
@@ -165,9 +165,9 @@ public class Lexer
                 else
                     AddError(token.Position, "code", "unexpected ]")
             is TokenType.LeftCurly
-                EnsureGroup()
+                EnsureTokenList()
                 var group = new CurlyGroup(token.Position, CurrentNode)
-                (CurrentNode as Group).Children.Add(group)
+                (CurrentNode as ITokenList).Tokens.Add(group)
                 CurrentNode = group
             is TokenType.RightCurly
                 if group = CurrentNode.FirstCurlyGroup, group?.Parent != null
@@ -176,9 +176,9 @@ public class Lexer
                 else
                     AddError(token.Position, "code", "unexpected }")
             is TokenType.LeftParenthesis
-                EnsureGroup()
+                EnsureTokenList()
                 var group = new ParenthesisGroup(token.Position, CurrentNode)
-                (CurrentNode as Group).Children.Add(group)
+                (CurrentNode as ITokenList).Tokens.Add(group)
                 CurrentNode = group
             is TokenType.RightParenthesis
                 if group = CurrentNode.FirstParenthesisGroup, group?.Parent != null
@@ -187,9 +187,9 @@ public class Lexer
                 else
                     AddError(token.Position, "code", "unexpected )")
             is TokenType.StringStart
-                EnsureGroup()
+                EnsureTokenList()
                 var group = new StringGroup(token.Position, CurrentNode)
-                (CurrentNode as Group).Children.Add(group)
+                (CurrentNode as ITokenList).Tokens.Add(group)
                 CurrentNode = group
             is TokenType.StringEnd
                 if group = CurrentNode.FirstStringGroup, group?.Parent != null
@@ -198,8 +198,8 @@ public class Lexer
                 else
                     AddError(token.Position, "code", "unexpected """)
             is _
-                EnsureGroup()
-                (CurrentNode as Group).Children.Add(token)
+                EnsureTokenList()
+                (CurrentNode as ITokenList).Tokens.Add(token)
 
     private fn EmitEol() is HeldEols += 1
     

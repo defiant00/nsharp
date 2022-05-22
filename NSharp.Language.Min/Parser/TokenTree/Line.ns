@@ -2,7 +2,16 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public class Line is Group
+public class Line is Node has ITokenList
+    public fn Tokens List{Token} = new()
+    public fn CurrentIndex int = 0
+    
     public fn new(position Position, parent ?Node) base(position, parent) is ; empty
 
     public over fn Name str is "line"
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine("{Name} {Position}")
+        for token in Tokens
+            token.Print(indent + 1)
