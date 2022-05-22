@@ -1,5 +1,7 @@
 ## TODO
 
+* A block needs to have its own CurrentIndex state and interface so that ParseSpace can jump up to the parent and check children until one has content.
+    * Loop will need to be `for CurrentIndex < Children.Count` so that once it's updated it picks up on the next item.
 * Chars unescape on parse, escape on output
 * Events
 * Generic constraints
