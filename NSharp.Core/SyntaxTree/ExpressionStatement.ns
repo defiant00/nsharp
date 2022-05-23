@@ -2,7 +2,6 @@ ns NSharp.Core.SyntaxTree
 
 public class ExpressionStatement is Statement
     public fn Value Expression
-    public fn Statements List{Statement} = new()
 
     public fn new(position Position, value Expression) base(position) is Value = value
     

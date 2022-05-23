@@ -54,3 +54,9 @@ class GenericClass{T class}
 change parameter order to `name [modifiers] type [= value]`
 
 allow named expressions in switch cases so you can do `is Token token`
+
+modifiers as attributes
+
+no need for an attribute indicator?
+
+unshorten `ret` and `fin`

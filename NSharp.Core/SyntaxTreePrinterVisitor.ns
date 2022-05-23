@@ -253,7 +253,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteIndented("Expr stmt: ")
         item.Value.Accept(this)
         WriteLine()
-        WriteIndentedBlock(item.Statements)
 
     public fn Visit(item Field)
         WriteIndented("Field: ")
@@ -297,7 +296,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteIndentedBlock(item.Statements)
 
     public fn Visit(item Generic)
-        item.Value?.Accept(this)
+        item.Value.Accept(this)
         Write("<")
         JoinItems(item.Arguments)
         Write(">")
@@ -361,7 +360,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
 
     public fn Visit(item MethodCall)
-        item.Value?.Accept(this)
+        item.Value.Accept(this)
         Write("(")
         JoinItems(item.Arguments)
         Write(")")
