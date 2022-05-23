@@ -60,3 +60,5 @@ modifiers as attributes
 no need for an attribute indicator?
 
 unshorten `ret` and `fin`
+
+allow method and property definitions in interfaces
