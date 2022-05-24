@@ -16,14 +16,16 @@ public struct AcceptResult
 public static class ParseHelper
     public static fn MISSING_TOKEN Token = new Token(default, TokenType.Missing, str.Empty)
 
-    public static ext{ITokenList} fn Backup() is this.CurrentIndex -= 1
+    public static ext{ITokenList} fn Peek() Token is this.CurrentIndex < this.Tokens.Count ?
+        this.Tokens[this.CurrentIndex] :
+        MISSING_TOKEN
 
     public static ext{ITokenList} fn Next() Token
-        if this.CurrentIndex >= this.Tokens.Count
-            ret MISSING_TOKEN
-        var token = this.Tokens[this.CurrentIndex]
+        var token = this.Peek()
         this.CurrentIndex += 1
         ret token
+    
+    public static ext{ITokenList} fn Advance(count int = 1) is this.CurrentIndex += count
     
     public static ext{ITokenList} fn Accept(var tokenTypes []TokenType) AcceptResult
         var result = new AcceptResult(this.CurrentIndex, tokenTypes)

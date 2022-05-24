@@ -1,12 +1,6 @@
-use System
+class c1 is something.`or.other
+    class c2 is ?List{str}
+        ; a comment
+        class c3
 
-ns NSharp.Tests.Min
-
-public class A is NSharp.Tests.Min.B
-    ; empty
-
-class B is C
-    ; empty
-
-class C is str
-    ; empty
+;; and another

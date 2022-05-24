@@ -19,4 +19,4 @@ public abstract class Block is Node
 
     public fn Peek ?Node is CurrentIndex < Children.Count ? Children[CurrentIndex] : null
 
-    public fn Move(count int = 1) is CurrentIndex += count
+    public fn Advance(count int = 1) is CurrentIndex += count

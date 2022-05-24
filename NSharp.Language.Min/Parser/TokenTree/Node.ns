@@ -53,6 +53,12 @@ public abstract class Node
         for current != null and !(current is StringGroup)
             current = current.Parent
         ret current as ?StringGroup
+    
+    public fn AdvanceParent()
+        if Parent is Block block
+            block.Advance()
+        else
+            throw new Exception("parent isn't block")
 
     protected fn PrintIndent(indent int)
         for i = 0, i < indent, i += 1

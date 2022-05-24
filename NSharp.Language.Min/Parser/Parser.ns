@@ -24,10 +24,7 @@ public class Parser
     
     private fn AdvanceLine(line Line)
         EnsureNoExtraTokens(line)
-        if line.Parent is TokenTree.Block block
-            block.Move()
-        else
-            throw new Exception("parent isn't block")
+        line.AdvanceParent()
     
     private fn EnsureNoExtraTokens(tokens ITokenList)
         for i = tokens.CurrentIndex, i < tokens.Tokens.Count, i += 1
@@ -52,6 +49,135 @@ public class Parser
             file.Accept(new SyntaxTreePrinterVisitor())
 
         ret file
+    
+    ; private fn ParseAnonymousFunction() AnonymousFunction
+    ;     fn([params]) [type] : statement
+    ;     fn([params]) [type]
+    ;         [statements]
+    ;     /fn
+
+    ;     var anonFn = new AnonymousFunction(Peek.Position)
+
+    ;     if res = Accept(TokenType.Function), res.Failure
+    ;         LogError("anonymous function", res)
+    ;         ToNextLine()
+
+    ;     ParseParameters(anonFn.Parameters)
+
+    ;     ; return type
+    ;     if Peek.Type != TokenType.EOL and Peek.Type != TokenType.Is
+    ;         anonFn.ReturnType = ParseType().Result
+
+    ;     ; is [statement]
+    ;     if Accept(TokenType.Is).Success
+    ;         anonFn.Statements.Add(ParseMethodStatement(false).Result)
+    ;         ret new ParseResult{Expression}(anonFn)
+
+    ;     ; [modifiers] fn [name]([params])
+    ;     ;     [statements]
+    ;     ; [modifiers] fn [name]([params]) [type]
+    ;     ;     [statements]
+    ;     if res = Accept(TokenType.EOL, TokenType.Indent), res.Failure
+    ;         LogError("anonymous function", res)
+    ;         ToNextLine()
+
+    ;     for Peek.Type != TokenType.Dedent
+    ;         var stmtRes = ParseMethodStatement()
+    ;         anonFn.Statements.Add(stmtRes.Result)
+    ;         if stmtRes.Error
+    ;             break
+
+    ;     if res = Accept(TokenType.Dedent, TokenType.FunctionEnd), res.Failure
+    ;         LogError("anonymous function", res)
+    ;         ToNextLine()
+
+    ;     ret new ParseResult{Expression}(anonFn)
+
+
+    private fn ParseArrayType(tokens ITokenList) Expression
+        if tokens.Peek() is BracketGroup bracketGroup
+            if bracketGroup.Tokens.Count == 0
+                tokens.Advance()
+                ret new ArrayType(bracketGroup.Position, ParseType(tokens))
+            else
+                tokens.Advance()
+                AddError("code", "an array type shouldn't have anything in the []s", bracketGroup.Position)
+        ret new BadExpressionToken()
+
+    private fn ParseClass(line Line) Statement
+        ; class name([params]) [is base] [has interface(s)]
+
+        var res = line.Accept(TokenType.Class, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(line, "class", res)
+            ret new BadStatementToken()
+        
+        var classStmt = new Class(
+            line.Token(res).Position,
+            new IdentifierToken(line.Token(res, 1).Position, line.Token(res, 1).Value)
+        )
+
+        ; ParseGenericNames(classResult.GenericNames)
+
+        if line.Accept(TokenType.Is).Success
+            classStmt.Base = ParseType(line)
+
+        if line.Accept(TokenType.Has).Success
+            classStmt.Interfaces.Add(ParseType(line))
+            for line.Accept(TokenType.Comma).Success
+                classStmt.Interfaces.Add(ParseType(line))
+
+        AdvanceLine(line)
+
+        ParseIndentBlock(line, classStmt.Statements, ParseClassLine)
+
+        ret classStmt
+    
+    private fn ParseClassLine(line Line) Statement
+        if !line.Tokens.Any()
+            ret ParseSpace(line)
+        if token = line.Tokens[0], token.Type
+            is TokenType.Class
+                ret ParseClass(line)
+            is TokenType.Comment
+                ret ParseComment(line)
+        
+        AdvanceLine(line)
+        ret new BadStatementToken()
+
+    ;     var modifiers = new List{Modifier}()
+    ;     var modRes = ParseModifiers(modifiers)
+    ;     if modRes != null
+    ;         ret modRes
+
+    ;     if Peek.Type
+    ;         is TokenType.Interface
+    ;             ret ParseInterface(modifiers)
+    ;         is TokenType.Struct
+    ;             ret ParseStruct(modifiers)
+    ;         is TokenType.Delegate
+    ;             ret ParseDelegate(modifiers)
+    ;         is TokenType.Enum
+    ;             ret ParseEnum(modifiers)
+    ;         is TokenType.Value
+    ;             ret ParseConstant(modifiers)
+    ;         is TokenType.Function
+    ;             ret ParseMethodOrProperty(modifiers)
+    ;         is TokenType.Variable
+    ;             ret ParseField(modifiers)
+
+    private fn ParseComment(line Line) Statement
+        if res = line.Accept(TokenType.Comment), res.Failure
+            InvalidToken(line, "comment", res)
+            AdvanceLine(line)
+            ret new BadStatementToken()
+        else
+            var commentStmt = new CommentToken(line.Token(res).Position, line.Token(res).Value)
+            if commentStmt.Value.StartsWith(";")
+                commentStmt.Value = commentStmt.Value.Substring(1)
+                commentStmt.IsDocumentation = true
+            AdvanceLine(line)
+            ret commentStmt
 
     private fn ParseFile(tokenTree TokenTree.File, fileName str) Core.SyntaxTree.File
         var file = new Core.SyntaxTree.File(Path.GetFileName(fileName))
@@ -70,35 +196,42 @@ public class Parser
         if !line.Tokens.Any()
             ret ParseSpace(line)
         if token = line.Tokens[0], token.Type
+            is TokenType.Class
+                ret ParseClass(line)
+            is TokenType.Comment
+                ret ParseComment(line)
             is TokenType.Namespace
                 ret ParseNamespace(line)
             is TokenType.Use
                 ret ParseImport(line)
-        
-        ret new BadStatementToken()
-        ; var error = false
-        ; for CurrentIndex < Tokens.Count
-        ;     if Peek.Type
-        ;         is TokenType.Class
-        ;         is TokenType.Delegate
-        ;         is TokenType.Enum
-        ;         is TokenType.Interface
-        ;         is TokenType.Struct
-        ;             file.Statements.Add(ParseFileModifiableStatement().Result)
-        ;         is TokenType.Comment
-        ;             file.Statements.Add(ParseComment().Result)
-        ;         is TokenType.EOF
-        ;             ; call next so that we don't get stuck in an infinite loop
-        ;             Next()
-        ;         is _
-        ;             if Peek.Type.IsModifier()
-        ;                 file.Statements.Add(ParseFileModifiableStatement().Result)
-        ;             else
-        ;                 file.Statements.Add(ErrorStatement("Invalid token: {Peek}", Peek.Position).Result)
-        ;                 Next()
-        ;                 error = true
+            
+        ; is TokenType.Delegate
+        ; is TokenType.Enum
+        ; is TokenType.Interface
+        ; is TokenType.Struct
+        ;     file.Statements.Add(ParseFileModifiableStatement().Result)
+        ; is _
+        ;     if Peek.Type.IsModifier()
+        ;         file.Statements.Add(ParseFileModifiableStatement().Result)
 
-        ; ret new ParseResult{Statement}(file, error)
+        AdvanceLine(line)
+        ret new BadStatementToken()
+
+    private fn ParseGeneric(tokens ITokenList, expr Expression) Expression
+        if tokens.Next() is CurlyGroup curlyGroup
+            var genericExpr = new Generic(curlyGroup.Position, expr)
+            genericExpr.Arguments.Add(ParseType(curlyGroup))
+            for curlyGroup.Accept(TokenType.Comma).Success
+                genericExpr.Arguments.Add(ParseType(curlyGroup))
+            ret genericExpr
+        ret new BadExpressionToken()
+
+    private fn ParseIdentifier(tokens ITokenList) Expression
+        if res = tokens.Accept(TokenType.Identifier), res.Failure
+            InvalidToken(tokens, "identifier", res)
+            ret new BadExpressionToken()
+        else
+            ret new IdentifierToken(tokens.Token(res).Position, tokens.Token(res).Value)
 
     private fn ParseImport(line Line) ImportToken
         var importToken = new ImportToken(line.Position)
@@ -119,6 +252,18 @@ public class Parser
 
         ret importToken
     
+    ; returns whether an indent block was found
+    private fn ParseIndentBlock(line Line, statements List{Statement}, lineMethod Func{Line, Statement}) bool
+        if line.Parent is TokenTree.Block block and block.Peek is IndentBlock indentBlock
+            for node = indentBlock.Peek, node != null, node = indentBlock.Peek
+                if node is Line ln
+                    statements.Add(lineMethod(ln))
+                else
+                    throw new InvalidItemException()
+            block.Advance()
+            ret true
+        ret false
+    
     private fn ParseNamespace(line Line) NamespaceToken
         var namespaceToken = new NamespaceToken(line.Position)
 
@@ -137,124 +282,78 @@ public class Parser
 
         ret namespaceToken
     
+    private fn ParseNullableType(tokens ITokenList) Expression
+        if res = tokens.Accept(TokenType.Question), res.Failure
+            InvalidToken(tokens, "nullable type", res)
+            ret new BadExpressionToken()
+        else
+            ret new NullableType(tokens.Token(res).Position, ParseType(tokens))
+    
     private fn ParseSpace(line Line) Statement
         if line.Parent is TokenTree.Block block
             var size = 1
-            block.Move()
+            block.Advance()
             for block.Peek is Line curLine and !curLine.Tokens.Any()
                 size += 1
-                block.Move()
+                block.Advance()
             ret new SpaceToken(line.Position, size)
+        AddError("code", "wasn't a block while parsing space", line.Position)
         ret new BadStatementToken()
-
-;     private fn Peek Token is Tokens[CurrentIndex]
-
-;     private fn Next() Token
-;         var token = Peek
-;         CurrentIndex += 1
-;         ret token
     
-;     private fn LogError(code str, error str, position Position)
-;         Result.Diagnostics.Add(new Diagnostic(Severity.Error, code, error, position))
-    
-;     private fn LogError(type str, result AcceptResult)
-;         var token = ErrorToken(result)
-;         var error = "Invalid token in {type}: {token}"
-;         LogError("[code]", error, token.Position)
-    
-;     private fn ErrorExpression(error str, position Position) ParseResult{Expression}
-;         LogError("[code]", error, position)
-;         ret new ParseResult{Expression}(new ErrorExpression(position, error), true)
+    private fn ParseType(tokens ITokenList) Expression
+        var typeExpr Expression
+        if tokens.Peek().Type
+            is TokenType.BracketGroup
+                ret ParseArrayType(tokens)
+            is TokenType.Identifier
+                typeExpr = ParseIdentifier(tokens)
+            is TokenType.Question
+                ret ParseNullableType(tokens)
+            is _
+                if tokens.Peek().Type.IsType()
+                    typeExpr = ParseTypeToken(tokens)
+                else
+                    AddError("code", "invalid token in type: {tokens.Peek()}", tokens.Peek().Position)
+                    ret new BadExpressionToken()
+        
+        var loop = true
+        for loop
+            if tokens.Peek().Type == TokenType.CurlyGroup
+                typeExpr = ParseGeneric(tokens, typeExpr)
+            else if res = tokens.Accept(TokenType.Dot, TokenType.Identifier), res.Success
+                typeExpr = new BinaryOperator(
+                    typeExpr.Position,
+                    typeExpr,
+                    new BinaryOperatorToken(tokens.Token(res).Position, BinaryOperatorType.Dot),
+                    new IdentifierToken(tokens.Token(res, 1).Position, tokens.Token(res, 1).Value)
+                )
+            else
+                loop = false
+        
+        ret typeExpr
 
-;     private fn ErrorExpression(stmt ErrorStatement) ParseResult{Expression} is ErrorExpression(stmt.Value, stmt.Position)
-
-;     private fn ErrorStatement(error str, position Position) ParseResult{Statement}
-;         LogError("[code]", error, position)
-;         ret new ParseResult{Statement}(new ErrorStatement(position, error), true)
-
-;     private fn ErrorStatement(expr ErrorExpression) ParseResult{Statement} is ErrorStatement(expr.Value, expr.Position)
-
-;     private fn InvalidTokenErrorExpression(error str, result AcceptResult) ParseResult{Expression}
-;         var token = ErrorToken(result)
-;         ret ErrorExpression("{error}: {token}", token.Position)
-
-;     private fn InvalidTokenErrorStatement(error str, result AcceptResult) ParseResult{Statement}
-;         var token = ErrorToken(result)
-;         ret ErrorStatement("{error}: {token}", token.Position)
-    
-;     private fn ErrorExpr(type str, result AcceptResult) ErrorExpression
-;         var token = ErrorToken(result)
-;         var error = "Invalid token in {type}: {token}"
-;         LogError("[code]", error, token.Position)
-;         ret new ErrorExpression(token.Position, error)
-    
-;     private fn ErrorStmt(type str, result AcceptResult) ErrorStatement
-;         var token = ErrorToken(result)
-;         var error = "Invalid token in {type}: {token}"
-;         LogError("[code]", error, token.Position)
-;         ret new ErrorStatement(token.Position, error)
-
-
-
-
-;     private fn GetToken(result AcceptResult, index int = 0) Token is Tokens[result.StartingIndex + index]
-
-;     private fn ErrorToken(result AcceptResult) Token is Tokens[result.StartingIndex + result.Count]
-
-;     private fn To(token TokenType, accept bool = true)
-;         for Peek.Type != token and Peek.Type != TokenType.EOF
-;             Next()
-;         if accept and Peek.Type != TokenType.EOF
-;             Next()
-    
-;     private fn ToNextLine() is To(TokenType.EOL)
-    
-;     private fn ParseAnonymousFunction() ParseResult{Expression}
-;         ; fn([params]) is [statement]
-;         ; fn([params]) [type] is [statement]
-;         ; fn([params])
-;         ;     [statements]
-;         ; //
-;         ; fn([params]) [type]
-;         ;     [statements]
-;         ; //
-
-;         var anonFn = new AnonymousFunction(Peek.Position)
-
-;         if res = Accept(TokenType.Function), res.Failure
-;             LogError("anonymous function", res)
-;             ToNextLine()
-
-;         ParseParameters(anonFn.Parameters)
-
-;         ; return type
-;         if Peek.Type != TokenType.EOL and Peek.Type != TokenType.Is
-;             anonFn.ReturnType = ParseType().Result
-
-;         ; is [statement]
-;         if Accept(TokenType.Is).Success
-;             anonFn.Statements.Add(ParseMethodStatement(false).Result)
-;             ret new ParseResult{Expression}(anonFn)
-
-;         ; [modifiers] fn [name]([params])
-;         ;     [statements]
-;         ; [modifiers] fn [name]([params]) [type]
-;         ;     [statements]
-;         if res = Accept(TokenType.EOL, TokenType.Indent), res.Failure
-;             LogError("anonymous function", res)
-;             ToNextLine()
-
-;         for Peek.Type != TokenType.Dedent
-;             var stmtRes = ParseMethodStatement()
-;             anonFn.Statements.Add(stmtRes.Result)
-;             if stmtRes.Error
-;                 break
-
-;         if res = Accept(TokenType.Dedent, TokenType.FunctionEnd), res.Failure
-;             LogError("anonymous function", res)
-;             ToNextLine()
-
-;         ret new ParseResult{Expression}(anonFn)
+    private fn ParseTypeToken(tokens ITokenList) Expression
+        var pos = tokens.Peek().Position
+        var ident = new IdentifierToken(pos, tokens.Peek().Type ?
+            {
+                TokenType.String is "String",
+                TokenType.Character is "Char",
+                TokenType.Boolean is "Boolean",
+                TokenType.I8 is "SByte",
+                TokenType.I16 is "Int16",
+                TokenType.I32 is "Int32",
+                TokenType.I64 is "Int64",
+                TokenType.U8 is "Byte",
+                TokenType.U16 is "UInt16",
+                TokenType.U32 is "UInt32",
+                TokenType.U64 is "UInt64",
+                TokenType.F32 is "Single",
+                TokenType.F64 is "Double",
+                TokenType.Decimal is "Decimal",
+                _ is "Error",
+            })
+        tokens.Advance()
+        ret new BinaryOperator(pos, new IdentifierToken(pos, "System"), new BinaryOperatorToken(pos, BinaryOperatorType.Dot), ident)
 
 ;     private fn ParseArguments(args List{Argument})
 ;         if res = Accept(TokenType.LeftParenthesis), res.Failure
@@ -298,17 +397,6 @@ public class Parser
 ;         if res = Accept(TokenType.RightParenthesis), res.Failure
 ;             LogError("args", res)
 ;             ToNextLine()
-
-;     private fn ParseArray() ParseResult{Expression}
-;         var start = Peek
-;         var expr Expression
-;         if res = Accept(TokenType.LeftBracket, TokenType.RightBracket), res.Failure
-;             expr = ErrorExpr("array type declaration", res)
-;             ToNextLine()
-;         else
-;             expr = ParseType().Result
-
-;         ret new ParseResult{Expression}(new Core.Ast.Array(start.Position, expr))
 
 ;     private fn ParseArrayLiteral() ParseResult{Expression}
 ;         var res = Accept(TokenType.LeftBracket)
@@ -406,102 +494,6 @@ public class Parser
 ;         if res.Failure
 ;             ret new ParseResult{Statement}(ErrorStmt("break", res))
 ;         ret new ParseResult{Statement}(new Break(GetToken(res).Position))
-
-;     private fn ParseClass(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Class, TokenType.Identifier)
-;         if res.Failure
-;             ret new ParseResult{Statement}(ErrorStmt("class", res))
-
-;         var classResult = new Class(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
-
-;         ParseGenericNames(classResult.GenericNames)
-
-;         if Accept(TokenType.Is).Success
-;             var parentType = ParseType()
-;             if !parentType.Error
-;                 classResult.Parent = parentType.Result
-
-;         if Accept(TokenType.Has).Success
-;             var interfaceType = ParseType()
-;             if !interfaceType.Error
-;                 classResult.Interfaces.Add(interfaceType.Result)
-
-;             for Accept(TokenType.Comma).Success
-;                 interfaceType = ParseType()
-;                 if !interfaceType.Error
-;                     classResult.Interfaces.Add(interfaceType.Result)
-
-;         res = Accept(TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in class", res)
-
-;         for Peek.Type != TokenType.Dedent
-;             var stmt = ParseClassStatement()
-;             if stmt.Error
-;                 ret stmt
-;             classResult.Statements.Add(stmt.Result)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in class {classResult.Name}", res)
-
-;         ret new ParseResult{Statement}(classResult)
-
-;     private fn ParseClassStatement() ParseResult{Statement}
-;         var startToken = Peek
-;         var size = 0
-;         for Peek.Type == TokenType.EOL
-;             Next()
-;             size += 1
-        
-;         if size > 0
-;             ret new ParseResult{Statement}(new Space(startToken.Position, size))
-
-;         if Peek.Type == TokenType.Comment
-;             ret ParseComment()
-
-;         var modifiers = new List{Modifier}()
-;         var modRes = ParseModifiers(modifiers)
-;         if modRes != null
-;             ret modRes
-
-;         if Peek.Type
-;             is TokenType.Class
-;                 ret ParseClass(modifiers)
-;             is TokenType.Interface
-;                 ret ParseInterface(modifiers)
-;             is TokenType.Struct
-;                 ret ParseStruct(modifiers)
-;             is TokenType.Delegate
-;                 ret ParseDelegate(modifiers)
-;             is TokenType.Enum
-;                 ret ParseEnum(modifiers)
-;             is TokenType.Value
-;                 ret ParseConstant(modifiers)
-;             is TokenType.Function
-;                 ret ParseMethodOrProperty(modifiers)
-;             is TokenType.Variable
-;                 ret ParseField(modifiers)
-
-;         var token = Next()
-;         ret ErrorStatement("Invalid token in class: {token}", token.Position)
-
-;     private fn ParseComment(acceptEol bool = true) ParseResult{Statement}
-;         var comment = new Comment(Peek.Position, Peek.Value)
-;         Next()
-
-;         if comment.Value.StartsWith(";")
-;             comment.Value = comment.Value.Substring(1)
-;             comment.IsDocumentation = true
-
-;         var commentResult = new ParseResult{Statement}(comment)
-
-;         if acceptEol
-;             var res = Accept(TokenType.EOL)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in comment", res)
-
-;         ret commentResult
 
 ;     private fn ParseConditional(expr Expression) ParseResult{Expression}
 ;         ; [expr] ? [true expr] : [false expr]
@@ -955,28 +947,6 @@ public class Parser
 
 ;         ret new ParseResult{Statement}(forDef)
 
-;     private fn ParseGeneric(expr ?Expression) ParseResult{Expression}
-;         var start = Peek
-;         if res = Accept(TokenType.LeftCurly), res.Failure
-;             ret InvalidTokenErrorExpression("Invalid token in generic", res)
-
-;         var argType = ParseType()
-;         if argType.Error
-;             ret argType
-
-;         var generic = new Generic(expr?.Position ?? start.Position, expr, argType.Result)
-
-;         for Accept(TokenType.Comma).Success
-;             argType = ParseType()
-;             if argType.Error
-;                 ret argType
-;             generic.Arguments.Add(argType.Result)
-
-;         if res = Accept(TokenType.RightCurly), res.Failure
-;             ret InvalidTokenErrorExpression("Invalid token in generic", res)
-
-;         ret new ParseResult{Expression}(generic)
-
 ;     private fn ParseGenericNames(genericNames List{str})
 ;         if Peek.Type != TokenType.LeftCurly
 ;             ret
@@ -1057,10 +1027,6 @@ public class Parser
 ;                     ret InvalidTokenErrorStatement("Invalid token in set", res)
 
 ;         ret null
-
-;     private fn ParseIdentifier() ParseResult{Expression}
-;         var start = Next()
-;         ret new ParseResult{Expression}(new Identifier(start.Position, start.Value))
 
 ;     private fn ParseIf(inElseIf bool = false) ParseResult{Statement}
 ;         ; accept if
@@ -2007,59 +1973,6 @@ public class Parser
 ;                 ret InvalidTokenErrorStatement("Invalid token in finally", res)
 
 ;         ret new ParseResult{Statement}(tryDef)
-
-;     private fn ParseType() ParseResult{Expression}
-;         var leftResult ParseResult{Expression}
-;         if Peek.Type == TokenType.LeftBracket
-;             ret ParseArray()
-;         else if Peek.Type == TokenType.Question
-;             ret ParseNullable()
-;         else if Peek.Type.IsType()
-;             leftResult = ParseTypeToken()
-;         else if Peek.Type == TokenType.Identifier
-;             leftResult = ParseIdentifier()
-;         else
-;             ret ErrorExpression("Invalid token in type: " + Peek.Type, Peek.Position)
-
-;         if leftResult.Error
-;             ret leftResult
-
-;         for Peek.Type == TokenType.LeftCurly or Peek.Type == TokenType.Dot
-;             if Peek.Type == TokenType.LeftCurly
-;                 leftResult = ParseGeneric(leftResult.Result)
-
-;             if res = Accept(TokenType.Dot, TokenType.Identifier), res.Success
-;                 leftResult = new ParseResult{Expression}(new BinaryOperator(
-;                     leftResult.Result.Position,
-;                     leftResult.Result,
-;                     BinaryOperatorType.Dot,
-;                     new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
-;                 ))
-
-;         ret leftResult
-
-;     private fn ParseTypeToken() ParseResult{Expression}
-;         var ident = new Identifier(Peek.Position, Peek.Type ?
-;             {
-;                 TokenType.String is "String",
-;                 TokenType.Character is "Char",
-;                 TokenType.Boolean is "Boolean",
-;                 TokenType.I8 is "SByte",
-;                 TokenType.I16 is "Int16",
-;                 TokenType.I32 is "Int32",
-;                 TokenType.I64 is "Int64",
-;                 TokenType.U8 is "Byte",
-;                 TokenType.U16 is "UInt16",
-;                 TokenType.U32 is "UInt32",
-;                 TokenType.U64 is "UInt64",
-;                 TokenType.F32 is "Single",
-;                 TokenType.F64 is "Double",
-;                 TokenType.Decimal is "Decimal",
-;                 _ is "Error",
-;             })
-;         var type = new BinaryOperator(Peek.Position, new Identifier(Peek.Position, "System"), BinaryOperatorType.Dot, ident)
-;         Next()
-;         ret new ParseResult{Expression}(type)
 
 ;     private fn ParseUnaryOperator() ParseResult{Expression}
 ;         var op = Next()
