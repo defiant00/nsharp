@@ -3,6 +3,8 @@ ns NSharp.Core.SyntaxTree
 public interface ISyntaxTreeVisitor
     public fn Visit(item ArgumentModifierToken)
     public fn Visit(item AssignmentOperatorToken)
+    public fn Visit(item BadExpressionToken)
+    public fn Visit(item BadStatementToken)
     public fn Visit(item BinaryOperatorToken)
     public fn Visit(item BreakToken)
     public fn Visit(item CharacterToken)

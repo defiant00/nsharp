@@ -14,3 +14,9 @@ public abstract class Block is Node
         Console.WriteLine("{Name} {Position}")
         for child in Children
             child.Print(indent + 1)
+    
+    private fn CurrentIndex int = 0
+
+    public fn Peek ?Node is CurrentIndex < Children.Count ? Children[CurrentIndex] : null
+
+    public fn Move(count int = 1) is CurrentIndex += count

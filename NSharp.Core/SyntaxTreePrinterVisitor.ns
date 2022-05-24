@@ -44,6 +44,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item AssignmentOperatorToken) is Write(item.Value)
 
+    public fn Visit(item BadExpressionToken) is Write("[bad expr]")
+
+    public fn Visit(item BadStatementToken) is WriteLineIndented("[bad stmt]")
+
     public fn Visit(item BinaryOperatorToken) is Write(item.Value)
 
     public fn Visit(item BreakToken) is WriteLineIndented("Break")

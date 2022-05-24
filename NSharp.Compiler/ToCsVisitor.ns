@@ -9,6 +9,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item ArgumentModifierToken) is throw new NotImplementedException()
     public fn Visit(item AssignmentOperatorToken) is throw new NotImplementedException()
+    public fn Visit(item BadExpressionToken) is throw new NotImplementedException()
+    public fn Visit(item BadStatementToken) is throw new NotImplementedException()
     public fn Visit(item BinaryOperatorToken) is throw new NotImplementedException()
     public fn Visit(item BreakToken) is throw new NotImplementedException()
     public fn Visit(item CharacterToken) is throw new NotImplementedException()
