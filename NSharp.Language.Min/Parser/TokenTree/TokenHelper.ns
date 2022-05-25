@@ -1,4 +1,5 @@
 use NSharp.Core
+use NSharp.Core.SyntaxTree
 
 ns NSharp.Language.Min.TokenTree
 
@@ -92,6 +93,10 @@ public static class TokenHelper
         }
 
     public static ext{Token} fn Precedence() int is this.Type.ToBinaryOperator().Precedence()
+
+    public static ext{Token} fn ToBinaryOperatorToken() BinaryOperatorToken is new BinaryOperatorToken(this.Position, this.Type.ToBinaryOperator())
+
+    public static ext{Token} fn ToIdentifierToken() IdentifierToken is new IdentifierToken(this.Position, this.Value)
 
     public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType is this ?
         {

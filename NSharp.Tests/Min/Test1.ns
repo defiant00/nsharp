@@ -1,6 +1,4 @@
-class c1 is something.`or.other
-    class c2 is ?List{str}
-        ; a comment
-        class c3
+ns NSharp.Tests.Min
 
-;; and another
+class TestClass
+    var MyVariable str = (First + Second) * Third
