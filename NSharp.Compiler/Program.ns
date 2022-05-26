@@ -41,7 +41,7 @@ public static class Program
             SetConsoleColor(Severity.Fatal)
             Console.WriteLine(ex)
 
-        ResetConsoleColor()
+        Console.ResetColor()
         Console.WriteLine(Resources.FormatString("Compiler.Elapsed", stopwatch.Elapsed))
     
     private static fn Compile(args Arguments)
@@ -160,13 +160,11 @@ public static class Program
 
     private static fn HandleResult(result Result)
         if result.Diagnostics.Any()
-            ResetConsoleColor()
+            Console.ResetColor()
             Console.WriteLine(result.FileName)
             for diagnostic in result.Diagnostics
                 SetConsoleColor(diagnostic.Severity)
                 Console.WriteLine("  {diagnostic.Code} {diagnostic.Message} {diagnostic.Position}")
-
-    private static fn ResetConsoleColor() is Console.ForegroundColor = ConsoleColor.White
 
     private static fn SetConsoleColor(severity Severity)
         Console.ForegroundColor = severity ? {
@@ -182,7 +180,7 @@ public static class Program
             SetConsoleColor(diagnostic.Severity)
             Console.WriteLine("{diagnostic.Code} {diagnostic.Message} {diagnostic.Position}")
         if diagnostics.All(fn(d) is d.Severity < Severity.Error)
-            ResetConsoleColor()
+            Console.ResetColor()
             Console.WriteLine(Resources.GetString("Compiler.Success"))
 
     private static fn GetLanguage(args Arguments, configFileName str, startingPath str) ILanguage
