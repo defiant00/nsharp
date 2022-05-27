@@ -208,9 +208,17 @@ public class Lexer
     private fn EmitHeld(needsDedent bool)
         ; Emit any held tokens.
         ; For normal code we emit:
+        ;   [all EOLs] [indent]
+        ;  or
         ;   [first EOL] [dedents] [remaining EOLs]
         ; If the token needs a dedent (such as an else) emit:
         ;   [first EOL] [all but the last dedent] [remaining EOLs] [last dedent]
+
+        ; if the first indentation change is an indent, emit all the EOLs first
+        if HeldIndents.Any() and HeldIndents.Peek() > IndentationLevels.Peek()
+            for i = 0, i < HeldEols, i += 1
+                AddEol()
+            HeldEols = 0
 
         ; add the first EOL
         if HeldEols > 0
@@ -352,8 +360,7 @@ public class Lexer
         ; discard the ;
         Discard(1)
 
-        for c = Peek, !IsLineEnd(c), c = Peek
-            Next()
+        CurrentIndex = Line.Length
         Emit(TokenType.Comment)
         EmitEol()
         ret null
