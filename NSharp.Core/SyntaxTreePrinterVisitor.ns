@@ -108,6 +108,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.Name.Accept(this)
             Write(" = ")
         JoinItems(item.Modifiers, " ")
+        Write(" ")
         item.Value.Accept(this)
 
     public fn Visit(item ArrayLiteral)

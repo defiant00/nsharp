@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Initializer is Node
+public class Initializer is Statement
     public fn Name IdentifierToken
     public fn Value Expression
 

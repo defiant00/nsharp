@@ -1,12 +1,11 @@
 ns NSharp.Core.SyntaxTree
 
-public class Argument is Node
+public class Argument is Statement
     public fn Name ?IdentifierToken
     public fn Modifiers List{ArgumentModifierToken}
     public fn Value Expression
 
-    public fn new(position Position, name ?IdentifierToken, modifiers List{ArgumentModifierToken}, value Expression) base(position)
-        Name = name
+    public fn new(position Position, modifiers List{ArgumentModifierToken}, value Expression) base(position)
         Modifiers = modifiers
         Value = value
     

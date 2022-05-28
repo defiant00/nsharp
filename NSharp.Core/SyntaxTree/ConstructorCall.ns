@@ -2,8 +2,8 @@ ns NSharp.Core.SyntaxTree
 
 public class ConstructorCall is Expression
     public fn Type ?Expression
-    public fn Arguments List{Argument} = new()
-    public fn Initializers List{Initializer} = new()
+    public fn Arguments List{Statement} = new()
+    public fn Initializers List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty
     

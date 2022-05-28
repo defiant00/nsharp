@@ -94,9 +94,15 @@ public static class TokenHelper
 
     public static ext{Token} fn Precedence() int is this.Type.ToBinaryOperator().Precedence()
 
+    public static ext{Token} fn ToArgumentModifierToken() ArgumentModifierToken is new ArgumentModifierToken(this.Position, this.Type.ToArgumentModifier())
+
     public static ext{Token} fn ToBinaryOperatorToken() BinaryOperatorToken is new BinaryOperatorToken(this.Position, this.Type.ToBinaryOperator())
 
     public static ext{Token} fn ToIdentifierToken() IdentifierToken is new IdentifierToken(this.Position, this.Value)
+
+    public static ext{Token} fn ToParameterModifierToken() ParameterModifierToken is new ParameterModifierToken(this.Position, this.Type.ToParameterModifier())
+
+    public static ext{Token} fn ToUnaryOperatorToken() UnaryOperatorToken is new UnaryOperatorToken(this.Position, this.Type.ToUnaryOperator())
 
     public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType is this ?
         {

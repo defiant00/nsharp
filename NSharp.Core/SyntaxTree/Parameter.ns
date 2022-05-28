@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Parameter is Node
+public class Parameter is Statement
     public fn Modifiers List{ParameterModifierToken} = new()
     public fn Name IdentifierToken
     public fn Type ?Expression
