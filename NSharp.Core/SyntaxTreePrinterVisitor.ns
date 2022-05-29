@@ -337,8 +337,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item LocalConstant)
         WriteIndented("Const: ")
-        item.Type.Accept(this)
-        Write(" ")
         item.Name.Accept(this)
         Write(" = ")
         item.Value.Accept(this)
