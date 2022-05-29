@@ -1,8 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
 public class ConstructorDefinition is Statement
-    public fn Parameters List{Parameter} = new()
-    public fn BaseArguments List{Argument} = new()
+    public fn Parameters List{Statement} = new()
+    public fn BaseArguments List{Statement} = new()
     public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty

@@ -1,4 +1,15 @@
 ns NSharp.Tests.Min
 
 class TestClass
-    var MyVariable str = (First + Second) * Third
+    fn new(first int, second str = "hi") base(1)
+
+    fn empty()
+    fn e2() i32
+    fn test() bool : true
+    fn test2() : Console.WriteLine("hi")
+    fn test3(a str, b int)
+        ; yay
+        ; stuff
+
+
+        ; and more

@@ -1,5 +1,11 @@
+use NSharp.Core
+
 ns NSharp.Language.Min.TokenTree
 
 public interface ITokenList
+    public fn Position Position
+    public fn Parent ?Node
     public fn Tokens List{Token}
     public fn CurrentIndex int
+
+    public fn AdvanceParent()

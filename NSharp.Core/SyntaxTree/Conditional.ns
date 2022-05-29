@@ -2,7 +2,7 @@ ns NSharp.Core.SyntaxTree
 
 public class Conditional is Expression
     public fn Value Expression
-    public fn Conditions List{Condition} = new()
+    public fn Conditions List{Statement} = new()
 
     public fn new(position Position, value Expression) base(position) is Value = value
     

@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Condition is Node
+public class Condition is Statement
     public fn Value Expression
     public fn Result Expression
 
