@@ -110,6 +110,12 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         JoinItems(item.Modifiers, " ")
         Write(" ")
         item.Value.Accept(this)
+    
+    public fn Visit(item Arguments)
+        item.Value.Accept(this)
+        Write("(")
+        JoinItems(item.Values)
+        Write(")")
 
     public fn Visit(item ArrayLiteral)
         Write("[")
@@ -300,12 +306,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
         WriteIndentedBlock(item.Statements)
 
-    public fn Visit(item Generic)
-        item.Value.Accept(this)
-        Write("<")
-        JoinItems(item.Arguments)
-        Write(">")
-
     public fn Visit(item If)
         WriteIndented("If ")
         if item.LocalName != null and item.LocalValue != null
@@ -319,13 +319,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         if item.ElseStatements.Any()
             WriteLineIndented("Else")
             WriteIndentedBlock(item.ElseStatements)
-
-    public fn Visit(item Indexer)
-        Write("(")
-        item.Value?.Accept(this)
-        Write("[")
-        JoinItems(item.Arguments)
-        Write("])")
 
     public fn Visit(item Initializer)
         item.Name.Accept(this)
@@ -364,13 +357,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.Value.Accept(this)
         WriteLine()
 
-    public fn Visit(item MethodCall)
-        item.Value.Accept(this)
-        Write("(")
-        JoinItems(item.Arguments)
-        Write(")")
-
-    public fn Visit(item MethodDefinition)
+    public fn Visit(item Method)
         WriteIndented("Method: ")
         if item.ReturnType == null
             Write("void")
@@ -383,19 +370,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         JoinItems(item.Parameters)
         WriteLine(")")
         WriteIndentedBlock(item.Statements)
-
-    public fn Visit(item MethodSignature)
-        WriteIndented("Method sig: ")
-        if item.ReturnType == null
-            Write("void")
-        else
-            item.ReturnType.Accept(this)
-        Write(" ")
-        item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
-        Write("(")
-        JoinItems(item.Parameters)
-        WriteLine(")")
 
     public fn Visit(item Modifier)
         item.Type.Accept(this)
@@ -454,13 +428,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             WriteLine(")")
             WriteIndentedBlock(item.SetStatements)
             Indent -= 1
-
-    public fn Visit(item PropertySignature)
-        WriteIndented("Property sig: ")
-        item.Type.Accept(this)
-        Write(" ")
-        item.Name.Accept(this)
-        WriteLine("{(item.GetSpecified ? " get" : "")}{(item.SetSpecified ? " set" : "")}")
 
     public fn Visit(item Return)
         WriteIndented("Return: ")

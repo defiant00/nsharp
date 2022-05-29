@@ -98,7 +98,7 @@ public class Parser
             ret arrayExpr
         ret new BadExpressionToken()
     
-    private fn ParseArgument(tokens ITokenList) Statement
+    private fn ParseArgument(tokens ITokenList) Expression
         ; [name "="] ["out" | "ref"] expression
         var startPos = tokens.Peek().Position
         var name ?Token = null
@@ -116,7 +116,7 @@ public class Parser
         
         ret argStmt
 
-    private fn ParseArguments(tokens ITokenList, args List{Statement}) bool
+    private fn ParseArguments(tokens ITokenList, args List{Expression}) bool
         ; "(" [arguments] ")"
         if tokens.Next() is ParenthesisGroup parenthesisGroup
             if parenthesisGroup.More()
@@ -355,35 +355,6 @@ public class Parser
             ParseIndentBlock(tokens, ctorStmt.Statements, ParseMethodStatement)
 
         ret ctorStmt
-    
-    private fn ParseMethodDefinition(tokens ITokenList, nameIdentifierToken IdentifierToken) Statement
-        ; "fn" name "(" {params} ")" [type] [":" statement]
-        ; "fn" name "(" {params} ")" [type]
-        ;     {statements}
-        var methodStmt = new MethodDefinition(nameIdentifierToken.Position, nameIdentifierToken)
-
-        ; todo - ParseGenericNames
-
-        if !ParseParameters(tokens, methodStmt.Parameters)
-            AddError("[code]", "missing parameters", nameIdentifierToken.Position)
-        
-        if tokens.More() and tokens.Peek().Type != TokenType.Colon
-            methodStmt.ReturnType = ParseType(tokens)
-        
-        ; ":" statement
-        if tokens.Accept(TokenType.Colon).Success
-            if methodStmt.ReturnType != null
-                var expr = ParseExpression(tokens)
-                methodStmt.Statements.Add(new Return(expr.Position){Value = expr})
-                AdvanceLine(tokens)
-            else
-                methodStmt.Statements.Add(ParseMethodStatement(tokens))
-        else
-            ; {statements}
-            AdvanceLine(tokens)
-            ParseIndentBlock(tokens, methodStmt.Statements, ParseMethodStatement)
-        
-        ret methodStmt
 
     private fn ParseExpressionStatement(tokens ITokenList) Statement
         var exprStmt = new ExpressionStatement(tokens.Peek().Position, ParseExpression(tokens))
@@ -454,13 +425,17 @@ public class Parser
         ret new BadStatementToken()
 
     private fn ParseGeneric(tokens ITokenList, expr Expression) Expression
+        ; "{" {arguments} "}"
+        var argsExpr = new Arguments(tokens.Peek().Position, expr)
         if tokens.Next() is CurlyGroup curlyGroup
-            var genericExpr = new Generic(curlyGroup.Position, expr)
-            genericExpr.Arguments.Add(ParseType(curlyGroup))
-            for curlyGroup.Accept(TokenType.Comma).Success
-                genericExpr.Arguments.Add(ParseType(curlyGroup))
-            ret genericExpr
-        ret new BadExpressionToken()
+            if curlyGroup.More()
+                argsExpr.Values.Add(ParseType(curlyGroup))
+                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More()
+                    argsExpr.Values.Add(ParseType(curlyGroup))
+            else
+                AddError("[code]", "generics must have an argument", curlyGroup.Position)
+            EnsureNoExtraTokens(curlyGroup)
+        ret argsExpr
 
     private fn ParseIdentifier(tokens ITokenList) Expression
         if res = tokens.Accept(TokenType.Identifier), res.Failure
@@ -503,16 +478,16 @@ public class Parser
 
     private fn ParseIndexer(tokens ITokenList, expr Expression) Expression
         ; "[" {arguments} "]"
-        var indexerExpr = new Indexer(tokens.Peek().Position, expr)
+        var argsExpr = new Arguments(tokens.Peek().Position, expr)
         if tokens.Next() is BracketGroup bracketGroup
             if bracketGroup.More()
-                indexerExpr.Arguments.Add(ParseExpression(bracketGroup))
+                argsExpr.Values.Add(ParseExpression(bracketGroup))
                 for bracketGroup.Accept(TokenType.Comma).Success and bracketGroup.More()
-                    indexerExpr.Arguments.Add(ParseExpression(bracketGroup))
+                    argsExpr.Values.Add(ParseExpression(bracketGroup))
             else
                 AddError("[code]", "indexer must have an argument", bracketGroup.Position)
             EnsureNoExtraTokens(bracketGroup)
-        ret indexerExpr
+        ret argsExpr
 
     private fn ParseInitializer(tokens ITokenList) Statement
         ; name "=" expression
@@ -534,10 +509,39 @@ public class Parser
 
     private fn ParseMethodCall(tokens ITokenList expr Expression) Expression
         ; method "(" {arguments} ")"
-        var methodCallExpr = new MethodCall(tokens.Peek().Position, expr)
-        if !ParseArguments(tokens, methodCallExpr.Arguments)
-            AddError("[code]", "missing arguments", methodCallExpr.Position)
-        ret methodCallExpr
+        var argsExpr = new Arguments(tokens.Peek().Position, expr)
+        if !ParseArguments(tokens, argsExpr.Values)
+            AddError("[code]", "missing arguments", argsExpr.Position)
+        ret argsExpr
+
+    private fn ParseMethodDefinition(tokens ITokenList, nameIdentifierToken IdentifierToken) Statement
+        ; "fn" name "(" {params} ")" [type] [":" statement]
+        ; "fn" name "(" {params} ")" [type]
+        ;     {statements}
+        var methodStmt = new Method(nameIdentifierToken.Position, nameIdentifierToken)
+
+        ; todo - ParseGenericNames
+
+        if !ParseParameters(tokens, methodStmt.Parameters)
+            AddError("[code]", "missing parameters", nameIdentifierToken.Position)
+        
+        if tokens.More() and tokens.Peek().Type != TokenType.Colon
+            methodStmt.ReturnType = ParseType(tokens)
+        
+        ; ":" statement
+        if tokens.Accept(TokenType.Colon).Success
+            if methodStmt.ReturnType != null
+                var expr = ParseExpression(tokens)
+                methodStmt.Statements.Add(new Return(expr.Position){Value = expr})
+                AdvanceLine(tokens)
+            else
+                methodStmt.Statements.Add(ParseMethodStatement(tokens))
+        else
+            ; {statements}
+            AdvanceLine(tokens)
+            ParseIndentBlock(tokens, methodStmt.Statements, ParseMethodStatement)
+        
+        ret methodStmt
 
     private fn ParseMethodOrProperty(tokens ITokenList) Statement
         var start = tokens.Peek()

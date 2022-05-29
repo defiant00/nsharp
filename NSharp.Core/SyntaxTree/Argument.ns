@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Argument is Statement
+public class Argument is Expression
     public fn Name ?IdentifierToken
     public fn Modifiers List{ArgumentModifierToken}
     public fn Value Expression
