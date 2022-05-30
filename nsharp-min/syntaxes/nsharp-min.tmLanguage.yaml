@@ -43,7 +43,7 @@ repository:
       name: support.function.nsharp-min
     - match: \b(?:ns|use|get|set)\b
       name: keyword.other.nsharp-min
-    - match: //
+    - match: /fn
       name: keyword.other.nsharp-min
     - match: (?:==|!=|<|>|<=|>=|&|\||\^|<<|>>|\.|\.\.|\?\.|\?\?|,|\?|=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|\?\?=|\*|/|%|\+|-|!|~|:|_\b)
       name: keyword.operator.nsharp-min

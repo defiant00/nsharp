@@ -1,5 +1,14 @@
-fn Test()
-    ; test nested functions, actually should just work since they get resolved innermost to outer
-    a fn(x) b c
-        ; some code
-    /fn
+var a = fn(x) : 3
+var b = fn(x)
+    x * x
+/fn
+DoSomething(1, fn(x) : 3, "hello", fn(x)
+    ; code
+/fn, "between", fn(x)
+    if x > 3
+        fn(z)
+            ; within
+        /fn
+    else
+        ret "no"
+/fn, 'c')

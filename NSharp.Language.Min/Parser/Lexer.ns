@@ -221,7 +221,7 @@ public class Lexer
 
     private fn CreateFunctionBlock(startToken Token)
         ; Replace the starting function token with a FunctionBlock token containing
-        ; all the items between it and the end token.
+        ; all the items between it and the end of the current indentation.
         if startToken.Parent is Line line and line.Parent is Block block
             var tokenIndex = line.Tokens.IndexOf(startToken)
             if tokenIndex > -1
@@ -246,6 +246,10 @@ public class Lexer
                     for node in fnBlock.Children
                         node.Parent = fnBlock
                     block.Children.RemoveRange(lineIndex + 1, block.Children.Count - (lineIndex + 1))
+
+                    ; set the current node to the line, so the parser will see
+                    ; a single stream of tokens
+                    CurrentNode = line
                 else
                     throw new Exception("could not find {line} to replace")
             else
