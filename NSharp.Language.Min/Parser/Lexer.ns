@@ -3,6 +3,12 @@ use NSharp.Language.Min.TokenTree
 
 ns NSharp.Language.Min
 
+public class IndentationLevel
+    public fn Level int
+    public fn FunctionToken ?Token
+
+    public fn new(level int) is Level = level
+
 public class Lexer
     public fn TokenTree TokenTree.File = new()
     public fn Diagnostics List{Diagnostic} = new()
@@ -18,7 +24,7 @@ public class Lexer
     private fn StartIndex int
     private fn CurrentIndex int
     private fn State ?StateFunction
-    private fn IndentationLevels Stack{int} = new()
+    private fn IndentationLevels Stack{IndentationLevel} = new()
     private fn HeldIndents Queue{int} = new()
     private fn HeldEols int = 0
     private fn LastEmittedWasLineContinuation bool = false
@@ -26,7 +32,7 @@ public class Lexer
     private fn CurrentNode Node
 
     public fn new()
-        IndentationLevels.Push(0)
+        IndentationLevels.Push(new IndentationLevel(0))
         CurrentNode = TokenTree
 
     public fn Lex(line str)
@@ -121,7 +127,7 @@ public class Lexer
     
     private fn AddEol()
         if CurrentNode is Block b
-            b.Children.Add(new Line(CurrentPosition, b))
+            EnsureTokenList()
         else if block = CurrentNode.FirstBlock, block != null
             VerifyUpTo(block)
             CurrentNode = block
@@ -151,7 +157,6 @@ public class Lexer
             CurrentNode = line
 
     private fn AddToken(token Token)
-        token.Parent = CurrentNode
         if token.Type
             is TokenType.LeftBracket
                 EnsureTokenList()
@@ -198,8 +203,55 @@ public class Lexer
                 else
                     AddError(token.Position, "code", "unexpected """)
             is _
-                EnsureTokenList()
-                (CurrentNode as ITokenList).Tokens.Add(token)
+                if token.Type == TokenType.FunctionEnd
+                    var startToken = IndentationLevels.Peek().FunctionToken
+                    if startToken != null
+                        CreateFunctionBlock(startToken)
+                        IndentationLevels.Peek().FunctionToken = null
+                    else
+                        AddError(token.Position, "code", "unexpected /fn")
+                else
+                    EnsureTokenList()
+                    token.Parent = CurrentNode
+
+                    if token.Type == TokenType.Function
+                        IndentationLevels.Peek().FunctionToken = token
+                    
+                    (CurrentNode as ITokenList).Tokens.Add(token)
+
+    private fn CreateFunctionBlock(startToken Token)
+        ; Replace the starting function token with a FunctionBlock token containing
+        ; all the items between it and the end token.
+        if startToken.Parent is Line line and line.Parent is Block block
+            var tokenIndex = line.Tokens.IndexOf(startToken)
+            if tokenIndex > -1
+                var fnBlock = new FunctionBlock(startToken.Position){Parent = line}
+                
+                ; add the tokens after the fn to the function block
+                var newLine = new Line(startToken.Position, fnBlock)
+                newLine.Tokens = line.Tokens.GetRange(tokenIndex + 1, line.Tokens.Count - (tokenIndex + 1))
+                for token in newLine.Tokens
+                    token.Parent = newLine
+                fnBlock.Children.Add(newLine)
+
+                ; remove the tokens from the parent line
+                line.Tokens.RemoveRange(tokenIndex, line.Tokens.Count - tokenIndex)
+                ; add the function block to the line
+                line.Tokens.Add(fnBlock)
+
+                ; add all the following lines and blocks
+                var lineIndex = block.Children.IndexOf(line)
+                if lineIndex > -1
+                    fnBlock.Children.AddRange(block.Children.GetRange(lineIndex + 1, block.Children.Count - (lineIndex + 1)))
+                    for node in fnBlock.Children
+                        node.Parent = fnBlock
+                    block.Children.RemoveRange(lineIndex + 1, block.Children.Count - (lineIndex + 1))
+                else
+                    throw new Exception("could not find {line} to replace")
+            else
+                throw new Exception("could not find {startToken} to replace")
+        else
+            throw new Exception("fn block tree is incorrect")
 
     private fn EmitEol() is HeldEols += 1
     
@@ -218,10 +270,10 @@ public class Lexer
         var emitFinalDedent = false
         for HeldIndents.Any()
             var indent = HeldIndents.Dequeue()
-            var currentIndent = IndentationLevels.Peek()
+            var currentIndent = IndentationLevels.Peek().Level
             if indent > currentIndent
                 AddIndent()
-                IndentationLevels.Push(indent)
+                IndentationLevels.Push(new IndentationLevel(indent))
             else
                 for IndentationLevels.Any() and indent < currentIndent
                     if needsDedent
@@ -231,7 +283,7 @@ public class Lexer
                     else
                         AddDedent()
                     IndentationLevels.Pop()
-                    currentIndent = IndentationLevels.Peek()
+                    currentIndent = IndentationLevels.Peek().Level
                 if !IndentationLevels.Any() or currentIndent != indent
                     AddError(CurrentPosition, "code", "mismatched indentation level")
         ; add any remaining EOLs

@@ -8,6 +8,7 @@ ns NSharp.Language.Min.TokenTree
 ;       IndentBlock
 ;   Line - tokens
 ;   Token
+;       FunctionBlock - lines and blocks
 ;       Group - tokens
 ;           BracketGroup
 ;           CurlyGroup

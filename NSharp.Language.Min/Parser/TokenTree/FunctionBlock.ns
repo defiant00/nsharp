@@ -1,0 +1,22 @@
+use NSharp.Core
+
+ns NSharp.Language.Min.TokenTree
+
+public class FunctionBlock is Token
+    public fn Children List{Node} = new()
+
+    public fn new(position Position) base(position, TokenType.FunctionBlock, str.Empty) is ; empty
+
+    public over fn Name str is "function block"
+
+    public over fn Print(indent int)
+        PrintIndent(indent)
+        Console.WriteLine("{Name} {Position}")
+        for child in Children
+            child.Print(indent + 1)
+    
+    private fn CurrentIndex int = 0
+
+    public fn Peek ?Node is CurrentIndex < Children.Count ? Children[CurrentIndex] : null
+
+    public fn Advance(count int = 1) is CurrentIndex += count

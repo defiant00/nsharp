@@ -6,6 +6,7 @@ public enum TokenType
     CurlyGroup
     ParenthesisGroup
     StringGroup
+    FunctionBlock
     Comment
     CharacterLiteral
     StringStart

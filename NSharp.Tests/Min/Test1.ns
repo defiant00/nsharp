@@ -1,8 +1,5 @@
-ns NSharp.Tests.Min
-
-class TestClass
-    fn test()
-        var x str
-        var y = "hi"
-        var z str = "yo"
-        val c_x = 3
+fn Test()
+    ; test nested functions, actually should just work since they get resolved innermost to outer
+    a fn(x) b c
+        ; some code
+    /fn
