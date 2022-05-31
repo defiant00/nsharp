@@ -31,21 +31,11 @@ public class Parser
             AddError("[code]", "extra token {tokens.Tokens[i]}", tokens.Tokens[i].Position)
 
     public fn Parse(fileName str) Core.SyntaxTree.File
-        var lexer = new Lexer()
+        var builder = new TokenTreeBuilder(fileName, Settings, Result.Diagnostics)
 
-        use reader = new StreamReader(fileName)
-        for line = reader.ReadLine(), line != null, line = reader.ReadLine()
-            lexer.Lex(line)
-        lexer.EndOfFile()
+        var file = ParseFile(builder.TokenTree, fileName)
 
-        Result.Diagnostics.AddRange(lexer.Diagnostics)
-
-        if Settings.PrintTokens
-            lexer.TokenTree.Print(0)
-
-        var file = ParseFile(lexer.TokenTree, fileName)
-
-        if Settings.PrintTree
+        if Settings.PrintSyntaxTree
             file.Accept(new SyntaxTreePrinterVisitor())
 
         ret file
@@ -416,7 +406,7 @@ public class Parser
 
         ; A file can contain lines and blocks.
         ; However, a block on its own is an error.
-        for node = tokenTree.Peek, node != null, node = tokenTree.Peek
+        for node = tokenTree.Peek(), node != null, node = tokenTree.Peek()
             if node is Line line
                 file.Statements.Add(ParseFileStatement(line))
             else
@@ -492,8 +482,8 @@ public class Parser
         ret importToken
     
     private fn ParseIndentBlock(tokens ITokenList, statements List{Statement}, stmtFn Func{ITokenList, Statement}) bool
-        if tokens.Parent is TokenTree.Block block and block.Peek is IndentBlock indentBlock
-            for node = indentBlock.Peek, node != null, node = indentBlock.Peek
+        if tokens.Parent is IBlock block and block.Peek() is IndentBlock indentBlock
+            for node = indentBlock.Peek(), node != null, node = indentBlock.Peek()
                 if node is ITokenList tokenList
                     statements.Add(stmtFn(tokenList))
                 else
@@ -820,10 +810,10 @@ public class Parser
             ret returnStmt
 
     private fn ParseSpace(tokens ITokenList) Statement
-        if tokens.Parent is TokenTree.Block block
+        if tokens.Parent is IBlock block
             var size = 1
             block.Advance()
-            for block.Peek is Line curLine and !curLine.Tokens.Any()
+            for block.Peek() is Line curLine and !curLine.Tokens.Any()
                 size += 1
                 block.Advance()
             ret new SpaceToken(tokens.Position, size)

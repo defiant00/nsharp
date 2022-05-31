@@ -20,20 +20,20 @@ public static class Program
         var arguments = new Arguments(args)
 
         try
-            if args.Length < 2 or arguments.Flags.ContainsKey("help")
+            if str.IsNullOrEmpty(arguments.Command) or arguments.Command == "help"
                 Console.WriteLine()
                 Console.WriteLine(Resources.GetString("Compiler.Usage"))
-            else if arguments.Flags.ContainsKey("build")
+            else if arguments.Command == "build"
                 Console.WriteLine("Build not yet supported.")
-            else if arguments.Flags.ContainsKey("compile")
+            else if arguments.Command == "compile"
                 Compile(arguments)
-            else if arguments.Flags.ContainsKey("edit")
+            else if arguments.Command == "edit"
                 Edit(arguments)
-            else if arguments.Flags.ContainsKey("format")
+            else if arguments.Command == "format"
                 Format(arguments)
-            else if arguments.Flags.ContainsKey("save")
+            else if arguments.Command == "save"
                 Save(arguments)
-            else if arguments.Flags.ContainsKey("validate")
+            else if arguments.Command == "validate"
                 Validate(arguments)
             else
                 Console.WriteLine(Resources.GetString("Compiler.NoCommandFound"))

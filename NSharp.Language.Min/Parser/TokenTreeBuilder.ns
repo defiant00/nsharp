@@ -1,0 +1,131 @@
+use NSharp.Core
+use NSharp.Language.Min.TokenTree
+
+ns NSharp.Language.Min
+
+public class TokenTreeBuilder
+    public fn TokenTree TokenTree.File = new()
+
+    private fn Diagnostics List{Diagnostic}
+    private fn CurrentNode Node
+    private fn Tokens List{Token}
+    private fn CurrentIndex int = 0
+
+    private fn More bool is CurrentIndex < Tokens.Count
+
+    private fn Peek Token is More ? Tokens[CurrentIndex] : TokenListHelper.MISSING_TOKEN
+
+    private fn Next() Token
+        var token = Peek
+        CurrentIndex += 1
+        ret token
+
+    public fn new(fileName str, settings Settings, diagnostics List{Diagnostic})
+        Diagnostics = diagnostics
+        CurrentNode = TokenTree
+
+        var lexer = new Lexer(fileName, settings, diagnostics)
+        Tokens = lexer.Tokens
+
+        for More
+            Add(Next())
+
+        if settings.PrintTokenTree
+            TokenTree.Print(0)
+
+    private fn AddError(position Position, code str, message str)
+        Diagnostics.Add(new Diagnostic(Severity.Error, code, message, position))
+
+    private fn VerifyUpTo(target Node)
+        var current = CurrentNode
+        for current != target and current.Parent != null
+            if current is BracketGroup
+                AddError(current.Position, "code", "unclosed [")
+            else if current is CurlyGroup
+                AddError(current.Position, "code", "unclosed {{")
+            else if current is ParenthesisGroup
+                AddError(current.Position, "code", "unclosed (")
+            else if current is StringGroup
+                AddError(current.Position, "code", "unclosed """)
+            else if current is FunctionBlock
+                AddError(current.Position, "code", "unclosed fn")
+            current = current.Parent
+        if current != target
+            throw new Exception("Unable to verify to {target}")
+    
+    private fn AddEol(position Position)
+        if CurrentNode is IBlock
+            EnsureTokenList(position)
+        else if block = CurrentNode.FirstBlock, block != null
+            VerifyUpTo(block.Node)
+            CurrentNode = block.Node
+            EnsureTokenList(position)
+        else
+            throw new Exception("block is null for eol")
+    
+    private fn AddIndent(position Position)
+        if block = CurrentNode.FirstBlock, block != null
+            VerifyUpTo(block.Node)
+            var indent = new IndentBlock(position, block.Node)
+            block.Children.Add(indent)
+            CurrentNode = indent
+        else
+            throw new Exception("block is null for indent")
+    
+    private fn AddDedent()
+        if block = CurrentNode.FirstBlock, block != null and block is IndentBlock and block.Parent != null
+            VerifyUpTo(block.Parent)
+            CurrentNode = block.Parent
+        else
+            throw new Exception("dedent?")
+    
+    private fn EnsureTokenList(pos Position)
+        if CurrentNode is IBlock block
+            var line = new Line(pos, block.Node)
+            block.Children.Add(line)
+            CurrentNode = line
+    
+    private fn EnsureAddToken(token Token)
+        EnsureTokenList(token.Position)
+        (CurrentNode as ITokenList).Tokens.Add(token)
+        CurrentNode = token
+    
+    private fn FinishNode(node ?Node, position Position, code str, message str)
+        if node?.Parent != null
+            VerifyUpTo(node)
+            CurrentNode = node.Parent
+        else
+            AddError(position, code, message)
+
+    private fn Add(token Token)
+        if token.Type
+            is TokenType.EOL
+                AddEol(token.Position)
+            is TokenType.Indent
+                AddIndent(token.Position)
+            is TokenType.Dedent
+                AddDedent()
+            is TokenType.LeftBracket
+                EnsureAddToken(new BracketGroup(token.Position, CurrentNode))
+            is TokenType.RightBracket
+                FinishNode(CurrentNode.FirstBracketGroup, token.Position, "code", "unexpected ]")
+            is TokenType.LeftCurly
+                EnsureAddToken(new CurlyGroup(token.Position, CurrentNode))
+            is TokenType.RightCurly
+                FinishNode(CurrentNode.FirstCurlyGroup, token.Position, "code", "unexpected }")
+            is TokenType.LeftParenthesis
+                EnsureAddToken(new ParenthesisGroup(token.Position, CurrentNode))
+            is TokenType.RightParenthesis
+                FinishNode(CurrentNode.FirstParenthesisGroup, token.Position, "code", "unexpected )")
+            is TokenType.StringStart
+                EnsureAddToken(new StringGroup(token.Position, CurrentNode))
+            is TokenType.StringEnd
+                FinishNode(CurrentNode.FirstStringGroup, token.Position, "code", "unexpected """)
+            is TokenType.FunctionStart
+                EnsureAddToken(new FunctionBlock(token.Position, CurrentNode))
+            is TokenType.FunctionEnd
+                FinishNode(CurrentNode.FirstFunctionBlock, token.Position, "code", "unexpected /fn")
+            is _
+                EnsureTokenList(token.Position)
+                token.Parent = CurrentNode
+                (CurrentNode as ITokenList).Tokens.Add(token)

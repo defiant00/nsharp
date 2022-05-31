@@ -28,12 +28,12 @@
     <value>Usage: nsc [command] [file(s)]
 
 Commands:
-    /build [project paths] - build projects
-    /compile [files]       - compile the specified files
-    /edit [files]          - create a file.ns.edit file per input file for editing per the .nsedit settings
-    /format [files]        - format the specified files per the .nsedit and .nssave settings
-    /save [files]          - save the specified files per the .nssave settings
-    /validate [files]      - validate the specified files' syntax</value>
+    build [project paths]   build projects
+    compile [files]         compile the specified files
+    edit [files]            create a file.ns.edit file per input file for editing per the .nsedit settings
+    format [files]          format the specified files per the .nsedit and .nssave settings
+    save [files]            save the specified files per the .nssave settings
+    validate [files]        validate the specified files' syntax</value>
   </data>
   <data name="NSC.Error.0000" xml:space="preserve">
     <value>Unable to get type {0}</value>

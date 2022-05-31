@@ -2,8 +2,10 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public abstract class Block is Node
+public abstract class Block is Node has IBlock
     public fn Children List{Node} = new()
+    public fn CurrentIndex int = 0
+    public fn Node Node is this
     
     public fn new(position Position, parent ?Node) base(position, parent) is ; empty
 
@@ -14,9 +16,3 @@ public abstract class Block is Node
         Console.WriteLine("{Name} {Position}")
         for child in Children
             child.Print(indent + 1)
-    
-    private fn CurrentIndex int = 0
-
-    public fn Peek ?Node is CurrentIndex < Children.Count ? Children[CurrentIndex] : null
-
-    public fn Advance(count int = 1) is CurrentIndex += count

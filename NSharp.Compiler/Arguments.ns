@@ -1,11 +1,13 @@
 ns NSharp.Compiler
 
 public class Arguments
+    public fn Command str
     public fn Flags Dictionary{str, str} = new()
     public fn Paths List{str} = new()
 
     public fn new(args []str)
-        for arg in args
+        Command = args.Any() ? args[0] : str.Empty
+        for arg in args.Skip(1)
             if arg[0] == '/' or arg[0] == '-'
                 var index = arg.IndexOf(':')
                 var key = arg

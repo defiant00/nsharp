@@ -13,7 +13,7 @@ public struct AcceptResult
         SearchItems = items
 
 
-public static class ParseHelper
+public static class TokenListHelper
     public static fn MISSING_TOKEN Token = new Token(default, TokenType.Missing, str.Empty)
 
     public static ext{ITokenList} fn More() bool is this.CurrentIndex < this.Tokens.Count

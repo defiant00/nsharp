@@ -12,10 +12,11 @@
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/NSharp.Compiler/bin/Debug/net6.0/nsc.dll",
             "args": [
-                "/compile",
+                "compile",
                 "/tocs",
                 "/print-tokens",
-                "/print-tree",
+                "/print-token-tree",
+                "/print-syntax-tree",
                 "/out:../bin/test",
                 "${workspaceFolder}/NSharp.Tests/Min/"
             ],

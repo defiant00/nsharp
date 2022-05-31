@@ -25,11 +25,17 @@ public abstract class Node
 
     ; todo - update with generics once generic constraints are added
 
-    public fn FirstBlock ?Block
+    public fn FirstBlock ?IBlock
         var current = this
-        for current != null and !(current is Block)
+        for current != null and !(current is IBlock)
             current = current.Parent
-        ret current as ?Block
+        ret current as ?IBlock
+    
+    public fn FirstFunctionBlock ?FunctionBlock
+        var current = this
+        for current != null and !(current is FunctionBlock)
+            current = current.Parent
+        ret current as ?FunctionBlock
     
     public fn FirstBracketGroup ?BracketGroup
         var current = this
@@ -56,7 +62,7 @@ public abstract class Node
         ret current as ?StringGroup
     
     public fn AdvanceParent()
-        if Parent is Block block
+        if Parent is IBlock block
             block.Advance()
         else
             throw new Exception("parent isn't block")

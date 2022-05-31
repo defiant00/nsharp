@@ -1,23 +1,27 @@
 ## TODO
 
-* A block needs to have its own CurrentIndex state and interface so that ParseSpace can jump up to the parent and check children until one has content.
-    * Loop will need to be `for CurrentIndex < Children.Count` so that once it's updated it picks up on the next item.
 * Chars unescape on parse, escape on output
+* arrays with `arr` or `array` instead of special [] syntax
+* rework nullable and get rid of null?
 * Events
 * Generic constraints
 * Generic in/out decorators for covariant/contravariant
 * yield, async, await
-* ranges
+* ranges?
+* tuples?
 * properly parse anonymous functions as an expression or statement instead of assuming an expression
 
 ## Min Syntax Notes
 
-Attributes
+modifiers as attributes
+
+Attributes (no indicator needed, just check for identifiers)
 ```
-@Special
-@SpecialAttribute
-@Special("val")
-@assembly:Special
+public
+assembly:Obsolete
+Special
+Special("thing")
+Special(Flag = true)
 ```
 
 do a first pass that determines inheritance and class order
@@ -44,21 +48,11 @@ for i in list : Print(i)
 
 generic type constraints
 ```
-class GenericClass{T [constraints]}
+class GenericClass{T {constraints}}
 
 class GenericClass{T class}
 ```
 
-`any` for System.Object
-
-change parameter order to `name [modifiers] type [= value]`
-
 allow named expressions in switch cases so you can do `is Token token`
-
-modifiers as attributes
-
-no need for an attribute indicator?
-
-unshorten `ret` and `fin`
 
 allow method and property definitions in interfaces

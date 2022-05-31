@@ -170,7 +170,6 @@ public static class TokenHelper
         KeywordTokens.Add("enum", TokenType.Enum)
         KeywordTokens.Add("interface", TokenType.Interface)
         KeywordTokens.Add("fn", TokenType.Function)
-        KeywordTokens.Add(Constant.FUNCTION_END, TokenType.FunctionEnd)
         KeywordTokens.Add("del", TokenType.Delegate)
         KeywordTokens.Add("var", TokenType.Variable)
         KeywordTokens.Add("val", TokenType.Value)

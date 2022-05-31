@@ -2,6 +2,9 @@ ns NSharp.Language.Min.TokenTree
 
 public enum TokenType
     Missing
+    EOL
+    Indent
+    Dedent
     BracketGroup
     CurlyGroup
     ParenthesisGroup
@@ -36,6 +39,7 @@ public enum TokenType
     If
     Try
     Function
+    FunctionStart
     Token_Needs_Dedent_Start
     Else
     Catch

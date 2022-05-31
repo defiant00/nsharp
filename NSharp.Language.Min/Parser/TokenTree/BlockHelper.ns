@@ -1,0 +1,7 @@
+ns NSharp.Language.Min.TokenTree
+
+public static class BlockHelper
+    public static ext{IBlock} fn Peek() ?Node
+        ret this.CurrentIndex < this.Children.Count ? this.Children[this.CurrentIndex] : null
+
+    public static ext{IBlock} fn Advance(count int = 1) is this.CurrentIndex += count
