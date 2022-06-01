@@ -46,7 +46,7 @@ public class Parser
         ;     {statements}
         ; "/fn"
 
-        var anonFnExpr = new AnonymousFunction(group.Peek().Position)
+        var anonFnExpr = new AnonymousFunction(group.Peek.Position)
 
         if res = group.Accept(TokenType.Function), res.Failure
             InvalidToken(group, "anonymous function", res)
@@ -58,7 +58,7 @@ public class Parser
             AddError("[code]", "missing parameters", anonFnExpr.Position)
 
         ; optional return type
-        if group.More() and group.Peek().Type != TokenType.Colon
+        if group.More and group.Peek.Type != TokenType.Colon
             anonFnExpr.ReturnType = ParseType(group)
         
         ; ":" statement
@@ -80,9 +80,9 @@ public class Parser
         ; "[" [expressions] "]"
         if next = group.Next(), next.Type == TokenType.BracketGroup and next is Group bracketGroup
             var arrayExpr = new ArrayLiteral(bracketGroup.Position)
-            if bracketGroup.More()
+            if bracketGroup.More
                 arrayExpr.Values.Add(ParseExpression(bracketGroup))
-                for bracketGroup.Accept(TokenType.Comma).Success and bracketGroup.More()
+                for bracketGroup.Accept(TokenType.Comma).Success and bracketGroup.More
                     arrayExpr.Values.Add(ParseExpression(bracketGroup))
             EnsureNoExtraTokens(bracketGroup)
             ret arrayExpr
@@ -90,14 +90,14 @@ public class Parser
     
     private fn ParseArgument(group Group) Expression
         ; [name "="] ["out" | "ref"] expression
-        var startPos = group.Peek().Position
+        var startPos = group.Peek.Position
         var name ?Token = null
         if res = group.Accept(TokenType.Identifier, TokenType.Assign), res.Success
             name = group.Token(res)
         
         ; modifiers
         var modifiers = new List{ArgumentModifierToken}()
-        for group.Peek().Type.IsArgumentModifier()
+        for group.Peek.Type.IsArgumentModifier()
             modifiers.Add(group.Next().ToArgumentModifierToken())
         
         var argStmt = new Argument(startPos, modifiers, ParseExpression(group))
@@ -109,9 +109,9 @@ public class Parser
     private fn ParseArguments(group Group, args List{Expression}) bool
         ; "(" [arguments] ")"
         if next = group.Next(), next.Type == TokenType.ParenthesisGroup and next is Group parenthesisGroup
-            if parenthesisGroup.More()
+            if parenthesisGroup.More
                 args.Add(ParseArgument(parenthesisGroup))
-                for parenthesisGroup.Accept(TokenType.Comma).Success and parenthesisGroup.More()
+                for parenthesisGroup.Accept(TokenType.Comma).Success and parenthesisGroup.More
                     args.Add(ParseArgument(parenthesisGroup))
             EnsureNoExtraTokens(parenthesisGroup)
             ret true
@@ -128,7 +128,7 @@ public class Parser
 
     private fn ParseBinaryOperatorRightSide(group Group, leftPrecedence int, left Expression) Expression
         for
-            var tokenPrecedence = group.Peek().Precedence()
+            var tokenPrecedence = group.Peek.Precedence()
 
             ; If this is a binary operator that binds at least as tightly as the
             ; current operator then consume it, otherwise we're done.
@@ -140,19 +140,19 @@ public class Parser
             
             ; If it's a named expression (currently only 'is') then accept the
             ; next token as the name if it's a literal.
-            if op.Type == TokenType.Is and group.Peek().Type == TokenType.Identifier
+            if op.Type == TokenType.Is and group.Peek.Type == TokenType.Identifier
                 right = new NamedExpression(right.Position, right, group.Next().ToIdentifierToken())
 
             ; If the binary operator binds less tightly with the right than the operator
             ; after the right, let the pending operator take the right as its left.
-            if tokenPrecedence < group.Peek().Precedence()
+            if tokenPrecedence < group.Peek.Precedence()
                 right = ParseBinaryOperatorRightSide(group, tokenPrecedence + 1, right)
 
             ; Merge left and right.
             left = new BinaryOperator(left.Position, left, op.ToBinaryOperatorToken(), right)
 
     private fn ParseBlock(group Group) Statement
-        var blockStmt = new Core.SyntaxTree.Block(group.Peek().Position)
+        var blockStmt = new Core.SyntaxTree.Block(group.Peek.Position)
         if res = group.Accept(TokenType.DoubleColon), res.Failure
             InvalidToken(group, "block", res)
         AdvanceLine(group)
@@ -273,7 +273,7 @@ public class Parser
         
         var conditionalExpr = new Conditional(expr.Position, expr)
 
-        if group.Peek().Type != TokenType.CurlyGroup
+        if group.Peek.Type != TokenType.CurlyGroup
             ; Condition results can be a throw.
             var trueRes = ParseThrowOr(ParseExpression, group)
             conditionalExpr.Conditions.Add(new Condition(
@@ -296,9 +296,9 @@ public class Parser
             ))
         else
             var curlyGroup = group.Next() as Group
-            if curlyGroup.More()
+            if curlyGroup.More
                 conditionalExpr.Conditions.Add(ParseCondition(curlyGroup))
-                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More()
+                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More
                     conditionalExpr.Conditions.Add(ParseCondition(curlyGroup))
             else
                 AddError("[code]", "a conditional should have at least one condition", curlyGroup.Position)
@@ -335,7 +335,7 @@ public class Parser
         
         var ctorExpr = new ConstructorCall(group.Token(res).Position)
 
-        if group.Peek().Type != TokenType.CurlyGroup and group.Peek().Type != TokenType.ParenthesisGroup
+        if group.Peek.Type != TokenType.CurlyGroup and group.Peek.Type != TokenType.ParenthesisGroup
             ctorExpr.Type = ParseType(group)
         
         ParseArguments(group, ctorExpr.Arguments)
@@ -373,7 +373,7 @@ public class Parser
         ret ctorStmt
 
     private fn ParseExpressionStatement(group Group) Statement
-        var exprStmt = new ExpressionStatement(group.Peek().Position, ParseExpression(group))
+        var exprStmt = new ExpressionStatement(group.Peek.Position, ParseExpression(group))
         AdvanceLine(group)
         ret exprStmt
 
@@ -406,11 +406,11 @@ public class Parser
 
         ; A file can contain lines and blocks.
         ; However, a block on its own is an error.
-        for token = tokenTree.Peek(), token != null, token = tokenTree.Peek()
-            if token.Type == TokenType.Line
-                file.Statements.Add(ParseFileStatement(token as Group))
+        for tokenTree.More
+            if tokenTree.Peek.Type == TokenType.Line
+                file.Statements.Add(ParseFileStatement(tokenTree.Peek as Group))
             else
-                AddError("[code]", "unused block", token.Position)
+                AddError("[code]", "unused block", tokenTree.Peek.Position)
                 tokenTree.Advance()
 
         ret file
@@ -442,11 +442,11 @@ public class Parser
 
     private fn ParseGeneric(group Group, expr Expression) Expression
         ; "{" {arguments} "}"
-        var argsExpr = new Arguments(group.Peek().Position, expr)
+        var argsExpr = new Arguments(group.Peek.Position, expr)
         if next = group.Next(), next.Type == TokenType.CurlyGroup and next is Group curlyGroup
-            if curlyGroup.More()
+            if curlyGroup.More
                 argsExpr.Values.Add(ParseType(curlyGroup))
-                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More()
+                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More
                     argsExpr.Values.Add(ParseType(curlyGroup))
             else
                 AddError("[code]", "generics must have an argument", curlyGroup.Position)
@@ -482,10 +482,10 @@ public class Parser
         ret importToken
     
     private fn ParseIndentBlock(group Group, statements List{Statement}, stmtFn Func{Group, Statement}) bool
-        if group.Parent != null and group.Parent.Peek().Type == TokenType.IndentBlock and group.Parent.Peek() is Group indentBlock
-            for token = indentBlock.Peek(), token != null, token = indentBlock.Peek()
-                if token.IsGroup()
-                    statements.Add(stmtFn(token as Group))
+        if group.Parent != null and group.Parent.Peek.Type == TokenType.IndentBlock and group.Parent.Peek is Group indentBlock
+            for indentBlock.More
+                if indentBlock.Peek.IsGroup()
+                    statements.Add(stmtFn(indentBlock.Peek as Group))
                 else
                     throw new InvalidItemException()
             group.Parent.Advance()
@@ -494,11 +494,11 @@ public class Parser
 
     private fn ParseIndexer(group Group, expr Expression) Expression
         ; "[" {arguments} "]"
-        var argsExpr = new Arguments(group.Peek().Position, expr)
+        var argsExpr = new Arguments(group.Peek.Position, expr)
         if next = group.Next(), next.Type == TokenType.BracketGroup and next is Group bracketGroup
-            if bracketGroup.More()
+            if bracketGroup.More
                 argsExpr.Values.Add(ParseExpression(bracketGroup))
-                for bracketGroup.Accept(TokenType.Comma).Success and bracketGroup.More()
+                for bracketGroup.Accept(TokenType.Comma).Success and bracketGroup.More
                     argsExpr.Values.Add(ParseExpression(bracketGroup))
             else
                 AddError("[code]", "indexer must have an argument", bracketGroup.Position)
@@ -517,9 +517,9 @@ public class Parser
     private fn ParseInitializers(group Group, inits List{Statement})
         ; "{" {initializers} "}"
         if next = group.Next(), next.Type == TokenType.CurlyGroup and next is Group curlyGroup
-            if curlyGroup.More()
+            if curlyGroup.More
                 inits.Add(ParseInitializer(curlyGroup))
-                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More()
+                for curlyGroup.Accept(TokenType.Comma).Success and curlyGroup.More
                     inits.Add(ParseInitializer(curlyGroup))
             EnsureNoExtraTokens(curlyGroup)
 
@@ -554,7 +554,7 @@ public class Parser
         
         var varStmt = new LocalVariable(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
 
-        if group.More() and group.Peek().Type != TokenType.Assign
+        if group.More and group.Peek.Type != TokenType.Assign
             varStmt.Type = ParseType(group)
 
         if group.Accept(TokenType.Assign).Success
@@ -565,7 +565,7 @@ public class Parser
 
     private fn ParseMethodCall(group Group, expr Expression) Expression
         ; method "(" {arguments} ")"
-        var argsExpr = new Arguments(group.Peek().Position, expr)
+        var argsExpr = new Arguments(group.Peek.Position, expr)
         if !ParseArguments(group, argsExpr.Values)
             AddError("[code]", "missing arguments", argsExpr.Position)
         ret argsExpr
@@ -581,7 +581,7 @@ public class Parser
         if !ParseParameters(group, methodStmt.Parameters)
             AddError("[code]", "missing parameters", nameIdentifierToken.Position)
         
-        if group.More() and group.Peek().Type != TokenType.Colon
+        if group.More and group.Peek.Type != TokenType.Colon
             methodStmt.ReturnType = ParseType(group)
         
         ; ":" statement
@@ -600,14 +600,14 @@ public class Parser
         ret methodStmt
 
     private fn ParseMethodOrProperty(group Group) Statement
-        var start = group.Peek()
+        var start = group.Peek
         var res = group.Accept(TokenType.Function)
         if res.Failure
             InvalidToken(group, "method or property", res)
             AdvanceLine(group)
             ret new BadStatementToken()
 
-        if group.Peek().Type == TokenType.New
+        if group.Peek.Type == TokenType.New
             ret ParseConstructorDefinition(group, start)
         
         res = group.Accept(TokenType.Identifier)
@@ -618,7 +618,7 @@ public class Parser
         
         var nameIdentifierToken = group.Token(res).ToIdentifierToken()
 
-        if group.Peek().Type == TokenType.ParenthesisGroup
+        if group.Peek.Type == TokenType.ParenthesisGroup
             ret ParseMethodDefinition(group, nameIdentifierToken)
         
         ; todo - ret ParseProperty(group, nameIdentifierToken)
@@ -629,7 +629,7 @@ public class Parser
     private fn ParseMethodStatement(group Group) Statement
         if !group.Tokens.Any()
             ret ParseSpace(group)
-        ret group.Peek().Type ?
+        ret group.Peek.Type ?
         {
             TokenType.Break is ParseBreak(group),
             TokenType.Comment is ParseComment(group),
@@ -700,11 +700,11 @@ public class Parser
         var paramStmt = new Parameter(group.Token(res).Position, group.Token(res).ToIdentifierToken())
 
         ; modifiers
-        for group.Peek().Type.IsParameterModifier()
+        for group.Peek.Type.IsParameterModifier()
             paramStmt.Modifiers.Add(group.Next().ToParameterModifierToken())
         
         ; type
-        if group.More() and group.Peek().Type != TokenType.Comma and group.Peek().Type != TokenType.Assign
+        if group.More and group.Peek.Type != TokenType.Comma and group.Peek.Type != TokenType.Assign
             paramStmt.Type = ParseType(group)
         
         ; default value
@@ -716,9 +716,9 @@ public class Parser
     private fn ParseParameters(group Group, parameters List{Statement}) bool
         ; "(" {parameters} ")"
         if next = group.Next(), next.Type == TokenType.ParenthesisGroup and next is Group parenthesisGroup
-            if parenthesisGroup.More()
+            if parenthesisGroup.More
                 parameters.Add(ParseParameter(parenthesisGroup))
-                for parenthesisGroup.Accept(TokenType.Comma).Success and parenthesisGroup.More()
+                for parenthesisGroup.Accept(TokenType.Comma).Success and parenthesisGroup.More
                     parameters.Add(ParseParameter(parenthesisGroup))
             EnsureNoExtraTokens(parenthesisGroup)
             ret true
@@ -731,9 +731,9 @@ public class Parser
     
     private fn ParsePrimaryExpression(group Group) Expression
         var expr Expression
-        if peekType = group.Peek().Type, peekType
+        if peekType = group.Peek.Type, peekType
             is TokenType.BracketGroup
-                var bracketGroup = group.Peek() as Group
+                var bracketGroup = group.Peek as Group
                 if bracketGroup.Tokens.Any()
                     expr = ParseArrayLiteral(group)
                 else
@@ -782,7 +782,7 @@ public class Parser
                     group.Token(res).ToBinaryOperatorToken(),
                     group.Token(res, 1).ToIdentifierToken())
             else
-                if token = group.Peek(), token.Type
+                if token = group.Peek, token.Type
                     is TokenType.BracketGroup
                         expr = ParseIndexer(group, expr)
                     is TokenType.CurlyGroup
@@ -804,7 +804,7 @@ public class Parser
             ret new BadStatementToken()
         else
             var returnStmt = new Return(group.Token(res).Position)
-            if group.More()
+            if group.More
                 returnStmt.Value = ParseExpression(group)
             AdvanceLine(group)
             ret returnStmt
@@ -813,7 +813,7 @@ public class Parser
         if group.Parent != null and group.Parent.IsBlock() and group.Parent is Group block
             var size = 1
             block.Advance()
-            for block.Peek() is Group line and line.Type == TokenType.Line and !line.Tokens.Any()
+            for block.Peek is Group line and line.Type == TokenType.Line and !line.Tokens.Any()
                 size += 1
                 block.Advance()
             ret new SpaceToken(group.Position, size)
@@ -822,7 +822,7 @@ public class Parser
     
     private fn ParseString(group Group) Expression
         if next = group.Next(), next.Type == TokenType.StringGroup and next is Group stringGroup
-            var stringExpr = new Core.SyntaxTree.String(group.Peek().Position)
+            var stringExpr = new Core.SyntaxTree.String(group.Peek.Position)
             stringExpr.Lines.Add(ParseStringLine(stringGroup))
             for res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup), res.Success,
                     res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup)
@@ -833,7 +833,7 @@ public class Parser
     private fn ParseStringLine(group Group) List{Expression}
         var line = new List{Expression}()
         var loop = true
-        for group.More() and loop
+        for group.More and loop
             if token = group.Next(), token.Type
                 is TokenType.StringLiteral
                     line.Add(new StringToken(token.Position, token.Value))
@@ -848,7 +848,7 @@ public class Parser
         ret line
 
     private fn ParseThrowOr(parseFn Func{Group, Expression}, group Group) Expression
-        if group.Peek().Type != TokenType.Throw
+        if group.Peek.Type != TokenType.Throw
             ret parseFn(group)
 
         ; accept throw
@@ -857,7 +857,7 @@ public class Parser
 
     private fn ParseType(group Group) Expression
         var typeExpr Expression
-        if group.Peek().Type
+        if group.Peek.Type
             is TokenType.BracketGroup
                 ret ParseArrayType(group)
             is TokenType.Identifier
@@ -865,15 +865,15 @@ public class Parser
             is TokenType.Question
                 ret ParseNullableType(group)
             is _
-                if group.Peek().Type.IsType()
+                if group.Peek.Type.IsType()
                     typeExpr = ParseTypeToken(group)
                 else
-                    AddError("code", "invalid token in type: {group.Peek()}", group.Peek().Position)
+                    AddError("code", "invalid token in type: {group.Peek}", group.Peek.Position)
                     ret new BadExpressionToken()
         
         var loop = true
         for loop
-            if group.Peek().Type == TokenType.CurlyGroup
+            if group.Peek.Type == TokenType.CurlyGroup
                 typeExpr = ParseGeneric(group, typeExpr)
             else if res = group.Accept(TokenType.Dot, TokenType.Identifier), res.Success
                 typeExpr = new BinaryOperator(
@@ -888,8 +888,8 @@ public class Parser
         ret typeExpr
 
     private fn ParseTypeToken(group Group) Expression
-        var pos = group.Peek().Position
-        var ident = new IdentifierToken(pos, group.Peek().Type ?
+        var pos = group.Peek.Position
+        var ident = new IdentifierToken(pos, group.Peek.Type ?
             {
                 TokenType.String is "String",
                 TokenType.Character is "Char",
@@ -911,7 +911,7 @@ public class Parser
         ret new BinaryOperator(pos, new IdentifierToken(pos, "System"), new BinaryOperatorToken(pos, BinaryOperatorType.Dot), ident)
 
     private fn ParseUnaryOperator(group Group) Expression
-        ret new UnaryOperator(group.Peek().Position, group.Next().ToUnaryOperatorToken(), ParsePrimaryExpression(group))
+        ret new UnaryOperator(group.Peek.Position, group.Next().ToUnaryOperatorToken(), ParsePrimaryExpression(group))
 
 ;     private fn ParseAssignment(left Expression) ParseResult{Statement}
 ;         var op = Next().Type.ToAssignmentOperator()

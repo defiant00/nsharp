@@ -27,12 +27,12 @@ public class Group is Token
         for token in Tokens
             token.Print(indent + 1)
 
-    public fn More() bool is CurrentIndex < Tokens.Count
+    public fn More bool is CurrentIndex < Tokens.Count
 
-    public fn Peek() Token is More() ? Tokens[CurrentIndex] : MISSING_TOKEN
+    public fn Peek Token is More ? Tokens[CurrentIndex] : MISSING_TOKEN
 
     public fn Next() Token
-        var token = Peek()
+        var token = Peek
         CurrentIndex += 1
         ret token
     
