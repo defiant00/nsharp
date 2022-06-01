@@ -1,8 +1,0 @@
-use NSharp.Core
-
-ns NSharp.Language.Min.TokenTree
-
-public class BracketGroup is Group
-    public fn new(position Position, parent ?Node) base(position, TokenType.BracketGroup, parent) is ; empty
-
-    public over fn Name str is "[group]"

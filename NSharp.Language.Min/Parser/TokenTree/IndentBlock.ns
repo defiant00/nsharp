@@ -1,8 +1,0 @@
-use NSharp.Core
-
-ns NSharp.Language.Min.TokenTree
-
-public class IndentBlock is Block
-    public fn new(position Position, parent ?Node) base(position, parent) is ; empty
-
-    public over fn Name str is "indent block"

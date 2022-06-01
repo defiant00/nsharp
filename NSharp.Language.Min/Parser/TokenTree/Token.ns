@@ -1,17 +1,66 @@
 use NSharp.Core
+use NSharp.Core.SyntaxTree
 
 ns NSharp.Language.Min.TokenTree
 
-public open class Token is Node
+public open class Token
+    public static fn MISSING_TOKEN Token = new Token(default, TokenType.Missing)
+
+    public fn Parent ?Group
+    public fn Position Position
     public fn Type TokenType
     public fn Value str
 
-    public fn new(position Position, type TokenType, value str) base(position, null)
+    public fn new(position Position, type TokenType)
+        Position = position
+        Type = type
+        Value = str.Empty
+
+    public fn new(position Position, type TokenType, value str)
+        Position = position
         Type = type
         Value = value
-    
+
+    public fn Precedence() int is Type.ToBinaryOperator().Precedence()
+
+    public fn ToArgumentModifierToken() ArgumentModifierToken is new ArgumentModifierToken(Position, Type.ToArgumentModifier())
+
+    public fn ToBinaryOperatorToken() BinaryOperatorToken is new BinaryOperatorToken(Position, Type.ToBinaryOperator())
+
+    public fn ToIdentifierToken() IdentifierToken is new IdentifierToken(Position, Value)
+
+    public fn ToParameterModifierToken() ParameterModifierToken is new ParameterModifierToken(Position, Type.ToParameterModifier())
+
+    public fn ToUnaryOperatorToken() UnaryOperatorToken is new UnaryOperatorToken(Position, Type.ToUnaryOperator())
+
+    public fn IsBlock() bool is Type.IsBlock()
+
+    public fn IsGroup() bool is Type.IsGroup()
+
     public open over fn ToString() str is "{Type} {Position} '{Value}'"
 
-    public open over fn Print(indent int)
+    protected fn PrintIndent(indent int)
+        for i = 0, i < indent, i += 1
+            Console.Write("| ")
+
+    public open fn Print(indent int)
         PrintIndent(indent)
         Console.WriteLine(this)
+
+    public fn FirstBlock ?Group
+        var current = this
+        for current != null and !current.IsBlock()
+            current = current.Parent
+        ret current as ?Group
+    
+    public fn FirstGroup(tokenType TokenType) ?Group
+        var current = this
+        for current != null and current.Type != tokenType
+            current = current.Parent
+        ret current as ?Group
+    
+    public fn AdvanceParent()
+        if Parent != null and Parent.IsBlock()
+            Parent.Advance()
+        else
+            throw new Exception("parent isn't block")

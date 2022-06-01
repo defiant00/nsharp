@@ -1,7 +1,0 @@
-ns NSharp.Language.Min.TokenTree
-
-public interface IBlock
-    public fn Children List{Node}
-    public fn CurrentIndex int
-    public fn Parent ?Node
-    public fn Node Node get

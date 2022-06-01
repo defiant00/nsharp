@@ -2,17 +2,55 @@ use NSharp.Core
 
 ns NSharp.Language.Min.TokenTree
 
-public abstract class Group is Token has ITokenList
+public struct AcceptResult
+    public fn Success bool = true
+    public fn Failure bool is !Success
+    public fn StartingIndex int
+    public fn Count int = 0
+    public fn SearchItems []TokenType
+    public fn MissedTokenType TokenType is SearchItems[Count]
+
+    public fn new(startingIndex int, items []TokenType)
+        StartingIndex = startingIndex
+        SearchItems = items
+
+
+public class Group is Token
     public fn Tokens List{Token} = new()
     public fn CurrentIndex int = 0
 
-    public fn new(position Position, type TokenType, parent ?Node) base(position, type, str.Empty)
-        Parent = parent
-
-    public open over fn Name str is "group"
+    public fn new(position Position, type TokenType, parent ?Group) base(position, type) is Parent = parent
 
     public over fn Print(indent int)
         PrintIndent(indent)
-        Console.WriteLine("{Name} {Position}")
+        Console.WriteLine("{Type} {Position}")
         for token in Tokens
             token.Print(indent + 1)
+
+    public fn More() bool is CurrentIndex < Tokens.Count
+
+    public fn Peek() Token is More() ? Tokens[CurrentIndex] : MISSING_TOKEN
+
+    public fn Next() Token
+        var token = Peek()
+        CurrentIndex += 1
+        ret token
+    
+    public fn Advance(count int = 1) is CurrentIndex += count
+    
+    public fn Accept(var tokenTypes []TokenType) AcceptResult
+        var result = new AcceptResult(CurrentIndex, tokenTypes)
+        for tokenType in tokenTypes
+            if current = Next(), current.Type != tokenType
+                CurrentIndex = result.StartingIndex
+                result.Success = false
+                ret result
+            result.Count += 1
+        ret result
+    
+    public fn Token(result AcceptResult, index int = 0) Token is Tokens[result.StartingIndex + index]
+
+    public fn ErrorToken(result AcceptResult) Token
+        ret result.StartingIndex + result.Count < Tokens.Count ?
+            Tokens[result.StartingIndex + result.Count] :
+            MISSING_TOKEN

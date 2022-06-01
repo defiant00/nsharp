@@ -1,8 +1,0 @@
-use NSharp.Core
-
-ns NSharp.Language.Min.TokenTree
-
-public class StringGroup is Group
-    public fn new(position Position, parent ?Node) base(position, TokenType.StringGroup, parent) is ; empty
-
-    public over fn Name str is """group"""

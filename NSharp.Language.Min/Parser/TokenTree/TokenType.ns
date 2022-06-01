@@ -5,11 +5,18 @@ public enum TokenType
     EOL
     Indent
     Dedent
+    Block_Start
+    FileBlock
+    IndentBlock
+    FunctionBlock
+    Block_End
+    Group_Start
+    Line
     BracketGroup
     CurlyGroup
     ParenthesisGroup
     StringGroup
-    FunctionBlock
+    Group_End
     Comment
     CharacterLiteral
     StringStart
