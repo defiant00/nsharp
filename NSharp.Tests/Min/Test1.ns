@@ -1,14 +1,7 @@
-var a = fn(x) : 3
-var b = fn(x)
-    x * x
-/fn
-DoSomething(1, fn(x) : 3, "hello", fn(x)
-    ; code
-/fn, "between", fn(x)
-    if x > 3
-        fn(z)
-            ; within
-        /fn
-    else
-        ret "no"
-/fn, 'c')
+use System
+
+ns NSharp.Tests.Min
+
+class MyClass
+    fn Test(x int, y int) int
+        ret x + y

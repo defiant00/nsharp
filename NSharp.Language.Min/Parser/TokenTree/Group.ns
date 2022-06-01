@@ -19,7 +19,7 @@ public class Group is Token
     public fn Tokens List{Token} = new()
     public fn CurrentIndex int = 0
 
-    public fn new(position Position, type TokenType, parent ?Group) base(position, type) is Parent = parent
+    public fn new(position Position, type TokenType, parent ?Group = null) base(position, type) is Parent = parent
 
     public over fn Print(indent int)
         PrintIndent(indent)

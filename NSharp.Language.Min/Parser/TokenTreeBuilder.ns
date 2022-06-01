@@ -11,15 +11,6 @@ public class TokenTreeBuilder
     private fn Tokens List{Token}
     private fn CurrentIndex int = 0
 
-    private fn More bool is CurrentIndex < Tokens.Count
-
-    private fn Peek Token is More ? Tokens[CurrentIndex] : Token.MISSING_TOKEN
-
-    private fn Next() Token
-        var token = Peek
-        CurrentIndex += 1
-        ret token
-
     public fn new(fileName str, settings Settings, diagnostics List{Diagnostic})
         Diagnostics = diagnostics
         CurrentGroup = TokenTree
@@ -27,66 +18,64 @@ public class TokenTreeBuilder
         var lexer = new Lexer(fileName, settings, diagnostics)
         Tokens = lexer.Tokens
 
-        for More
-            Add(Next())
+        for CurrentIndex < Tokens.Count
+            Add(Tokens[CurrentIndex])
+            CurrentIndex += 1
 
         if settings.PrintTokenTree
             TokenTree.Print(0)
 
     private fn AddError(position Position, code str, message str)
         Diagnostics.Add(new Diagnostic(Severity.Error, code, message, position))
-
-    private fn VerifyUpTo(target Token)
-        var current = CurrentGroup
-        for current != target and current.Parent != null
-            if current.Type == TokenType.BracketGroup
-                AddError(current.Position, "code", "unclosed [")
-            else if current.Type == TokenType.CurlyGroup
-                AddError(current.Position, "code", "unclosed {{")
-            else if current.Type == TokenType.ParenthesisGroup
-                AddError(current.Position, "code", "unclosed (")
-            else if current.Type == TokenType.StringGroup
-                AddError(current.Position, "code", "unclosed """)
-            else if current.Type == TokenType.FunctionBlock
-                AddError(current.Position, "code", "unclosed fn")
-            current = current.Parent
-        if current != target
-            throw new Exception("Unable to verify to {target}")
     
+    private fn Add(token Token)
+        if token.Type
+            is TokenType.EOL
+                AddEol(token.Position)
+            is TokenType.Indent
+                AddGroup(new Group(token.Position, TokenType.IndentBlock))
+            is TokenType.Dedent
+                FinishGroup(TokenType.IndentBlock, token.Position, "code", "unexpected dedent")
+            is TokenType.LeftBracket
+                EnsureAddGroup(new Group(token.Position, TokenType.BracketGroup))
+            is TokenType.RightBracket
+                FinishGroup(TokenType.BracketGroup, token.Position, "code", "unexpected ]")
+            is TokenType.LeftCurly
+                EnsureAddGroup(new Group(token.Position, TokenType.CurlyGroup))
+            is TokenType.RightCurly
+                FinishGroup(TokenType.CurlyGroup, token.Position, "code", "unexpected }")
+            is TokenType.LeftParenthesis
+                EnsureAddGroup(new Group(token.Position, TokenType.ParenthesisGroup))
+            is TokenType.RightParenthesis
+                FinishGroup(TokenType.ParenthesisGroup, token.Position, "code", "unexpected )")
+            is TokenType.StringStart
+                EnsureAddGroup(new Group(token.Position, TokenType.StringGroup))
+            is TokenType.StringEnd
+                FinishGroup(TokenType.StringGroup, token.Position, "code", "unexpected """)
+            is TokenType.FunctionStart
+                EnsureAddGroup(new Group(token.Position, TokenType.FunctionBlock))
+            is TokenType.FunctionEnd
+                FinishGroup(TokenType.FunctionBlock, token.Position, "code", "unexpected /fn")
+            is _
+                EnsureGroup(token.Position)
+                token.Parent = CurrentGroup
+                CurrentGroup.Tokens.Add(token)
+
     private fn AddEol(position Position)
         if CurrentGroup.IsBlock()
-            EnsureTokenList(position)
+            CurrentGroup.Tokens.Add(new Group(position, TokenType.Line, CurrentGroup))
         else if block = CurrentGroup.FirstBlock, block != null
             VerifyUpTo(block)
             CurrentGroup = block
-            EnsureTokenList(position)
         else
             throw new Exception("block is null for eol")
-    
-    private fn AddIndent(position Position)
-        if block = CurrentGroup.FirstBlock, block != null
-            VerifyUpTo(block)
-            var indent = new Group(position, TokenType.IndentBlock, block)
-            block.Tokens.Add(indent)
-            CurrentGroup = indent
-        else
-            throw new Exception("block is null for indent")
-    
-    private fn AddDedent()
-        if block = CurrentGroup.FirstBlock, block != null and block.Type == TokenType.IndentBlock and block.Parent != null
-            VerifyUpTo(block.Parent)
-            CurrentGroup = block.Parent
-        else
-            throw new Exception("dedent?")
-    
-    private fn EnsureTokenList(position Position)
-        if CurrentGroup.IsBlock()
-            var line = new Group(position, TokenType.Line, CurrentGroup)
-            CurrentGroup.Tokens.Add(line)
-            CurrentGroup = line
-    
+
     private fn EnsureAddGroup(group Group)
-        EnsureTokenList(group.Position)
+        EnsureGroup(group.Position)
+        AddGroup(group)
+
+    private fn AddGroup(group Group)
+        group.Parent = CurrentGroup
         CurrentGroup.Tokens.Add(group)
         CurrentGroup = group
     
@@ -97,35 +86,26 @@ public class TokenTreeBuilder
         else
             AddError(position, code, message)
 
-    private fn Add(token Token)
-        if token.Type
-            is TokenType.EOL
-                AddEol(token.Position)
-            is TokenType.Indent
-                AddIndent(token.Position)
-            is TokenType.Dedent
-                AddDedent()
-            is TokenType.LeftBracket
-                EnsureAddGroup(new Group(token.Position, TokenType.BracketGroup, CurrentGroup))
-            is TokenType.RightBracket
-                FinishGroup(TokenType.BracketGroup, token.Position, "code", "unexpected ]")
-            is TokenType.LeftCurly
-                EnsureAddGroup(new Group(token.Position, TokenType.CurlyGroup, CurrentGroup))
-            is TokenType.RightCurly
-                FinishGroup(TokenType.CurlyGroup, token.Position, "code", "unexpected }")
-            is TokenType.LeftParenthesis
-                EnsureAddGroup(new Group(token.Position, TokenType.ParenthesisGroup, CurrentGroup))
-            is TokenType.RightParenthesis
-                FinishGroup(TokenType.ParenthesisGroup, token.Position, "code", "unexpected )")
-            is TokenType.StringStart
-                EnsureAddGroup(new Group(token.Position, TokenType.StringGroup, CurrentGroup))
-            is TokenType.StringEnd
-                FinishGroup(TokenType.StringGroup, token.Position, "code", "unexpected """)
-            is TokenType.FunctionStart
-                EnsureAddGroup(new Group(token.Position, TokenType.FunctionBlock, CurrentGroup))
-            is TokenType.FunctionEnd
-                FinishGroup(TokenType.FunctionBlock, token.Position, "code", "unexpected /fn")
-            is _
-                EnsureTokenList(token.Position)
-                token.Parent = CurrentGroup
-                CurrentGroup.Tokens.Add(token)
+    private fn EnsureGroup(position Position)
+        if CurrentGroup.IsBlock()
+            var line = new Group(position, TokenType.Line, CurrentGroup)
+            CurrentGroup.Tokens.Add(line)
+            CurrentGroup = line
+
+    private fn VerifyUpTo(target Group)
+        var current = CurrentGroup
+        for current != null and current != target
+            if current.Type
+                is TokenType.BracketGroup
+                    AddError(current.Position, "code", "unclosed [")
+                is TokenType.CurlyGroup
+                    AddError(current.Position, "code", "unclosed {{")
+                is TokenType.FunctionBlock
+                    AddError(current.Position, "code", "unclosed fn")
+                is TokenType.ParenthesisGroup
+                    AddError(current.Position, "code", "unclosed (")
+                is TokenType.StringGroup
+                    AddError(current.Position, "code", "unclosed """)
+            current = current.Parent
+        if current != target
+            throw new Exception("unable to verify to {target}")
