@@ -42,7 +42,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item ArgumentModifierToken) is Write(item.Value)
 
-    public fn Visit(item AssignmentOperatorToken) is Write(item.Value)
+    public fn Visit(item AssignmentOperatorToken) is Write("{item.Value}-Assign")
 
     public fn Visit(item BadExpressionToken) is Write("[bad expr]")
 

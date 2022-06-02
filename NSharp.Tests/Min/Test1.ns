@@ -4,4 +4,5 @@ ns NSharp.Tests.Min
 
 class MyClass
     fn Test(x int, y int) int
-        ret x + y
+        x = 3
+        x += -7

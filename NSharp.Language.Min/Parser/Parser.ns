@@ -45,34 +45,35 @@ public class Parser
         ; "fn" "(" [params] ")" [type]
         ;     {statements}
         ; "/fn"
-
         var anonFnExpr = new AnonymousFunction(group.Peek.Position)
 
-        if res = group.Accept(TokenType.Function), res.Failure
-            InvalidToken(group, "anonymous function", res)
-            group.Advance()
-            ret anonFnExpr
+        if next = group.Next(), next.Type == TokenType.Function
+            ; parameters
+            if !ParseParameters(group, anonFnExpr.Parameters)
+                AddError("[code]", "missing parameters", anonFnExpr.Position)
 
-        ; parameters
-        if !ParseParameters(group, anonFnExpr.Parameters)
-            AddError("[code]", "missing parameters", anonFnExpr.Position)
+            ; optional return type
+            if group.More and group.Peek.Type != TokenType.Colon
+                anonFnExpr.ReturnType = ParseType(group)
+            
+            ; ":" statement
+            if group.Accept(TokenType.Colon).Success
+                anonFnExpr.Statements.Add(ParseMethodStatement(group))
+            
+        else if next is Group fnBlock and fnBlock.Type == TokenType.FunctionBlock and fnBlock.Peek is Group line and line.Type == TokenType.Line
+            ; parameters
+            if !ParseParameters(line, anonFnExpr.Parameters)
+                AddError("[code]", "missing parameters", anonFnExpr.Position)
+            
+            ; optional return type
+            if line.More
+                anonFnExpr.ReturnType = ParseType(line)
 
-        ; optional return type
-        if group.More and group.Peek.Type != TokenType.Colon
-            anonFnExpr.ReturnType = ParseType(group)
-        
-        ; ":" statement
-        if group.Accept(TokenType.Colon).Success
-            anonFnExpr.Statements.Add(ParseMethodStatement(group))
-            ret anonFnExpr
-        
-        ; {statements}
-
-        ; todo - AdvanceLine(group)
-        ; todo - use group.Parent?
-        ; todo - ParseIndentBlock(group, classStmt.Statements, ParseClassLine)
-
-        ; todo - advance the line again and then check for FunctionEnd
+            ; {statements}
+            AdvanceLine(line)
+            ParseIndentBlock(line, anonFnExpr.Statements, ParseMethodStatement)
+        else
+            AddError("[code]", "missing fn", anonFnExpr.Position)
 
         ret anonFnExpr
 
@@ -126,6 +127,12 @@ public class Parser
                 AddError("[code]", "an array type shouldn't have anything in the []s", bracketGroup.Position)
         ret new BadExpressionToken()
 
+    private fn ParseAssignment(group Group, left Expression) Statement
+        var op = group.Next().ToAssignmentOperatorToken()
+        var right = ParseExpression(group)
+        AdvanceLine(group)
+        ret new Assignment(left.Position, left, op, right)
+
     private fn ParseBinaryOperatorRightSide(group Group, leftPrecedence int, left Expression) Expression
         for
             var tokenPrecedence = group.Peek.Precedence()
@@ -178,7 +185,7 @@ public class Parser
             ret new BadStatementToken()
 
     private fn ParseClass(group Group) Statement
-        ; "class" name "(" [params] ")" ["is" base] ["has" interfaces]
+        ; "class" name "(" {params} ")" ["is" base] ["has" interfaces]
         var res = group.Accept(TokenType.Class, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "class", res)
@@ -372,14 +379,21 @@ public class Parser
 
         ret ctorStmt
 
+    private fn ParseExpression(group Group) Expression
+        var left = ParsePrimaryExpression(group)
+        ret ParseBinaryOperatorRightSide(group, 0, left)
+    
     private fn ParseExpressionStatement(group Group) Statement
-        var exprStmt = new ExpressionStatement(group.Peek.Position, ParseExpression(group))
+        var expr = ParseExpression(group)
+
+        if group.Peek.Type.IsAssignment()
+            ret ParseAssignment(group, expr)
+
         AdvanceLine(group)
-        ret exprStmt
+        ret new ExpressionStatement(expr.Position, expr)
 
     private fn ParseField(group Group) Statement
         ; "var" name type ["=" expr]
-
         var res = group.Accept(TokenType.Variable, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "field", res)
@@ -396,10 +410,6 @@ public class Parser
         
         AdvanceLine(group)
         ret fieldStmt
-
-    private fn ParseExpression(group Group) Expression
-        var left = ParsePrimaryExpression(group)
-        ret ParseBinaryOperatorRightSide(group, 0, left)
 
     private fn ParseFile(tokenTree Group, fileName str) Core.SyntaxTree.File
         var file = new Core.SyntaxTree.File(Path.GetFileName(fileName))
@@ -692,7 +702,7 @@ public class Parser
         ret new BadExpressionToken()
 
     private fn ParseParameter(group Group) Statement
-        ; name [modifiers] [type] ["=" expression]
+        ; name {modifiers} [type] ["=" expression]
         var res = group.Accept(TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "parameter", res)
@@ -739,6 +749,7 @@ public class Parser
                 else
                     expr = ParseArrayType(group)
             is TokenType.Function
+            is TokenType.FunctionBlock
                 expr = ParseAnonymousFunction(group)
             is TokenType.Identifier
                 expr = ParseIdentifier(group)
@@ -793,7 +804,6 @@ public class Parser
                         expr = ParseConditional(group, expr)
                     is _
                         loop = false
-
         ret expr
 
     private fn ParseReturn(group Group) Statement
@@ -912,16 +922,6 @@ public class Parser
 
     private fn ParseUnaryOperator(group Group) Expression
         ret new UnaryOperator(group.Peek.Position, group.Next().ToUnaryOperatorToken(), ParsePrimaryExpression(group))
-
-;     private fn ParseAssignment(left Expression) ParseResult{Statement}
-;         var op = Next().Type.ToAssignmentOperator()
-;         var right = ParseExpression()
-;         if right.Error
-;             ToNextLine()
-;         else if res = Accept(TokenType.EOL), res.Failure
-;             LogError("assignment", res)
-;             ToNextLine()
-;         ret new ParseResult{Statement}(new Assignment(left.Position, left, op, right.Result))
 
 ;     private fn ParseDelegate(modifiers List{Modifier}) ParseResult{Statement}
 ;         ; [modifiers] del [name]([params])

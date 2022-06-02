@@ -24,17 +24,13 @@ public open class Token
     public fn Precedence() int is Type.ToBinaryOperator().Precedence()
 
     public fn ToArgumentModifierToken() ArgumentModifierToken is new ArgumentModifierToken(Position, Type.ToArgumentModifier())
-
+    public fn ToAssignmentOperatorToken() AssignmentOperatorToken is new AssignmentOperatorToken(Position, Type.ToAssignmentOperator())
     public fn ToBinaryOperatorToken() BinaryOperatorToken is new BinaryOperatorToken(Position, Type.ToBinaryOperator())
-
     public fn ToIdentifierToken() IdentifierToken is new IdentifierToken(Position, Value)
-
     public fn ToParameterModifierToken() ParameterModifierToken is new ParameterModifierToken(Position, Type.ToParameterModifier())
-
     public fn ToUnaryOperatorToken() UnaryOperatorToken is new UnaryOperatorToken(Position, Type.ToUnaryOperator())
 
     public fn IsBlock() bool is Type.IsBlock()
-
     public fn IsGroup() bool is Type.IsGroup()
 
     public open over fn ToString() str is "{Type} {Position} '{Value}'"
