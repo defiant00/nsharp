@@ -4,5 +4,17 @@ ns NSharp.Tests.Min
 
 class MyClass
     fn Test(x int, y int) int
-        x = 3
-        x += -7
+        for x in 3 : hi
+        for x in GetList()
+            y = x
+            print(y)
+        for x = 3, x < 7, x += 1
+            x + 2
+            print(yay)
+        
+        for : print(x)
+        for
+            ret yay
+        for true : nah
+        for x < 3
+            print("smol")

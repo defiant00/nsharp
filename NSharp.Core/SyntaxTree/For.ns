@@ -1,7 +1,7 @@
 ns NSharp.Core.SyntaxTree
 
 public class For is Statement
-    public fn LocalName ?IdentifierToken
+    public fn Name ?IdentifierToken
     public fn Init ?Expression
     public fn Condition ?Expression
     public fn Post ?Statement

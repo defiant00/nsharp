@@ -369,13 +369,7 @@ public class Parser
             if !ParseArguments(group, ctorStmt.BaseArguments)
                 AddError("[code]", "missing base parameters", start.Position)
         
-        ; ":" statement
-        if group.Accept(TokenType.Colon).Success
-            ctorStmt.Statements.Add(ParseMethodStatement(group))
-        else
-            ; {statements}
-            AdvanceLine(group)
-            ParseIndentBlock(group, ctorStmt.Statements, ParseMethodStatement)
+        ParseStatementOrBlock(group, ctorStmt.Statements)
 
         ret ctorStmt
 
@@ -449,6 +443,63 @@ public class Parser
 
         AdvanceLine(group)
         ret new BadStatementToken()
+
+    private fn ParseFor(group Group) Statement
+        ; "for" [condition] [":" statement]
+        ;     {statements}
+        ; "for" name "in" expr [":" statement]
+        ;     {statements}
+        ; "for" name "=" expr "," condition "," statement [":" statement]
+        ;     {statements}
+        var start = group.Peek.Position
+
+        if res = group.Accept(TokenType.For), res.Failure
+            InvalidToken(group, "for", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+        
+        if res = group.Accept(TokenType.Identifier, TokenType.In), res.Success
+            ; "for" name "in" expr [":" statement]
+            ;     {statements}
+            var nameIdentifierToken = group.Token(res).ToIdentifierToken()
+            var forEachStmt = new ForEach(start, nameIdentifierToken, ParseExpression(group))
+            ParseStatementOrBlock(group, forEachStmt.Statements)
+            ret forEachStmt
+        else if res2 = group.Accept(TokenType.Identifier, TokenType.Assign), res2.Success
+            ; "for" name "=" expr "," condition "," statement [":" statement]
+            ;     {statements}
+            var forStmt = new For(start)
+            forStmt.Name = group.Token(res2).ToIdentifierToken()
+            forStmt.Init = ParseExpression(group)
+
+            if group.Accept(TokenType.Comma).Failure
+                AdvanceLine(group)
+                AddError("[code]", "incomplete for", forStmt.Position)
+                ret forStmt
+
+            forStmt.Condition = ParseExpression(group)
+
+            if group.Accept(TokenType.Comma).Failure
+                AdvanceLine(group)
+                AddError("[code]", "incomplete for", forStmt.Position)
+                ret forStmt
+            
+            forStmt.Post = ParseMethodStatement(group)
+
+            ; todo - support : statement by passing a flag to the above to not move the line
+            ; (or use the eventual method that only accepts expression statements and assignment?)
+
+            ParseIndentBlock(group, forStmt.Statements, ParseMethodStatement)
+
+            ret forStmt
+        else
+            ; "for" [condition] [":" statement]
+            ;     {statements}
+            var forStmt = new For(start)
+            if group.More and group.Peek.Type != TokenType.Colon
+                forStmt.Condition = ParseExpression(group)
+            ParseStatementOrBlock(group, forStmt.Statements)
+            ret forStmt
 
     private fn ParseGeneric(group Group, expr Expression) Expression
         ; "{" {arguments} "}"
@@ -645,12 +696,12 @@ public class Parser
             TokenType.Comment is ParseComment(group),
             TokenType.Continue is ParseContinue(group),
             TokenType.DoubleColon is ParseBlock(group),
+            TokenType.For is ParseFor(group),
             TokenType.Return is ParseReturn(group),
             TokenType.Value is ParseLocalConstant(group),
             TokenType.Variable is ParseLocalVariable(group),
             _ is ParseExpressionStatement(group),
         }
-        ; TokenType.For is ParseFor(),
         ; TokenType.If is ParseIf(),
         ; TokenType.Try is ParseTry(),
         ; TokenType.Use is ParseUsing(),
@@ -830,6 +881,15 @@ public class Parser
         AddError("[code]", "wasn't a block while parsing space", group.Position)
         ret new BadStatementToken()
     
+    private fn ParseStatementOrBlock(group Group, statements List{Statement})
+        ; ":" statement
+        if group.Accept(TokenType.Colon).Success
+            statements.Add(ParseMethodStatement(group))
+        else
+            ; {statements}
+            AdvanceLine(group)
+            ParseIndentBlock(group, statements, ParseMethodStatement)
+
     private fn ParseString(group Group) Expression
         if next = group.Next(), next.Type == TokenType.StringGroup and next is Group stringGroup
             var stringExpr = new Core.SyntaxTree.String(group.Peek.Position)
@@ -1008,116 +1068,6 @@ public class Parser
 ;             TokenType.Struct is ParseStruct(modifiers),
 ;             _ is ErrorStatement("Invalid token: {Peek}", Peek.Position),
 ;         }
-
-
-
-;     private fn ParseFor() ParseResult{Statement}
-;         var res = Accept(TokenType.For)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;         var pos = GetToken(res).Position
-
-;         ; for [name] in [expr]
-;         ;     [statements]
-;         ; bet
-;         ;     [statements]
-;         res = Accept(TokenType.Identifier, TokenType.In)
-;         if res.Success
-;             ; for [name] in [expr]
-;             ;     [statements]
-
-;             var name = GetToken(res).Value
-
-;             var exprRes = ParseExpression()
-;             if exprRes.Error and exprRes.Result is ErrorExpression ex
-;                 ret ErrorStatement(ex)
-
-;             var foreachDef = new ForEach(pos, name, exprRes.Result)
-
-;             res = Accept(TokenType.EOL, TokenType.Indent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;             for Peek.Type != TokenType.Dedent
-;                 var stmtRes = ParseMethodStatement()
-;                 if stmtRes.Error
-;                     ret stmtRes
-;                 foreachDef.Statements.Add(stmtRes.Result)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;             ret new ParseResult{Statement}(foreachDef)
-
-
-;         var forDef = new For(pos)
-
-;         res = Accept(TokenType.Identifier, TokenType.Assign)
-;         if res.Success
-;             ; for [name] = [expr], [expr], [stmt]
-
-;             forDef.LocalName = GetToken(res).Value
-;             var exprRes = ParseExpression()
-;             if exprRes.Error and exprRes.Result is ErrorExpression ex1
-;                 ret ErrorStatement(ex1)
-
-;             forDef.Init = exprRes.Result
-
-;             res = Accept(TokenType.Comma)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;             exprRes = ParseExpression()
-;             if exprRes.Error and exprRes.Result is ErrorExpression ex2
-;                 ret ErrorStatement(ex2)
-
-;             forDef.Condition = exprRes.Result
-
-;             res = Accept(TokenType.Comma)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;             var stmtRes = ParseMethodStatement()
-;             if stmtRes.Error
-;                 ret stmtRes
-
-;             forDef.Post = stmtRes.Result
-;         else if Peek.Type != TokenType.EOL
-;             ; for [expr]
-
-;             var exprRes = ParseExpression()
-;             if exprRes.Error and exprRes.Result is ErrorExpression ex
-;                 ret ErrorStatement(ex)
-
-;             forDef.Condition = exprRes.Result
-
-;             res = Accept(TokenType.EOL)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-;         else
-;             res = Accept(TokenType.EOL)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;         ; for
-;         ;     [statements]
-;         res = Accept(TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;         for Peek.Type != TokenType.Dedent
-;             var stmtRes = ParseMethodStatement()
-;             if stmtRes.Error
-;                 ret stmtRes
-;             forDef.Statements.Add(stmtRes.Result)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in for", res)
-
-;         ret new ParseResult{Statement}(forDef)
 
 ;     private fn ParseGenericNames(genericNames List{str})
 ;         if Peek.Type != TokenType.LeftCurly

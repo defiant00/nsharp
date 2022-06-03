@@ -283,7 +283,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLineIndented("For:")
         if item.Init != null
             WriteIndented("Init: ")
-            item.LocalName?.Accept(this)
+            item.Name?.Accept(this)
             Write(" = ")
             item.Init.Accept(this)
             WriteLine()
@@ -296,6 +296,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             Indent += 1
             item.Post.Accept(this)
             Indent -= 1
+        WriteLineIndented("Statements:")
         WriteIndentedBlock(item.Statements)
 
     public fn Visit(item ForEach)
