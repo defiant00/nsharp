@@ -60,3 +60,5 @@ public open class Token
             Parent.Advance()
         else
             throw new Exception("parent isn't block")
+    
+    public fn CurrentParentToken Token is Parent != null ? Parent.Peek : MISSING_TOKEN

@@ -377,6 +377,13 @@ public class Parser
 
         ret ctorStmt
 
+    private fn ParseElse(group Group, ifStmt If)
+        if group.Accept(TokenType.Else).Success
+            if group.Peek.Type == TokenType.If
+                ifStmt.ElseStatements.Add(ParseIf(group))
+            else
+                ParseStatementOrIndentBlock(group, ifStmt.ElseStatements)
+
     private fn ParseExpression(group Group) Expression
         var left = ParsePrimaryExpression(group)
         ret ParseBinaryOperatorRightSide(group, 0, left)
@@ -514,6 +521,68 @@ public class Parser
             ret new BadExpressionToken()
         else
             ret group.Token(res).ToIdentifierToken()
+
+    private fn ParseIf(group Group) Statement
+        var start = group.Peek.Position
+
+        if res = group.Accept(TokenType.If), res.Failure
+            InvalidToken(group, "if", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+        
+        ; "if" [name "=" expr ","] expr [":" statement]
+        var name ?IdentifierToken = null
+        var value ?Expression = null
+        if res = group.Accept(TokenType.Identifier, TokenType.Assign), res.Success
+            name = group.Token(res).ToIdentifierToken()
+            value = ParseExpression(group)
+            if commaRes = group.Accept(TokenType.Comma), commaRes.Failure
+                InvalidToken(group, "if", commaRes)
+                AdvanceLine(group)
+                ret new BadStatementToken()
+        
+        var condition = ParseExpression(group)
+
+        if group.Accept(TokenType.Colon).Success
+            var ifStmt = new If(start, condition){LocalName = name, LocalValue = value}
+            ifStmt.Statements.Add(ParseMethodStatementShort(group, true))
+            if group.CurrentParentToken is Group pt
+                ParseElse(pt, ifStmt)
+            ret ifStmt
+
+        AdvanceLine(group)
+        if group.CurrentParentToken is Group indentBlock and indentBlock.Type == TokenType.IndentBlock and indentBlock.Peek is Group curLine
+            if curLine.Peek.Type == TokenType.Is
+                ;     "is" expr [":" statement]
+                ;         {statements}
+                var switchStmt = new Switch(start, condition){LocalName = name, LocalValue = value}
+                for isRes = curLine.Accept(TokenType.Is), isRes.Success, isRes = curLine.Accept(TokenType.Is)
+                    var caseExpr = ParseExpression(curLine)
+                    var caseStmt = new Case(curLine.Token(isRes).Position, caseExpr)
+                    switchStmt.Cases.Add(caseStmt)
+                    ParseStatementOrIndentBlock(curLine, caseStmt.Statements)
+
+                    if curLine.CurrentParentToken is Group pt
+                        curLine = pt
+                    else
+                        break
+
+                AdvanceLine(indentBlock)
+                ret switchStmt
+            else
+                ;     {statements}
+                var ifStmt = new If(start, condition){LocalName = name, LocalValue = value}
+                for indentBlock.More
+                    if indentBlock.Peek.IsGroup()
+                        ifStmt.Statements.Add(ParseMethodStatement(indentBlock.Peek as Group))
+                    else
+                        throw new InvalidItemException()
+                AdvanceLine(indentBlock)
+                if group.CurrentParentToken is Group pt
+                    ParseElse(pt, ifStmt)
+                ret ifStmt
+
+        ret new If(start, condition){LocalName = name, LocalValue = value}
 
     private fn ParseImport(group Group) ImportToken
         var importToken = new ImportToken(group.Position)
@@ -679,12 +748,12 @@ public class Parser
             TokenType.Continue is ParseContinue(group),
             TokenType.DoubleColon is ParseBlock(group),
             TokenType.For is ParseFor(group),
+            TokenType.If is ParseIf(group),
             TokenType.Return is ParseReturn(group),
             TokenType.Value is ParseLocalConstant(group),
             TokenType.Variable is ParseLocalVariable(group),
             _ is ParseExpressionStatement(group),
         }
-        ; TokenType.If is ParseIf(),
         ; TokenType.Try is ParseTry(),
         ; TokenType.Use is ParseUsing(),
     
@@ -876,7 +945,7 @@ public class Parser
     private fn ParseStatementOrIndentBlock(group Group, statements List{Statement})
         ; ":" statement
         if group.Accept(TokenType.Colon).Success
-            statements.Add(ParseMethodStatement(group))
+            statements.Add(ParseMethodStatementShort(group, true))
         else
             ; {statements}
             AdvanceLine(group)
@@ -1141,103 +1210,6 @@ public class Parser
 ;                     ret InvalidTokenErrorStatement("Invalid token in set", res)
 
 ;         ret null
-
-;     private fn ParseIf(inElseIf bool = false) ParseResult{Statement}
-;         ; accept if
-;         var start = Next()
-;         ; if [name] = [expr], [expr]
-;         var res = Accept(TokenType.Identifier, TokenType.Assign)
-;         var name ?str = null
-;         var assignmentExpr ?ParseResult{Expression} = null
-;         if res.Success
-;             name = GetToken(res).Value
-;             assignmentExpr = ParseExpression()
-;             if assignmentExpr.Error and assignmentExpr.Result is ErrorExpression exp
-;                 ret ErrorStatement(exp)
-;             res = Accept(TokenType.Comma)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;         var condition = ParseExpression()
-;         if condition.Error and condition.Result is ErrorExpression ex
-;             ret ErrorStatement(ex)
-
-;         res = Accept(TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;         ; if [expr]
-;         ;     is [expr]
-;         ;         [statements]
-;         ;     is [expr]
-;         ;     is [expr]
-;         ;         [statements]
-;         if Peek.Type == TokenType.Is and !inElseIf
-;             var switchStmt = new Switch(start.Position, condition.Result) { LocalName = name, LocalExpr = assignmentExpr?.Result }
-;             var isRes = Accept(TokenType.Is)
-;             for isRes.Success
-;                 var exprRes = ParseExpression()
-;                 if exprRes.Error and exprRes.Result is ErrorExpression exp
-;                     ret ErrorStatement(exp)
-
-;                 res = Accept(TokenType.EOL)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;                 var caseStmt = new Case(GetToken(isRes).Position, exprRes.Result)
-;                 switchStmt.Statements.Add(caseStmt)
-
-;                 if Accept(TokenType.Indent).Success
-;                     for Peek.Type != TokenType.Dedent
-;                         var stmtRes = ParseMethodStatement()
-;                         if stmtRes.Error
-;                             ret stmtRes
-;                         caseStmt.Statements.Add(stmtRes.Result)
-
-;                     res = Accept(TokenType.Dedent)
-;                     if res.Failure
-;                         ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;                 isRes = Accept(TokenType.Is)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;             ret new ParseResult{Statement}(switchStmt)
-
-;         var ifStatement = new If(start.Position, condition.Result) { LocalName = name, LocalExpr = assignmentExpr?.Result }
-
-;         for Peek.Type != TokenType.Dedent
-;             var statement = ParseMethodStatement()
-;             if statement.Error
-;                 ret statement
-;             ifStatement.Statements.Add(statement.Result)
-
-;         res = Accept(TokenType.Dedent, TokenType.Else)
-;         if res.Success
-;             if Peek.Type == TokenType.If
-;                 var elseIf = ParseIf(true)
-;                 if elseIf.Error
-;                     ret elseIf
-;                 ifStatement.ElseStatements.Add(elseIf.Result)
-;             else
-;                 res = Accept(TokenType.EOL, TokenType.Indent)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;                 for Peek.Type != TokenType.Dedent
-;                     var statement = ParseMethodStatement()
-;                     if statement.Error
-;                         ret statement
-;                     ifStatement.ElseStatements.Add(statement.Result)
-
-;         if !inElseIf
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in if", res)
-
-;         ret new ParseResult{Statement}(ifStatement)
 
 ;     private fn ParseImplicitConstructorCall(start Token) ParseResult{Expression}
 ;         ; new([args])

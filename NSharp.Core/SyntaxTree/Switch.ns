@@ -4,7 +4,7 @@ public class Switch is Statement
     public fn LocalName ?IdentifierToken
     public fn LocalValue ?Expression
     public fn Value Expression
-    public fn Cases List{Case} = new()
+    public fn Cases List{Statement} = new()
 
     public fn new(position Position, value Expression) base(position) is Value = value
     
