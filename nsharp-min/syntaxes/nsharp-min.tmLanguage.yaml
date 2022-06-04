@@ -33,7 +33,7 @@ repository:
         name: constant.character.escape.nsharp-min
   keywords:
     patterns:
-    - match: \b(?:break|continue|if|else|for|in|bet|try|catch|fin|throw|ret)\b
+    - match: \b(?:break|continue|if|else|for|in|try|catch|finally|throw|ret)\b
       name: keyword.control.nsharp-min
     - match: \b(?:public|protected|private|internal|static|abstract|open|over|ext|ref|out)\b
       name: storage.modifier.nsharp-min

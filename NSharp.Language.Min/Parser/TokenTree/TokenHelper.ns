@@ -173,7 +173,7 @@ public static class TokenHelper
         KeywordTokens.Add("ret", TokenType.Return)
         KeywordTokens.Add("try", TokenType.Try)
         KeywordTokens.Add("catch", TokenType.Catch)
-        KeywordTokens.Add("fin", TokenType.Finally)
+        KeywordTokens.Add("finally", TokenType.Finally)
         KeywordTokens.Add("throw", TokenType.Throw)
         KeywordTokens.Add("for", TokenType.For)
         KeywordTokens.Add("in", TokenType.In)

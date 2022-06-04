@@ -4,7 +4,6 @@ public class For is Statement
     public fn Name ?IdentifierToken
     public fn Init ?Expression
     public fn Condition ?Expression
-    public fn Post ?Statement
     public fn Statements List{Statement} = new()
 
     public fn new(position Position) base(position) is ; empty

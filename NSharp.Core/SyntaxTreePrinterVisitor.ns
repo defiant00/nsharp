@@ -291,11 +291,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             WriteIndented("Condition: ")
             item.Condition.Accept(this)
             WriteLine()
-        if item.Post != null
-            WriteLineIndented("Post:")
-            Indent += 1
-            item.Post.Accept(this)
-            Indent -= 1
         WriteLineIndented("Statements:")
         WriteIndentedBlock(item.Statements)
 
