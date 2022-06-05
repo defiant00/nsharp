@@ -2,6 +2,12 @@ use System
 
 ns NSharp.Tests.Min
 
+del Test(x i32, y i32) i32
+
 class MyClass
     fn Test(x int, y int) int
-        Test(fn(x) : 3, "hi")
+        use x = 3
+        use y = 4 : print(y)
+        use z = value
+            value += 1
+            print(value)

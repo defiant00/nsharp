@@ -177,16 +177,6 @@ public class Parser
             AdvanceLine(group)
             ret new BadStatementToken()
 
-    private fn ParseContinue(group Group, moveNextLine bool = true) Statement
-        if res = group.Accept(TokenType.Continue), res.Success
-            if moveNextLine
-                AdvanceLine(group)
-            ret new ContinueToken(group.Token(res).Position)
-        else
-            InvalidToken(group, "continue", res)
-            AdvanceLine(group)
-            ret new BadStatementToken()
-
     private fn ParseClass(group Group) Statement
         ; "class" name "(" {params} ")" ["is" base] ["has" interfaces]
         var res = group.Accept(TokenType.Class, TokenType.Identifier)
@@ -221,6 +211,8 @@ public class Parser
                 ret ParseClass(group)
             is TokenType.Comment
                 ret ParseComment(group)
+            is TokenType.Delegate
+                ret ParseDelegate(group)
             is TokenType.Function
                 ret ParseMethodOrProperty(group)
             is TokenType.Value
@@ -228,20 +220,17 @@ public class Parser
             is TokenType.Variable
                 ret ParseField(group)
         
-        ; var modifiers = new List{Modifier}()
-        ; var modRes = ParseModifiers(modifiers)
-        ; if modRes != null
-        ;     ret modRes
+        ; todo - var modifiers = new List{Modifier}()
+        ; todo - var modRes = ParseModifiers(modifiers)
+        ; todo - if modRes != null
+        ; todo -     ret modRes
 
-        ; if Peek.Type
-        ;     is TokenType.Interface
-        ;         ret ParseInterface(modifiers)
-        ;     is TokenType.Struct
-        ;         ret ParseStruct(modifiers)
-        ;     is TokenType.Delegate
-        ;         ret ParseDelegate(modifiers)
-        ;     is TokenType.Enum
-        ;         ret ParseEnum(modifiers)
+        ; todo -     is TokenType.Interface
+        ; todo -         ret ParseInterface(modifiers)
+        ; todo -     is TokenType.Struct
+        ; todo -         ret ParseStruct(modifiers)
+        ; todo -     is TokenType.Enum
+        ; todo -         ret ParseEnum(modifiers)
 
         AdvanceLine(group)
         ret new BadStatementToken()
@@ -346,7 +335,7 @@ public class Parser
         
         var ctorExpr = new ConstructorCall(group.Token(res).Position)
 
-        if group.Peek.Type != TokenType.CurlyGroup and group.Peek.Type != TokenType.ParenthesisGroup
+        if group.More and group.Peek.Type != TokenType.CurlyGroup and group.Peek.Type != TokenType.ParenthesisGroup
             ctorExpr.Type = ParseType(group)
         
         ParseArguments(group, ctorExpr.Arguments)
@@ -376,6 +365,37 @@ public class Parser
         ParseStatementOrIndentBlock(group, ctorStmt.Statements)
 
         ret ctorStmt
+
+    private fn ParseContinue(group Group, moveNextLine bool = true) Statement
+        if res = group.Accept(TokenType.Continue), res.Success
+            if moveNextLine
+                AdvanceLine(group)
+            ret new ContinueToken(group.Token(res).Position)
+        else
+            InvalidToken(group, "continue", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+
+    private fn ParseDelegate(group Group) Statement
+        ; "del" name "(" {params} ")" [type]
+        var res = group.Accept(TokenType.Delegate, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "delegate", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+
+        var delegateStmt = new Core.SyntaxTree.Delegate(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
+
+        ; todo - ParseGenericNames(delegateDef.GenericNames)
+        
+        if !ParseParameters(group, delegateStmt.Parameters)
+            AddError("[code]", "missing parameters", delegateStmt.Position)
+        
+        if group.More
+            delegateStmt.ReturnType = ParseType(group)
+        
+        AdvanceLine(group)
+        ret delegateStmt
 
     private fn ParseElse(group Group, ifStmt If)
         if group.Accept(TokenType.Else).Success
@@ -439,29 +459,28 @@ public class Parser
                 ret ParseClass(group)
             is TokenType.Comment
                 ret ParseComment(group)
+            is TokenType.Delegate
+                ret ParseDelegate(group)
             is TokenType.Namespace
                 ret ParseNamespace(group)
             is TokenType.Use
                 ret ParseImport(group)
             
-        ; is TokenType.Delegate
-        ; is TokenType.Enum
-        ; is TokenType.Interface
-        ; is TokenType.Struct
-        ;     file.Statements.Add(ParseFileModifiableStatement().Result)
-        ; is _
-        ;     if Peek.Type.IsModifier()
-        ;         file.Statements.Add(ParseFileModifiableStatement().Result)
+        ; todo - is TokenType.Enum
+        ; todo - is TokenType.Interface
+        ; todo - is TokenType.Struct
+        ; todo -     file.Statements.Add(ParseFileModifiableStatement().Result)
+        ; todo - is _
+        ; todo -     if Peek.Type.IsModifier()
+        ; todo -         file.Statements.Add(ParseFileModifiableStatement().Result)
 
         AdvanceLine(group)
         ret new BadStatementToken()
 
     private fn ParseFor(group Group) Statement
-        ; "for" [condition] [":" statement]
-        ;     {statements}
         ; "for" name "in" expr [":" statement]
         ;     {statements}
-        ; "for" name "=" expr "," condition [":" statement]
+        ; "for" [name "=" expr ","] [condition] [":" statement]
         ;     {statements}
         var start = group.Peek.Position
 
@@ -585,6 +604,7 @@ public class Parser
         ret new If(start, condition){LocalName = name, LocalValue = value}
 
     private fn ParseImport(group Group) ImportToken
+        ; "use" name
         var importToken = new ImportToken(group.Position)
 
         if res = group.Accept(TokenType.Use, TokenType.Identifier), res.Failure
@@ -750,12 +770,12 @@ public class Parser
             TokenType.For is ParseFor(group),
             TokenType.If is ParseIf(group),
             TokenType.Return is ParseReturn(group),
+            TokenType.Use is ParseUsing(group),
             TokenType.Value is ParseLocalConstant(group),
             TokenType.Variable is ParseLocalVariable(group),
             _ is ParseExpressionStatement(group),
         }
-        ; TokenType.Try is ParseTry(),
-        ; TokenType.Use is ParseUsing(),
+        ; todo - TokenType.Try is ParseTry(),
     
     private fn ParseMethodStatementShort(group Group, moveNextLine bool) Statement is group.Peek.Type ?
     {
@@ -1044,34 +1064,25 @@ public class Parser
     private fn ParseUnaryOperator(group Group) Expression
         ret new UnaryOperator(group.Peek.Position, group.Next().ToUnaryOperatorToken(), ParsePrimaryExpression(group))
 
-;     private fn ParseDelegate(modifiers List{Modifier}) ParseResult{Statement}
-;         ; [modifiers] del [name]([params])
-;         ; [modifiers] del [name]([params]) [type]
+    private fn ParseUsing(group Group) Statement
+        ; "use" name "=" expr [":" statement]
+        ;     {statements}
+        var res = group.Accept(TokenType.Use, TokenType.Identifier, TokenType.Assign)
+        if res.Failure
+            InvalidToken(group, "using", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
 
-;         ; accept del
-;         Next()
+        var usingStmt = new Using(
+            group.Token(res).Position,
+            group.Token(res, 1).ToIdentifierToken(),
+            ParseExpression(group)
+        )
 
-;         var res = Accept(TokenType.Identifier)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in delegate", res)
+        ParseStatementOrIndentBlock(group, usingStmt.Statements)
 
-;         var nameToken = GetToken(res)
+        ret usingStmt
 
-;         var delegateDef = new DelegateDefinition(nameToken.Position, modifiers, nameToken.Value)
-
-;         ParseGenericNames(delegateDef.GenericNames)
-;         ParseParameters(delegateDef.Parameters)
-
-;         if Peek.Type != TokenType.EOL
-;             var retType = ParseType()
-;             if !retType.Error
-;                 delegateDef.ReturnType = retType.Result
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in delegate", res)
-
-;         ret new ParseResult{Statement}(delegateDef)
 
 ;     private fn ParseEnum(modifiers List{Modifier}) ParseResult{Statement}
 ;         ; [modifiers] enum [name]
@@ -1210,51 +1221,6 @@ public class Parser
 ;                     ret InvalidTokenErrorStatement("Invalid token in set", res)
 
 ;         ret null
-
-;     private fn ParseImplicitConstructorCall(start Token) ParseResult{Expression}
-;         ; new([args])
-;         ; new{[type args]}([args])
-;         ; new([args]){[initializers]}
-;         ; new{[type args]}([args]){[initializers]}
-
-;         var res AcceptResult
-;         var ctorDef = new ImplicitConstructorCall(start.Position)
-
-;         ParseArguments(ctorDef.Arguments)
-
-;         if Accept(TokenType.LeftCurly).Success
-;             for Peek.Type != TokenType.RightCurly
-;                 res = Accept(TokenType.Identifier, TokenType.Assign)
-;                 if res.Failure
-;                     ret InvalidTokenErrorExpression("Invalid token in implicit constructor", res)
-
-;                 var prop = GetToken(res).Value
-
-;                 var right = ParseExpression()
-;                 if right.Error
-;                     ret right
-
-;                 ctorDef.InitNames.Add(prop)
-;                 ctorDef.InitValues.Add(right.Result)
-
-;                 Accept(TokenType.Comma)
-
-;             res = Accept(TokenType.RightCurly)
-;             if res.Failure
-;                 ret InvalidTokenErrorExpression("Invalid token in implicit constructor", res)
-
-;         ret new ParseResult{Expression}(ctorDef)
-
-;         for Accept(TokenType.Comma).Success
-;             argExpr = ParseExpression()
-;             if argExpr.Error
-;                 ret argExpr
-;             indexer.Arguments.Add(argExpr.Result)
-
-;         if res = Accept(TokenType.RightBracket), res.Failure
-;             ret InvalidTokenErrorExpression("Invalid token in indexer", res)
-
-;         ret new ParseResult{Expression}(indexer)
 
 ;     private fn ParseInterface(modifiers List{Modifier}) ParseResult{Statement}
 ;         var res = Accept(TokenType.Interface, TokenType.Identifier)
@@ -1416,18 +1382,6 @@ public class Parser
 
 ;         ret leftResult
 
-;     private fn ParseNullable() ParseResult{Expression}
-;         var start = Peek
-;         var res = Accept(TokenType.Question)
-;         if res.Failure
-;             ret InvalidTokenErrorExpression("Invalid token in nullable type declaration", res)
-
-;         var typeResult = ParseType()
-;         if typeResult.Error
-;             ret typeResult
-
-;         ret new ParseResult{Expression}(new Core.Ast.Nullable(start.Position, typeResult.Result))
-
 ;     private fn ParseProperty(modifiers List{Modifier}, nameToken Token) ParseResult{Statement}
 ;         ; property
 ;         ; [modifiers] fn [name] [type] [= [expr]]
@@ -1562,15 +1516,6 @@ public class Parser
 
 ;         ret new ParseResult{Statement}(propSig)
 
-;     private fn ParseSpace() ParseResult{Statement}
-;         var position = Peek.Position
-;         var size = 0
-;         for Peek.Type == TokenType.EOL
-;             Next()
-;             size += 1
-
-;         ret new ParseResult{Statement}(new Space(position, size))
-
 ;     private fn ParseStruct(modifiers List{Modifier}) ParseResult{Statement}
 ;         var res = Accept(TokenType.Struct, TokenType.Identifier)
 
@@ -1676,38 +1621,3 @@ public class Parser
 ;                 ret InvalidTokenErrorStatement("Invalid token in finally", res)
 
 ;         ret new ParseResult{Statement}(tryDef)
-
-;     private fn ParseUsing() ParseResult{Statement}
-;         ; use [name] = [expr]
-;         ; use [name] = [expr]
-;         ;     [statements]
-
-;         var res = Accept(TokenType.Use, TokenType.Identifier, TokenType.Assign)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in use", res)
-
-;         var pos = GetToken(res).Position
-;         var name = GetToken(res, 1).Value
-
-;         var exprRes = ParseExpression()
-;         if exprRes.Error and exprRes.Result is ErrorExpression ex
-;             ret ErrorStatement(ex)
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in use", res)
-
-;         var useRes = new Using(pos, name, exprRes.Result)
-
-;         if Accept(TokenType.Indent).Success
-;             for Peek.Type != TokenType.Dedent
-;                 var stmtRes = ParseMethodStatement()
-;                 if stmtRes.Error
-;                     ret stmtRes
-;                 useRes.Statements.Add(stmtRes.Result)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in use", res)
-
-;         ret new ParseResult{Statement}(useRes)
