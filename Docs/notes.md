@@ -15,13 +15,6 @@ steps:
 
 ## Min Syntax Notes
 
-generic type constraints
-```
-class GenericClass{T {constraints}}
-
-class GenericClass{T class}
-```
-
 allow named expressions in switch cases so you can do `is Token token`
 
 allow method and property definitions in interfaces
