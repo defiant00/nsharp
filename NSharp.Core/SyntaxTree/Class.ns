@@ -2,7 +2,7 @@ ns NSharp.Core.SyntaxTree
 
 public class Class is Statement
     public fn Name IdentifierToken
-    public fn GenericNames List{IdentifierToken} = new()
+    public fn Generics List{Statement} = new()
     public fn Base ?Expression
     public fn Interfaces List{Expression} = new()
     public fn Statements List{Statement} = new()

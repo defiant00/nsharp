@@ -25,11 +25,11 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.Accept(this)
         Indent -= 1
     
-    private fn WriteGenerics(generics List{IdentifierToken})
+    private fn WriteGenerics(generics List{Statement})
         if generics.Any()
-            Write("<")
+            Write("{{")
             JoinItems(generics)
-            Write(">")
+            Write("}}")
     
     private fn JoinItems(items IEnumerable{Node}, separator str = ", ")
         var first = true
@@ -65,6 +65,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item DefaultValueToken) is Write("[default]")
 
     public fn Visit(item DiscardToken) is Write("[discard]")
+
+    public fn Visit(item GenericConstraintToken) is Write(item.Value)
 
     public fn Visit(item IdentifierToken) is Write(item.Value)
 
@@ -178,7 +180,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item Class)
         WriteIndented("Class: ")
         item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
+        WriteGenerics(item.Generics)
         if item.Base != null
             Write(" inherits ")
             item.Base.Accept(this)
@@ -245,7 +247,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.ReturnType.Accept(this)
         Write(" ")
         item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
+        WriteGenerics(item.Generics)
         Write("(")
         JoinItems(item.Parameters)
         WriteLine(")")
@@ -313,6 +315,12 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         item.Value.Accept(this)
         WriteLine()
         WriteIndentedBlock(item.Statements)
+    
+    public fn Visit(item Generic)
+        item.Name.Accept(this)
+        if item.Constraints.Any()
+            Write(" ")
+            JoinItems(item.Constraints, " ")
 
     public fn Visit(item If)
         WriteIndented("If ")
@@ -336,7 +344,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item Interface)
         WriteIndented("Interface: ")
         item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
+        WriteGenerics(item.Generics)
         if item.Interfaces.Any()
             Write(" is ")
             JoinItems(item.Interfaces)
@@ -371,7 +379,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.ReturnType.Accept(this)
         Write(" ")
         item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
+        WriteGenerics(item.Generics)
         Write("(")
         JoinItems(item.Parameters)
         WriteLine(")")
@@ -450,7 +458,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     public fn Visit(item Struct)
         WriteIndented("Struct: ")
         item.Name.Accept(this)
-        WriteGenerics(item.GenericNames)
+        WriteGenerics(item.Generics)
         if item.Interfaces.Any()
             Write(" implements ")
             JoinItems(item.Interfaces)

@@ -1,0 +1,12 @@
+ns NSharp.Core
+
+public enum GenericConstraintType
+    Class
+    Default
+    In
+    New
+    NotNull
+    NullableClass
+    Out
+    Struct
+    Value

@@ -2,24 +2,13 @@ use System
 
 ns NSharp.Tests.Min
 
-public static class MyClass
+protected del MyDel{T}(x i32, y i32) T
 
-public static ext{str} Special(true, 3) assembly:Awesome(true)
-abstract
-open class Class2
+class MyClass{T class default in new !null ?class out struct val Class2 IFirst List{str}}
 
-public
-    class C3
-    class C4
-
-public static
-open
-    class C5
-    enum E1
-        V1
-
-public
-    class C8
-    static
-        class St1
-        class St2
+class Class2{TIn in, TOut out}
+    public fn Test{T new}()
+        ret new T()
+    
+    public fn T2()
+        ; yay

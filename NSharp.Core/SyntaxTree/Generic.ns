@@ -1,10 +1,8 @@
 ns NSharp.Core.SyntaxTree
 
-public class Interface is Statement
+public class Generic is Statement
     public fn Name IdentifierToken
-    public fn Generics List{Statement} = new()
-    public fn Interfaces List{Expression} = new()
-    public fn Statements List{Statement} = new()
+    public fn Constraints List{Expression} = new()
 
     public fn new(position Position, name IdentifierToken) base(position) is Name = name
     

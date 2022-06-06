@@ -3,7 +3,7 @@ ns NSharp.Core.SyntaxTree
 public class Delegate is Statement
     public fn ReturnType ?Expression
     public fn Name IdentifierToken
-    public fn GenericNames List{IdentifierToken} = new()
+    public fn Generics List{Statement} = new()
     public fn Parameters List{Statement} = new()
 
     public fn new(position Position, name IdentifierToken) base(position) is Name = name
