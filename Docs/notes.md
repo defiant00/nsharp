@@ -9,8 +9,6 @@ steps:
 * Chars unescape on parse, escape on output
 * rework nullable and get rid of null?
 * Events
-* Generic constraints
-* Generic in/out decorators for covariant/contravariant
 * yield, async, await
 * ranges?
 * tuples?
