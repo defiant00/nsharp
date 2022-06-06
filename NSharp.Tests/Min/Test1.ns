@@ -2,12 +2,24 @@ use System
 
 ns NSharp.Tests.Min
 
-del Test(x i32, y i32) i32
+public static class MyClass
 
-class MyClass
-    fn Test(x int, y int) int
-        use x = 3
-        use y = 4 : print(y)
-        use z = value
-            value += 1
-            print(value)
+public static ext{str} Special(true, 3) assembly:Awesome(true)
+abstract
+open class Class2
+
+public
+    class C3
+    class C4
+
+public static
+open
+    class C5
+    enum E1
+        V1
+
+public
+    class C8
+    static
+        class St1
+        class St2

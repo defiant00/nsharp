@@ -133,6 +133,44 @@ public class Parser
         if moveNextLine
             AdvanceLine(group)
         ret new Assignment(left.Position, left, op, right)
+    
+    private fn ParseAttribute(group Group) Expression
+        ; [qualifier ":"] expression
+        var start = group.Peek.Position
+        var res = group.Accept(TokenType.Identifier, TokenType.Colon)
+        var attributeExpr = new Core.SyntaxTree.Attribute(start, ParsePrimaryExpression(group))
+        if res.Success
+            attributeExpr.Qualifier = group.Token(res).ToIdentifierToken()
+        ret attributeExpr
+
+    private fn ParseAttributeBlock(group Group, stmtFn Func{Group, Statement}) Statement
+        ; {attrs}
+        ;     {statements}
+        var attributeBlockStmt = new AttributeBlock(group.Peek.Position)
+        var currentLine = group
+        for
+            for currentLine.Peek.Type == TokenType.Identifier
+                attributeBlockStmt.Attributes.Add(ParseAttribute(currentLine))
+            if currentLine.More
+                ; {attrs} statement
+                attributeBlockStmt.Statements.Add(stmtFn(currentLine))
+                ret attributeBlockStmt
+            else
+                AdvanceLine(currentLine)
+                if currentLine.CurrentParentToken is Group nextLine
+                    ; {attrs}
+                    if nextLine.Type == TokenType.Line
+                        currentLine = nextLine
+                    else if nextLine.Type == TokenType.IndentBlock
+                        ParseIndentBlock(nextLine, attributeBlockStmt.Statements, stmtFn)
+                        ret attributeBlockStmt
+                    else
+                        AddError("[code]", "invalid block type {nextLine.Type} in attribute block", nextLine.Position)
+                        ret attributeBlockStmt
+                else
+                    AddError("[code]", "invalid block type {currentLine.CurrentParentToken.Type} in attribute block",
+                        currentLine.CurrentParentToken.Position)
+                    ret attributeBlockStmt
 
     private fn ParseBinaryOperatorRightSide(group Group, leftPrecedence int, left Expression) Expression
         for
@@ -206,34 +244,28 @@ public class Parser
     private fn ParseClassStatement(group Group) Statement
         if !group.Tokens.Any()
             ret ParseSpace(group)
-        if token = group.Tokens[0], token.Type
+        if group.Peek.Type
             is TokenType.Class
                 ret ParseClass(group)
             is TokenType.Comment
                 ret ParseComment(group)
             is TokenType.Delegate
                 ret ParseDelegate(group)
+            is TokenType.Enum
+                ret ParseEnum(group)
             is TokenType.Function
                 ret ParseMethodOrProperty(group)
             is TokenType.Value
                 ret ParseConstant(group)
             is TokenType.Variable
                 ret ParseField(group)
+            is _
+                ret ParseAttributeBlock(group, ParseClassStatement)
         
-        ; todo - var modifiers = new List{Modifier}()
-        ; todo - var modRes = ParseModifiers(modifiers)
-        ; todo - if modRes != null
-        ; todo -     ret modRes
-
         ; todo -     is TokenType.Interface
         ; todo -         ret ParseInterface(modifiers)
         ; todo -     is TokenType.Struct
         ; todo -         ret ParseStruct(modifiers)
-        ; todo -     is TokenType.Enum
-        ; todo -         ret ParseEnum(modifiers)
-
-        AdvanceLine(group)
-        ret new BadStatementToken()
 
     private fn ParseComment(group Group, moveNextLine bool = true) Statement
         ; ";" comment
@@ -404,6 +436,42 @@ public class Parser
             else
                 ParseStatementOrIndentBlock(group, ifStmt.ElseStatements)
 
+    private fn ParseEnum(group Group) Statement
+        ; "enum" name
+        ;     name ["=" value] [";" comment]
+        var res = group.Accept(TokenType.Enum, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "enum", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+        
+        var enumStmt = new Enumeration(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
+
+        AdvanceLine(group)
+        ParseIndentBlock(group, enumStmt.Values, ParseEnumerationItem)
+
+        ret enumStmt
+    
+    private fn ParseEnumerationItem(group Group) Statement
+        ; name ["=" value] [";" comment]
+        var res = group.Accept(TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "enumeration item", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+        
+        var enumItemStmt = new EnumerationItem(group.Token(res).Position, group.Token(res).ToIdentifierToken())
+
+        if group.Accept(TokenType.Assign).Success
+            enumItemStmt.Value = ParseExpression(group)
+        
+        if group.Peek.Type == TokenType.Comment
+            enumItemStmt.Comment = ParseComment(group)
+        else
+            AdvanceLine(group)
+        
+        ret enumItemStmt
+
     private fn ParseExpression(group Group) Expression
         var left = ParsePrimaryExpression(group)
         ret ParseBinaryOperatorRightSide(group, 0, left)
@@ -454,28 +522,25 @@ public class Parser
     private fn ParseFileStatement(group Group) Statement
         if !group.Tokens.Any()
             ret ParseSpace(group)
-        if token = group.Tokens[0], token.Type
+        if group.Peek.Type
             is TokenType.Class
                 ret ParseClass(group)
             is TokenType.Comment
                 ret ParseComment(group)
             is TokenType.Delegate
                 ret ParseDelegate(group)
+            is TokenType.Enum
+                ret ParseEnum(group)
             is TokenType.Namespace
                 ret ParseNamespace(group)
             is TokenType.Use
                 ret ParseImport(group)
+            is _
+                ret ParseAttributeBlock(group, ParseFileStatement)
             
-        ; todo - is TokenType.Enum
         ; todo - is TokenType.Interface
         ; todo - is TokenType.Struct
         ; todo -     file.Statements.Add(ParseFileModifiableStatement().Result)
-        ; todo - is _
-        ; todo -     if Peek.Type.IsModifier()
-        ; todo -         file.Statements.Add(ParseFileModifiableStatement().Result)
-
-        AdvanceLine(group)
-        ret new BadStatementToken()
 
     private fn ParseFor(group Group) Statement
         ; "for" name "in" expr [":" statement]
@@ -903,6 +968,7 @@ public class Parser
                     var token = group.Next()
                     expr = token.Type ?
                     {
+                        TokenType.Base is new BaseClassToken(token.Position),
                         TokenType.CharacterLiteral is new CharacterToken(token.Position, token.Value),
                         TokenType.Default is new DefaultValueToken(token.Position),
                         TokenType.Discard is new DiscardToken(token.Position),
@@ -1082,64 +1148,6 @@ public class Parser
         ParseStatementOrIndentBlock(group, usingStmt.Statements)
 
         ret usingStmt
-
-
-;     private fn ParseEnum(modifiers List{Modifier}) ParseResult{Statement}
-;         ; [modifiers] enum [name]
-;         ;     Val
-;         ;     Val2 = 3
-;         ;     Val3 ; comment
-;         ;     Val4 = 5 ; comment
-
-;         var res = Accept(TokenType.Enum, TokenType.Identifier, TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in enum", res)
-
-;         var enumDef = new Enumeration(GetToken(res).Position, modifiers, GetToken(res, 1).Value)
-
-;         for Peek.Type != TokenType.Dedent
-;             res = Accept(TokenType.Identifier)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in enum", res)
-;             var enumItem = new EnumerationItem(GetToken(res).Position, GetToken(res).Value)
-
-;             res = Accept(TokenType.Assign, TokenType.NumberLiteral)
-;             if res.Success
-;                 enumItem.Value = Convert.ToInt32(GetToken(res, 1).Value)
-
-;             if Peek.Type == TokenType.Comment
-;                 var commentResult = ParseComment()
-;                 if commentResult.Error
-;                     ret commentResult
-;                 enumItem.Comment = commentResult.Result as Comment
-;             else
-;                 res = Accept(TokenType.EOL)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in enum", res)
-
-;             enumDef.Values.Add(enumItem)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in enum", res)
-
-;         ret new ParseResult{Statement}(enumDef)
-
-;     private fn ParseFileModifiableStatement() ParseResult{Statement}
-;         var modifiers = new List{Modifier}()
-;         var modRes = ParseModifiers(modifiers)
-;         if modRes != null
-;             ret modRes
-
-;         ret Peek.Type ?
-;         {
-;             TokenType.Class is ParseClass(modifiers),
-;             TokenType.Delegate is ParseDelegate(modifiers),
-;             TokenType.Enum is ParseEnum(modifiers),
-;             TokenType.Interface is ParseInterface(modifiers),
-;             TokenType.Struct is ParseStruct(modifiers),
-;             _ is ErrorStatement("Invalid token: {Peek}", Peek.Position),
-;         }
 
 ;     private fn ParseGenericNames(genericNames List{str})
 ;         if Peek.Type != TokenType.LeftCurly

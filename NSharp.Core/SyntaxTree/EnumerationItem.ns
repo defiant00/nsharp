@@ -1,9 +1,9 @@
 ns NSharp.Core.SyntaxTree
 
-public class EnumerationItem is Node
+public class EnumerationItem is Statement
     public fn Name IdentifierToken
-    public fn Value ?NumberToken
-    public fn Comment ?CommentToken
+    public fn Value ?Expression
+    public fn Comment ?Statement
 
     public fn new(position Position, name IdentifierToken) base(position) is Name = name
     

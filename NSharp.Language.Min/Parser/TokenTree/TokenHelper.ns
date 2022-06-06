@@ -10,26 +10,11 @@ public static class TokenHelper
     public static ext{TokenType} fn IsLineContinuationPrefix() bool is this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
     public static ext{TokenType} fn IsArgumentModifier() bool is this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
     public static ext{TokenType} fn IsParameterModifier() bool is this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
-    public static ext{TokenType} fn IsModifier() bool is this > TokenType.Modifier_Start and this < TokenType.Modifier_End
     public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
     public static ext{TokenType} fn IsBlock() bool is this > TokenType.Block_Start and this < TokenType.Block_End
     public static ext{TokenType} fn IsGroup() bool is this > TokenType.Group_Start and this < TokenType.Group_End
     public static ext{TokenType} fn NeedsDedent() bool is this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
     public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
-
-    public static ext{TokenType} fn ToModifier() ModifierType is this ?
-        {
-            TokenType.Public is ModifierType.Public,
-            TokenType.Protected is ModifierType.Protected,
-            TokenType.Internal is ModifierType.Internal,
-            TokenType.Private is ModifierType.Private,
-            TokenType.Extension is ModifierType.Extension,
-            TokenType.Abstract is ModifierType.Abstract,
-            TokenType.Open is ModifierType.Open,
-            TokenType.Override is ModifierType.Override,
-            TokenType.Static is ModifierType.Static,
-            _ is throw new Exception(Resources.FormatFatal(0x0000, this)),
-        }
 
     public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType is this ?
         {
@@ -120,15 +105,6 @@ public static class TokenHelper
         KeywordTokens.Add("if", TokenType.If)
         KeywordTokens.Add("else", TokenType.Else)
         KeywordTokens.Add("_", TokenType.Discard)
-        KeywordTokens.Add("public", TokenType.Public)
-        KeywordTokens.Add("protected", TokenType.Protected)
-        KeywordTokens.Add("internal", TokenType.Internal)
-        KeywordTokens.Add("private", TokenType.Private)
-        KeywordTokens.Add("abstract", TokenType.Abstract)
-        KeywordTokens.Add("ext", TokenType.Extension)
-        KeywordTokens.Add("open", TokenType.Open)
-        KeywordTokens.Add("over", TokenType.Override)
-        KeywordTokens.Add("static", TokenType.Static)
         KeywordTokens.Add("out", TokenType.Out)
         KeywordTokens.Add("ref", TokenType.Reference)
         KeywordTokens.Add("this", TokenType.This)

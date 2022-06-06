@@ -2,7 +2,7 @@ ns NSharp.Core.SyntaxTree
 
 public class Enumeration is Statement
     public fn Name IdentifierToken
-    public fn Values List{EnumerationItem} = new()
+    public fn Values List{Statement} = new()
 
     public fn new(position Position, name IdentifierToken) base(position) is Name = name
     

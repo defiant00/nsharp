@@ -53,17 +53,6 @@ public enum TokenType
     Finally
     FunctionEnd
     Token_Needs_Dedent_End
-    Modifier_Start
-    Public
-    Protected
-    Internal
-    Private
-    Abstract
-    Extension
-    Open
-    Override
-    Static
-    Modifier_End
     Parameter_Modifier_Start
     Variable
     Argument_Modifier_Start
