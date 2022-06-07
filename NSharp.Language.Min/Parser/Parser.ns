@@ -1070,56 +1070,34 @@ public class Parser
                 peek.Type != TokenType.Colon
             propertyStmt.Type = ParseType(group)
 
+        ; get and/or set
+        if group.Accept(TokenType.Get).Success
+            propertyStmt.GetSpecified = true
+            if group.Accept(TokenType.Comma, TokenType.Set).Success
+                propertyStmt.SetSpecified = true
+        else if group.Accept(TokenType.Set).Success
+            propertyStmt.SetSpecified = true
+            if group.Accept(TokenType.Comma, TokenType.Get).Success
+                propertyStmt.GetSpecified = true
+        else
+            propertyStmt.GetSpecified = true
+            propertyStmt.SetSpecified = true
+
+        if group.Accept(TokenType.Assign).Success
+            ; "=" expr
+            propertyStmt.Value = ParseExpression(group)
+            AdvanceLine(group)
+            ret propertyStmt
+        else if group.Accept(TokenType.Colon).Success
+            ; ":" statement
+            propertyStmt.SetSpecified = false
+            propertyStmt.GetStatements.Add(ParseMethodStatementShort(group, true))
+            ret propertyStmt
+
         ; todo
 
+        AdvanceLine(group)
         ret propertyStmt
-
-        ; var res AcceptResult
-
-        ; var typeResult = ParseType()
-        ; if typeResult.Error and typeResult.Result is ErrorExpression ex
-        ;     ret ErrorStatement(ex)
-
-        ; var propDef = new Property(nameToken.Position, modifiers, nameToken.Value, typeResult.Result)
-
-        ; ; [modifiers] fn [name] [type] [get and/or set]
-        ; if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
-        ;     var getSet = Next()
-        ;     var other = TokenType.Set
-        ;     if getSet.Type == TokenType.Get
-        ;         propDef.SetSpecified = false
-        ;     else
-        ;         propDef.GetSpecified = false
-        ;         other = TokenType.Get
-
-        ;     res = Accept(TokenType.Comma, other)
-        ;     if res.Success
-        ;         if GetToken(res, 1).Type == TokenType.Get
-        ;             propDef.GetSpecified = true
-        ;         else
-        ;             propDef.SetSpecified = true
-        ; else if Accept(TokenType.Is).Success
-        ;     ; [is [expr]]
-
-        ;     var exprResult = ParseExpression()
-        ;     if exprResult.Error and exprResult.Result is ErrorExpression exp
-        ;         ret ErrorStatement(exp)
-        ;     propDef.GetStatements.Add(new Return(exprResult.Result.Position) { Value = exprResult.Result })
-        ;     res = Accept(TokenType.EOL)
-        ;     if res.Failure
-        ;         ret InvalidTokenErrorStatement("Invalid token in property", res)
-        ;     ret new ParseResult{Statement}(propDef)
-
-        ; ; [= [expr]]
-        ; if Accept(TokenType.Assign).Success
-        ;     var exprResult = ParseExpression()
-        ;     if exprResult.Error and exprResult.Result is ErrorExpression exp
-        ;         ret ErrorStatement(exp)
-        ;     propDef.Value = exprResult.Result
-
-        ; res = Accept(TokenType.EOL)
-        ; if res.Failure
-        ;     ret InvalidTokenErrorStatement("Invalid token in property", res)
 
         ; if Accept(TokenType.Indent).Success
         ;     if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set

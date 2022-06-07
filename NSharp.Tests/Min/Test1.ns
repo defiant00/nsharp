@@ -2,19 +2,17 @@ use System
 
 ns NSharp.Tests.Min
 
-protected del MyDel{T}(x i32, y i32) T
-
-class MyClass{T class default in new !null ?class out struct val Class2 IFirst List{str}}
-
-class Class2{TIn in, TOut out}
-    public fn Test{T new}()
-        ret new T()
-    
-    public fn T2()
-        ; yay
-
-struct TestStruct
-    public fn Thing() str : ""
-
-    struct Nested{T}
-        public fn Prop() T : default
+class TestClass
+    fn Prop
+    fn Prop2 str
+    fn Prop3{T} T
+    fn Prop4 = "hi"
+    fn Prop5 i32 = 4
+    fn Prop6 : 12
+    fn Prop7 i32 : 42
+    fn Prop8 get
+    fn Prop9 get, set
+    fn Prop10 set
+    fn Prop11 set, get
+    fn Prop12 str get : "string"
+    fn Prop13 str get = "strVal"
