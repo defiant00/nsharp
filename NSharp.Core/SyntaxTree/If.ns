@@ -4,9 +4,12 @@ public class If is Statement
     public fn LocalName ?IdentifierToken
     public fn LocalValue ?Expression
     public fn Condition Expression
-    public fn Statements List{Statement} = new()
-    public fn ElseStatements List{Statement} = new()
+    public fn Statements List{Statement}
+    public fn ElseStatements List{Statement}
 
-    public fn new(position Position, condition Expression) base(position) is Condition = condition
+    public fn new(position Position, condition Expression, statements ?List{Statement} = null, elseStatements ?List{Statement} = null) base(position)
+        Condition = condition
+        Statements = statements ?? new()
+        ElseStatements = elseStatements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

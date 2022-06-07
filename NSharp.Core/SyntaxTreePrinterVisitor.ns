@@ -409,9 +409,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item Property)
         WriteIndented("Property: ")
-        item.Type.Accept(this)
+        item.Type?.Accept(this)
         Write(" ")
         item.Name.Accept(this)
+        WriteGenerics(item.Generics)
         Write("{(item.GetSpecified ? " get" : "")}{(item.SetSpecified ? " set" : "")}")
         if item.Value != null
             Write(" = ")

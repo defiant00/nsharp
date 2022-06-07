@@ -1,10 +1,13 @@
 ns NSharp.Core.SyntaxTree
 
 public class Try is Statement
-    public fn Statements List{Statement} = new()
-    public fn Catches List{Catch} = new()
-    public fn FinallyStatements List{Statement} = new()
+    public fn Statements List{Statement}
+    public fn Catches List{Statement}
+    public fn FinallyStatements List{Statement}
 
-    public fn new(position Position) base(position) is ; empty
+    public fn new(position Position, statements ?List{Statement} = null, catches ?List{Statement} = null, finallyStatements ?List{Statement} = null) base(position)
+        Statements = statements ?? new()
+        Catches = catches ?? new()
+        FinallyStatements = finallyStatements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -1,10 +1,13 @@
 ns NSharp.Core.SyntaxTree
 
 public class ConstructorDefinition is Statement
-    public fn Parameters List{Statement} = new()
-    public fn BaseArguments List{Expression} = new()
-    public fn Statements List{Statement} = new()
+    public fn Parameters List{Statement}
+    public fn BaseArguments List{Expression}
+    public fn Statements List{Statement}
 
-    public fn new(position Position) base(position) is ; empty
+    public fn new(position Position, parameters ?List{Statement} = null, baseArguments ?List{Expression} = null, statements ?List{Statement} = null) base(position)
+        Parameters = parameters ?? new()
+        BaseArguments = baseArguments ?? new()
+        Statements = statements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

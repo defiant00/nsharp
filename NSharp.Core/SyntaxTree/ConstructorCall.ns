@@ -2,9 +2,11 @@ ns NSharp.Core.SyntaxTree
 
 public class ConstructorCall is Expression
     public fn Type ?Expression
-    public fn Arguments List{Expression} = new()
-    public fn Initializers List{Statement} = new()
+    public fn Arguments List{Expression}
+    public fn Initializers List{Statement}
 
-    public fn new(position Position) base(position) is ; empty
+    public fn new(position Position, arguments ?List{Expression} = null, initializers ?List{Statement} = null) base(position)
+        Arguments = arguments ?? new()
+        Initializers = initializers ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

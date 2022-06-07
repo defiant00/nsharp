@@ -2,16 +2,19 @@ ns NSharp.Core.SyntaxTree
 
 public class Property is Statement
     public fn Name IdentifierToken
-    public fn Type Expression
+    public fn Generics List{Statement}
+    public fn Type ?Expression
     public fn Value ?Expression
-    public fn GetSpecified bool = true
-    public fn SetSpecified bool = true
+    public fn GetSpecified bool
+    public fn SetSpecified bool
     public fn SetParameterName ?IdentifierToken
-    public fn GetStatements List{Statement} = new()
-    public fn SetStatements List{Statement} = new()
+    public fn GetStatements List{Statement}
+    public fn SetStatements List{Statement}
 
-    public fn new(position Position, name IdentifierToken, type Expression) base(position)
+    public fn new(position Position, name IdentifierToken, generics ?List{Statement} = null, getStatements ?List{Statement} = null, setStatements ?List{Statement} = null) base(position)
         Name = name
-        Type = type
+        Generics = generics ?? new()
+        GetStatements = getStatements ?? new()
+        SetStatements = setStatements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -833,7 +833,7 @@ public class Parser
     private fn ParseMethodDefinition(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
         ; "fn" name ["{" generics "}"] "(" {params} ")" [type] [":" statement]
         ;     {statements}
-        var methodStmt = new Method(nameIdentifierToken.Position, nameIdentifierToken){Generics = generics}
+        var methodStmt = new Method(nameIdentifierToken.Position, nameIdentifierToken, generics)
 
         if !ParseParameters(group, methodStmt.Parameters)
             AddError("[code]", "missing parameters", nameIdentifierToken.Position)
@@ -1060,10 +1060,19 @@ public class Parser
         ;         {statements}
         ;     "set" name [":" statement]
         ;         {statements}
+        var propertyStmt = new Property(nameIdentifierToken.Position, nameIdentifierToken, generics)
+
+        ; type
+        if peek = group.Peek, group.More and
+                peek.Type != TokenType.Get and
+                peek.Type != TokenType.Set and
+                peek.Type != TokenType.Assign and
+                peek.Type != TokenType.Colon
+            propertyStmt.Type = ParseType(group)
 
         ; todo
 
-        ret new BadStatementToken()
+        ret propertyStmt
 
         ; var res AcceptResult
 

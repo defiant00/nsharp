@@ -2,10 +2,14 @@ ns NSharp.Core.SyntaxTree
 
 public class Interface is Statement
     public fn Name IdentifierToken
-    public fn Generics List{Statement} = new()
-    public fn Interfaces List{Expression} = new()
-    public fn Statements List{Statement} = new()
+    public fn Generics List{Statement}
+    public fn Interfaces List{Expression}
+    public fn Statements List{Statement}
 
-    public fn new(position Position, name IdentifierToken) base(position) is Name = name
+    public fn new(position Position, name IdentifierToken, generics ?List{Statement} = null, interfaces ?List{Expression} = null, statements ?List{Statement} = null) base(position)
+        Name = name
+        Generics = generics ?? new()
+        Interfaces = interfaces ?? new()
+        Statements = statements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

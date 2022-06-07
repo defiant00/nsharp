@@ -4,8 +4,10 @@ public class Switch is Statement
     public fn LocalName ?IdentifierToken
     public fn LocalValue ?Expression
     public fn Value Expression
-    public fn Cases List{Statement} = new()
+    public fn Cases List{Statement}
 
-    public fn new(position Position, value Expression) base(position) is Value = value
+    public fn new(position Position, value Expression, cases ?List{Statement} = null) base(position)
+        Value = value
+        Cases = cases ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
