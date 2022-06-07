@@ -869,10 +869,7 @@ public class Parser
         if group.Peek.Type == TokenType.ParenthesisGroup
             ret ParseMethodDefinition(group, nameIdentifierToken, generics)
         
-        ; todo - ret ParseProperty(group, nameIdentifierToken)
-
-        AdvanceLine(group)
-        ret new BadStatementToken()
+        ret ParseProperty(group, nameIdentifierToken, generics)
 
     private fn ParseMethodStatement(group Group) Statement
         if !group.Tokens.Any()
@@ -1053,6 +1050,104 @@ public class Parser
                     is _
                         loop = false
         ret expr
+
+    private fn ParseProperty(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
+        ; "fn" name ["{" {generics} "}"] [type] ["get" and/or "set"] ["=" expr]
+        ; "fn" name ["{" {generics} "}"] [type] [":" statement]
+        ;     {statements}
+        ; "fn" name ["{" {generics} "}"] [type]
+        ;     "get" [":" statement]
+        ;         {statements}
+        ;     "set" name [":" statement]
+        ;         {statements}
+
+        ; todo
+
+        ret new BadStatementToken()
+
+        ; var res AcceptResult
+
+        ; var typeResult = ParseType()
+        ; if typeResult.Error and typeResult.Result is ErrorExpression ex
+        ;     ret ErrorStatement(ex)
+
+        ; var propDef = new Property(nameToken.Position, modifiers, nameToken.Value, typeResult.Result)
+
+        ; ; [modifiers] fn [name] [type] [get and/or set]
+        ; if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
+        ;     var getSet = Next()
+        ;     var other = TokenType.Set
+        ;     if getSet.Type == TokenType.Get
+        ;         propDef.SetSpecified = false
+        ;     else
+        ;         propDef.GetSpecified = false
+        ;         other = TokenType.Get
+
+        ;     res = Accept(TokenType.Comma, other)
+        ;     if res.Success
+        ;         if GetToken(res, 1).Type == TokenType.Get
+        ;             propDef.GetSpecified = true
+        ;         else
+        ;             propDef.SetSpecified = true
+        ; else if Accept(TokenType.Is).Success
+        ;     ; [is [expr]]
+
+        ;     var exprResult = ParseExpression()
+        ;     if exprResult.Error and exprResult.Result is ErrorExpression exp
+        ;         ret ErrorStatement(exp)
+        ;     propDef.GetStatements.Add(new Return(exprResult.Result.Position) { Value = exprResult.Result })
+        ;     res = Accept(TokenType.EOL)
+        ;     if res.Failure
+        ;         ret InvalidTokenErrorStatement("Invalid token in property", res)
+        ;     ret new ParseResult{Statement}(propDef)
+
+        ; ; [= [expr]]
+        ; if Accept(TokenType.Assign).Success
+        ;     var exprResult = ParseExpression()
+        ;     if exprResult.Error and exprResult.Result is ErrorExpression exp
+        ;         ret ErrorStatement(exp)
+        ;     propDef.Value = exprResult.Result
+
+        ; res = Accept(TokenType.EOL)
+        ; if res.Failure
+        ;     ret InvalidTokenErrorStatement("Invalid token in property", res)
+
+        ; if Accept(TokenType.Indent).Success
+        ;     if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
+        ;         ; [modifiers] fn [name] [type]
+        ;         ;     get is [expr]
+        ;         ;     set(v) is [statement]
+        ;         ; [modifiers] fn [name] [type]
+        ;         ;     get
+        ;         ;         [statements]
+        ;         ;     set(v)
+        ;         ;         [statements]
+
+        ;         var other = Peek.Type == TokenType.Get ? TokenType.Set : TokenType.Get
+
+        ;         var getSetResult = ParseGetSet(propDef)
+        ;         if getSetResult != null
+        ;             ret getSetResult
+
+        ;         if Peek.Type == other
+        ;             getSetResult = ParseGetSet(propDef)
+        ;             if getSetResult != null
+        ;                 ret getSetResult
+        ;     else
+        ;         ; [modifiers] fn [name] [type]
+        ;         ;     [statements]
+
+        ;         for Peek.Type != TokenType.Dedent
+        ;             var stmt = ParseMethodStatement()
+        ;             if stmt.Error
+        ;                 ret stmt
+        ;             propDef.GetStatements.Add(stmt.Result)
+
+        ;     res = Accept(TokenType.Dedent)
+        ;     if res.Failure
+        ;         ret InvalidTokenErrorStatement("Invalid token in property", res)
+
+        ; ret new ParseResult{Statement}(propDef)
 
     private fn ParseReturn(group Group, moveNextLine bool = true) Statement
         ; "ret" [expr]
@@ -1376,178 +1471,6 @@ public class Parser
 ;             ret InvalidTokenErrorStatement("Invalid token in method signature", res)
 
 ;         ret new ParseResult{Statement}(methodSig)
-
-;     ; Returns null on success, or the error statement.
-;     private fn ParseModifiers(modifiers List{Modifier}) ?ParseResult{Statement}
-;         for Peek.Type.IsModifier()
-;             var mod = new Modifier(Peek.Position, Peek.Type.ToModifier())
-;             modifiers.Add(mod)
-;             Next()
-;             if Accept(TokenType.LeftCurly).Success
-;                 var typeRes = ParseType()
-;                 if typeRes.Error and typeRes.Result is ErrorExpression ex
-;                     ret ErrorStatement(ex)
-
-;                 mod.Argument = typeRes.Result
-
-;                 var res = Accept(TokenType.RightCurly)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in modifier", res)
-
-;         ret null
-
-;     private fn ParseNestedPrimaryExpression() ParseResult{Expression}
-;         var leftResult ParseResult{Expression}
-;         if Peek.Type == TokenType.Identifier
-;             leftResult = ParseIdentifier()
-;         else if Peek.Type == TokenType.LeftParenthesis
-;             leftResult = ParseMethodCall(null)
-;         else if Peek.Type == TokenType.LeftBracket
-;             leftResult = ParseIndexer(null)
-;         else if Peek.Type == TokenType.LeftCurly
-;             leftResult = ParseGeneric(null)
-;         else
-;             var token = Next()
-;             ret ErrorExpression("Invalid token in nested expression: " + token, token.Position)
-        
-;         if leftResult.Error
-;             ret leftResult
-
-;         var loop bool
-;         for
-;             loop = true
-;             var res = Accept(TokenType.Dot, TokenType.Identifier)
-;             if res.Success
-;                 leftResult = new ParseResult{Expression}(new BinaryOperator(
-;                     leftResult.Result.Position,
-;                     leftResult.Result,
-;                     BinaryOperatorType.Dot,
-;                     new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
-;                 ))
-;             else
-;                 res = Accept(TokenType.NullDot, TokenType.Identifier)
-;                 if res.Success
-;                     leftResult = new ParseResult{Expression}(new BinaryOperator(
-;                         leftResult.Result.Position,
-;                         leftResult.Result,
-;                         BinaryOperatorType.NullDot,
-;                         new Identifier(GetToken(res, 1).Position, GetToken(res, 1).Value)
-;                     ))
-;                 else if Peek.Type == TokenType.LeftParenthesis
-;                     leftResult = ParseMethodCall(leftResult.Result)
-;                 else if Peek.Type == TokenType.LeftBracket
-;                     leftResult = ParseIndexer(leftResult.Result)
-;                 else if Peek.Type == TokenType.LeftCurly
-;                     leftResult = ParseGeneric(leftResult.Result)
-;                 else if Peek.Type == TokenType.Question
-;                     leftResult = ParseConditional(leftResult.Result)
-;                 else
-;                     loop = false
-            
-;             if !loop
-;                 break
-
-;         ret leftResult
-
-;     private fn ParseProperty(modifiers List{Modifier}, nameToken Token) ParseResult{Statement}
-;         ; property
-;         ; [modifiers] fn [name] [type] [= [expr]]
-;         ; [modifiers] fn [name] [type] [get and/or set] [= [expr]]
-;         ; [modifiers] fn [name] [type] is [expr]
-;         ; [modifiers] fn [name] [type]
-;         ;     [statements]
-;         ; [modifiers] fn [name] [type] [= [expr]]
-;         ;     get is [expr]
-;         ;     set is [statement]
-;         ; [modifiers] fn [name] [type] [= [expr]]
-;         ;     get
-;         ;         [statements]
-;         ;     set(v)
-;         ;         [statements]
-
-;         var res AcceptResult
-
-;         var typeResult = ParseType()
-;         if typeResult.Error and typeResult.Result is ErrorExpression ex
-;             ret ErrorStatement(ex)
-
-;         var propDef = new Property(nameToken.Position, modifiers, nameToken.Value, typeResult.Result)
-
-;         ; [modifiers] fn [name] [type] [get and/or set]
-;         if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
-;             var getSet = Next()
-;             var other = TokenType.Set
-;             if getSet.Type == TokenType.Get
-;                 propDef.SetSpecified = false
-;             else
-;                 propDef.GetSpecified = false
-;                 other = TokenType.Get
-
-;             res = Accept(TokenType.Comma, other)
-;             if res.Success
-;                 if GetToken(res, 1).Type == TokenType.Get
-;                     propDef.GetSpecified = true
-;                 else
-;                     propDef.SetSpecified = true
-;         else if Accept(TokenType.Is).Success
-;             ; [is [expr]]
-
-;             var exprResult = ParseExpression()
-;             if exprResult.Error and exprResult.Result is ErrorExpression exp
-;                 ret ErrorStatement(exp)
-;             propDef.GetStatements.Add(new Return(exprResult.Result.Position) { Value = exprResult.Result })
-;             res = Accept(TokenType.EOL)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in property", res)
-;             ret new ParseResult{Statement}(propDef)
-
-;         ; [= [expr]]
-;         if Accept(TokenType.Assign).Success
-;             var exprResult = ParseExpression()
-;             if exprResult.Error and exprResult.Result is ErrorExpression exp
-;                 ret ErrorStatement(exp)
-;             propDef.Value = exprResult.Result
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in property", res)
-
-;         if Accept(TokenType.Indent).Success
-;             if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
-;                 ; [modifiers] fn [name] [type]
-;                 ;     get is [expr]
-;                 ;     set(v) is [statement]
-;                 ; [modifiers] fn [name] [type]
-;                 ;     get
-;                 ;         [statements]
-;                 ;     set(v)
-;                 ;         [statements]
-
-;                 var other = Peek.Type == TokenType.Get ? TokenType.Set : TokenType.Get
-
-;                 var getSetResult = ParseGetSet(propDef)
-;                 if getSetResult != null
-;                     ret getSetResult
-
-;                 if Peek.Type == other
-;                     getSetResult = ParseGetSet(propDef)
-;                     if getSetResult != null
-;                         ret getSetResult
-;             else
-;                 ; [modifiers] fn [name] [type]
-;                 ;     [statements]
-
-;                 for Peek.Type != TokenType.Dedent
-;                     var stmt = ParseMethodStatement()
-;                     if stmt.Error
-;                         ret stmt
-;                     propDef.GetStatements.Add(stmt.Result)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in property", res)
-
-;         ret new ParseResult{Statement}(propDef)
 
 ;     private fn ParsePropertySignature(modifiers List{Modifier}, pos Position, name str) ParseResult{Statement}
 ;         ; [modifiers] fn [name] [type]
