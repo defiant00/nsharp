@@ -216,7 +216,7 @@ public class Parser
             ret new BadStatementToken()
 
     private fn ParseClass(group Group) Statement
-        ; "class" name "(" {params} ")" ["is" base] ["has" interfaces]
+        ; "class" name ["{" {generics} "}"] "(" {params} ")" ["is" base] ["has" interfaces]
         var res = group.Accept(TokenType.Class, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "class", res)
@@ -255,6 +255,8 @@ public class Parser
                 ret ParseEnum(group)
             is TokenType.Function
                 ret ParseMethodOrProperty(group)
+            is TokenType.Struct
+                ret ParseStruct(group)
             is TokenType.Value
                 ret ParseConstant(group)
             is TokenType.Variable
@@ -264,8 +266,6 @@ public class Parser
         
         ; todo -     is TokenType.Interface
         ; todo -         ret ParseInterface(modifiers)
-        ; todo -     is TokenType.Struct
-        ; todo -         ret ParseStruct(modifiers)
 
     private fn ParseComment(group Group, moveNextLine bool = true) Statement
         ; ";" comment
@@ -533,14 +533,13 @@ public class Parser
                 ret ParseEnum(group)
             is TokenType.Namespace
                 ret ParseNamespace(group)
+            is TokenType.Struct
+                ret ParseStruct(group)
             is TokenType.Use
                 ret ParseImport(group)
             is _
                 ret ParseAttributeBlock(group, ParseFileStatement)
-            
         ; todo - is TokenType.Interface
-        ; todo - is TokenType.Struct
-        ; todo -     file.Statements.Add(ParseFileModifiableStatement().Result)
 
     private fn ParseFor(group Group) Statement
         ; "for" name "in" expr [":" statement]
@@ -1116,6 +1115,31 @@ public class Parser
         EnsureNoExtraTokens(group)
         ret line
 
+    private fn ParseStruct(group Group) Statement
+        ; "struct" name ["{" {generics} "}"] "(" {params} ")" ["has" interfaces]
+        var res = group.Accept(TokenType.Struct, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "struct", res)
+            group.Advance()
+            ret new BadStatementToken()
+
+        var structStmt = new Struct(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
+
+        ParseGenericDefinition(group, structStmt.Generics)
+
+        if group.Accept(TokenType.Has).Success
+            structStmt.Interfaces.Add(ParseType(group))
+            for group.Accept(TokenType.Comma).Success
+                structStmt.Interfaces.Add(ParseType(group))
+        
+        AdvanceLine(group)
+
+        ParseIndentBlock(group, structStmt.Statements, ParseStructStatement)
+
+        ret structStmt
+    
+    private fn ParseStructStatement(group Group) Statement is ParseClassStatement(group)
+    
     private fn ParseThrowOr(parseFn Func{Group, Expression}, group Group) Expression
         if group.Peek.Type != TokenType.Throw
             ret parseFn(group)
@@ -1558,42 +1582,6 @@ public class Parser
 ;             ret InvalidTokenErrorStatement("Invalid token in property signature", res)
 
 ;         ret new ParseResult{Statement}(propSig)
-
-;     private fn ParseStruct(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Struct, TokenType.Identifier)
-
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in struct", res)
-
-;         var structRes = new Struct(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
-
-;         ParseGenericNames(structRes.GenericNames)
-
-;         if Accept(TokenType.Has).Success
-;             var interfaceType = ParseType()
-;             if !interfaceType.Error
-;                 structRes.Interfaces.Add(interfaceType.Result)
-
-;             for Accept(TokenType.Comma).Success
-;                 interfaceType = ParseType()
-;                 if !interfaceType.Error
-;                     structRes.Interfaces.Add(interfaceType.Result)
-
-;         res = Accept(TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in struct", res)
-
-;         for Peek.Type != TokenType.Dedent
-;             var stmt = ParseClassStatement()
-;             if stmt.Error
-;                 ret stmt
-;             structRes.Statements.Add(stmt.Result)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in struct {structRes.Name}", res)
-
-;         ret new ParseResult{Statement}(structRes)
 
 ;     private fn ParseTry() ParseResult{Statement}
 ;         ; try
