@@ -16,3 +16,20 @@ class TestClass
     fn Prop11 set, get
     fn Prop12 str get : "string"
     fn Prop13 str get = "strVal"
+    fn Prop14
+        var x = 3
+        ret x
+    fn Prop15
+        get : x
+        set value : x = value
+    fn Prop16
+        get
+            var x = 7
+            ret x + 2
+        set value
+            var calc = value * 3
+            x = calc
+    fn Prop17
+        set v : x = v
+        get : x
+    fn Prop18 str

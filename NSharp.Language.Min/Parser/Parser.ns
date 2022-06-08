@@ -1094,47 +1094,38 @@ public class Parser
             propertyStmt.GetStatements.Add(ParseMethodStatementShort(group, true))
             ret propertyStmt
 
-        ; todo
-
+        ; get and set on separate lines
         AdvanceLine(group)
+        if group.CurrentParentToken is Group indentBlock and indentBlock.Type == TokenType.IndentBlock and indentBlock.Peek is Group line
+            if line.Accept(TokenType.Get).Success
+                propertyStmt.SetSpecified = false
+                ParseStatementOrIndentBlock(line, propertyStmt.GetStatements)
+                if line.CurrentParentToken is Group nextLine and nextLine.Peek.Type == TokenType.Set
+                    if res = nextLine.Accept(TokenType.Set, TokenType.Identifier), res.Failure
+                        InvalidToken(nextLine, "set", res)
+                        AdvanceLine(nextLine)
+                    else
+                        propertyStmt.SetSpecified = true
+                        propertyStmt.SetParameterName = nextLine.Token(res, 1).ToIdentifierToken()
+                        ParseStatementOrIndentBlock(nextLine, propertyStmt.SetStatements)
+                AdvanceLine(indentBlock)
+            else if line.Peek.Type == TokenType.Set
+                if res = line.Accept(TokenType.Set, TokenType.Identifier), res.Failure
+                    InvalidToken(line, "set", res)
+                    AdvanceLine(line)
+                else
+                    propertyStmt.GetSpecified = false
+                    propertyStmt.SetParameterName = line.Token(res, 1).ToIdentifierToken()
+                    ParseStatementOrIndentBlock(line, propertyStmt.SetStatements)
+                    if line.CurrentParentToken is Group nextLine and nextLine.Accept(TokenType.Get).Success
+                        propertyStmt.GetSpecified = true
+                        ParseStatementOrIndentBlock(nextLine, propertyStmt.GetStatements)
+                AdvanceLine(indentBlock)
+            else
+                propertyStmt.SetSpecified = false
+                ParseIndentBlock(group, propertyStmt.GetStatements, ParseMethodStatement)
+
         ret propertyStmt
-
-        ; if Accept(TokenType.Indent).Success
-        ;     if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
-        ;         ; [modifiers] fn [name] [type]
-        ;         ;     get is [expr]
-        ;         ;     set(v) is [statement]
-        ;         ; [modifiers] fn [name] [type]
-        ;         ;     get
-        ;         ;         [statements]
-        ;         ;     set(v)
-        ;         ;         [statements]
-
-        ;         var other = Peek.Type == TokenType.Get ? TokenType.Set : TokenType.Get
-
-        ;         var getSetResult = ParseGetSet(propDef)
-        ;         if getSetResult != null
-        ;             ret getSetResult
-
-        ;         if Peek.Type == other
-        ;             getSetResult = ParseGetSet(propDef)
-        ;             if getSetResult != null
-        ;                 ret getSetResult
-        ;     else
-        ;         ; [modifiers] fn [name] [type]
-        ;         ;     [statements]
-
-        ;         for Peek.Type != TokenType.Dedent
-        ;             var stmt = ParseMethodStatement()
-        ;             if stmt.Error
-        ;                 ret stmt
-        ;             propDef.GetStatements.Add(stmt.Result)
-
-        ;     res = Accept(TokenType.Dedent)
-        ;     if res.Failure
-        ;         ret InvalidTokenErrorStatement("Invalid token in property", res)
-
-        ; ret new ParseResult{Statement}(propDef)
 
     private fn ParseReturn(group Group, moveNextLine bool = true) Statement
         ; "ret" [expr]
@@ -1306,70 +1297,6 @@ public class Parser
         ParseStatementOrIndentBlock(group, usingStmt.Statements)
 
         ret usingStmt
-
-;     ; Returns the error parse result, or null on success.
-;     private fn ParseGetSet(propDef Property) ?ParseResult{Statement}
-;         var res AcceptResult
-;         if Peek.Type == TokenType.Get
-;             if Accept(TokenType.Get, TokenType.Is).Success
-;                 ; get is [expr]
-
-;                 var exprResult = ParseExpression()
-;                 if exprResult.Error and exprResult.Result is ErrorExpression exp
-;                     ret ErrorStatement(exp)
-;                 propDef.GetStatements.Add(new Return(exprResult.Result.Position) { Value = exprResult.Result })
-;                 res = Accept(TokenType.EOL)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in get", res)
-;             else
-;                 ; get
-;                 ;     [statements]
-
-;                 res = Accept(TokenType.Get, TokenType.EOL, TokenType.Indent)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in get", res)
-
-;                 for Peek.Type != TokenType.Dedent
-;                     var stmt = ParseMethodStatement()
-;                     if stmt.Error
-;                         ret stmt
-;                     propDef.GetStatements.Add(stmt.Result)
-
-;                 res = Accept(TokenType.Dedent)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in get", res)
-;         else
-;             res = Accept(TokenType.Set, TokenType.LeftParenthesis, TokenType.Identifier, TokenType.RightParenthesis)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in set", res)
-;             propDef.SetParameterName = GetToken(res, 2).Value
-
-;             if Accept(TokenType.Is).Success
-;                 ; set(v) is [statement]
-
-;                 var stmtResult = ParseMethodStatement()
-;                 if stmtResult.Error
-;                     ret stmtResult
-;                 propDef.SetStatements.Add(stmtResult.Result)
-;             else
-;                 ; set(v)
-;                 ;     [statements]
-
-;                 res = Accept(TokenType.EOL, TokenType.Indent)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in set", res)
-
-;                 for Peek.Type != TokenType.Dedent
-;                     var stmt = ParseMethodStatement()
-;                     if stmt.Error
-;                         ret stmt
-;                     propDef.SetStatements.Add(stmt.Result)
-
-;                 res = Accept(TokenType.Dedent)
-;                 if res.Failure
-;                     ret InvalidTokenErrorStatement("Invalid token in set", res)
-
-;         ret null
 
 ;     private fn ParseInterface(modifiers List{Modifier}) ParseResult{Statement}
 ;         var res = Accept(TokenType.Interface, TokenType.Identifier)
