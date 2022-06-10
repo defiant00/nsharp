@@ -16,8 +16,8 @@ public class Class
     ; interfaces
     ; structs
     ; delegates
-    public fn Methods List{Method} = new()
-    public fn Properties List{Property} = new()
+    public fn Methods List{MethodDefinition} = new()
+    public fn Properties List{PropertyDefinition} = new()
     public fn Fields List{Field} = new()
     public fn Constants List{Constant} = new()
 

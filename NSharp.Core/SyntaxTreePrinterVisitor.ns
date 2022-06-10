@@ -371,7 +371,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.Value.Accept(this)
         WriteLine()
 
-    public fn Visit(item Method)
+    public fn Visit(item MethodDefinition)
         WriteIndented("Method: ")
         if item.ReturnType == null
             Write("void")
@@ -407,7 +407,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             Write(" = ")
             item.Value.Accept(this)
 
-    public fn Visit(item Property)
+    public fn Visit(item PropertyDefinition)
         WriteIndented("Property: ")
         item.Type?.Accept(this)
         Write(" ")

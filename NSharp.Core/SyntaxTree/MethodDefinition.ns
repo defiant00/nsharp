@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Method is Statement
+public class MethodDefinition is Statement
     public fn ReturnType ?Expression
     public fn Name IdentifierToken
     public fn Generics List{Statement}

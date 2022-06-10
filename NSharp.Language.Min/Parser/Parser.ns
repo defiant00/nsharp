@@ -833,7 +833,7 @@ public class Parser
     private fn ParseMethodDefinition(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
         ; "fn" name ["{" generics "}"] "(" {params} ")" [type] [":" statement]
         ;     {statements}
-        var methodStmt = new Method(nameIdentifierToken.Position, nameIdentifierToken, generics)
+        var methodStmt = new MethodDefinition(nameIdentifierToken.Position, nameIdentifierToken, generics)
 
         if !ParseParameters(group, methodStmt.Parameters)
             AddError("[code]", "missing parameters", nameIdentifierToken.Position)
@@ -869,7 +869,7 @@ public class Parser
         if group.Peek.Type == TokenType.ParenthesisGroup
             ret ParseMethodDefinition(group, nameIdentifierToken, generics)
         
-        ret ParseProperty(group, nameIdentifierToken, generics)
+        ret ParsePropertyDefinition(group, nameIdentifierToken, generics)
 
     private fn ParseMethodStatement(group Group) Statement
         if !group.Tokens.Any()
@@ -1051,7 +1051,7 @@ public class Parser
                         loop = false
         ret expr
 
-    private fn ParseProperty(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
+    private fn ParsePropertyDefinition(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
         ; "fn" name ["{" {generics} "}"] [type] ["get" and/or "set"] ["=" expr]
         ; "fn" name ["{" {generics} "}"] [type] [":" statement]
         ;     {statements}
@@ -1060,7 +1060,7 @@ public class Parser
         ;         {statements}
         ;     "set" name [":" statement]
         ;         {statements}
-        var propertyStmt = new Property(nameIdentifierToken.Position, nameIdentifierToken, generics)
+        var propertyStmt = new PropertyDefinition(nameIdentifierToken.Position, nameIdentifierToken, generics)
 
         ; type
         if peek = group.Peek, group.More and

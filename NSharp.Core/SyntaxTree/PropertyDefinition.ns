@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
-public class Property is Statement
+public class PropertyDefinition is Statement
     public fn Name IdentifierToken
     public fn Generics List{Statement}
     public fn Type ?Expression
