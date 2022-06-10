@@ -1,0 +1,14 @@
+ns NSharp.Core.SyntaxTree
+
+public class MethodSignature is Statement
+    public fn ReturnType ?Expression
+    public fn Name IdentifierToken
+    public fn Generics List{Statement}
+    public fn Parameters List{Statement}
+
+    public fn new(position Position, name IdentifierToken, generics ?List{Statement} = null, parameters ?List{Statement} = null) base(position)
+        Name = name
+        Generics = generics ?? new()
+        Parameters = parameters ?? new()
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
