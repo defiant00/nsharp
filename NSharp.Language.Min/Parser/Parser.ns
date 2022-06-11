@@ -822,10 +822,10 @@ public class Parser
                 ret ParseEnum(group)
             is TokenType.Function
                 ret ParseMethodOrPropertyDefinition(group)
-            is TokenType.Has
-                ret ParseMethodOrPropertySignature(group)
             is TokenType.Interface
                 ret ParseInterface(group)
+            is TokenType.Signature
+                ret ParseMethodOrPropertySignature(group)
             is TokenType.Struct
                 ret ParseStruct(group)
             is _
@@ -894,7 +894,7 @@ public class Parser
         ret methodStmt
     
     private fn ParseMethodSignature(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
-        ; "has" name ["{" generics "}"] "(" {params} ")" [type]
+        ; "sig" name ["{" generics "}"] "(" {params} ")" [type]
         var methodSigStmt = new MethodSignature(nameIdentifierToken.Position, nameIdentifierToken, generics)
 
         if !ParseParameters(group, methodSigStmt.Parameters)
@@ -933,7 +933,7 @@ public class Parser
         ret ParsePropertyDefinition(group, nameIdentifierToken, generics)
     
     private fn ParseMethodOrPropertySignature(group Group) Statement
-        var res = group.Accept(TokenType.Has, TokenType.Identifier)
+        var res = group.Accept(TokenType.Signature, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "method or property signature", res)
             AdvanceLine(group)
@@ -1205,7 +1205,7 @@ public class Parser
         ret propertyStmt
 
     private fn ParsePropertySignature(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
-        ; "has" name ["{" {generics} "}"] type ["get" and/or "set"]
+        ; "sig" name ["{" {generics} "}"] type ["get" and/or "set"]
         var type = ParseType(group)
         var propertySigStmt = new PropertySignature(nameIdentifierToken.Position, nameIdentifierToken, type, generics)
 
@@ -1287,7 +1287,7 @@ public class Parser
         ret line
 
     private fn ParseStruct(group Group) Statement
-        ; "struct" name ["{" {generics} "}"] "(" {params} ")" ["has" interfaces]
+        ; "struct" name ["{" {generics} "}"] ["has" interfaces]
         var res = group.Accept(TokenType.Struct, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "struct", res)

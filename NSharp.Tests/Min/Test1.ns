@@ -3,8 +3,8 @@ use System
 ns NSharp.Tests.Min
 
 interface ITest
-    has MyProp str
-    has MyMethod(x int, y int) str
+    sig MyProp str
+    sig MyMethod(x int, y int) str
 
     fn MyActualProp str
         if test
