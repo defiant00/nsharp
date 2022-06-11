@@ -64,7 +64,6 @@ public enum TokenType
     Struct
     Enum
     Interface
-    Signature
     Delegate
     Value
     Get

@@ -135,7 +135,6 @@ public static class TokenHelper
         KeywordTokens.Add("struct", TokenType.Struct)
         KeywordTokens.Add("enum", TokenType.Enum)
         KeywordTokens.Add("interface", TokenType.Interface)
-        KeywordTokens.Add("sig", TokenType.Signature)
         KeywordTokens.Add("fn", TokenType.Function)
         KeywordTokens.Add("del", TokenType.Delegate)
         KeywordTokens.Add("var", TokenType.Variable)

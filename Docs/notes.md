@@ -12,9 +12,3 @@ steps:
 * yield, async, await
 * ranges?
 * tuples?
-
-## Min Syntax Notes
-
-allow named expressions in switch cases so you can do `is Token token`
-
-allow method and property definitions in interfaces

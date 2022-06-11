@@ -171,9 +171,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
 
     public fn Visit(item Catch)
         WriteIndented("Catch: ")
-        item.Type?.Accept(this)
-        Write(" ")
-        item.Name?.Accept(this)
+        item.Value?.Accept(this)
         WriteLine()
         WriteIndentedBlock(item.Statements)
 

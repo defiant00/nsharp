@@ -216,7 +216,7 @@ public class Parser
             ret new BadStatementToken()
 
     private fn ParseClass(group Group) Statement
-        ; "class" name ["{" {generics} "}"] "(" {params} ")" ["is" base] ["has" interfaces]
+        ; "class" name ["{" {generics} "}"] ["is" base] ["has" interfaces]
         var res = group.Accept(TokenType.Class, TokenType.Identifier)
         if res.Failure
             InvalidToken(group, "class", res)
@@ -254,7 +254,9 @@ public class Parser
             is TokenType.Enum
                 ret ParseEnum(group)
             is TokenType.Function
-                ret ParseMethodOrProperty(group)
+                ret ParseMethodOrPropertyDefinition(group)
+            is TokenType.Interface
+                ret ParseInterface(group)
             is TokenType.Struct
                 ret ParseStruct(group)
             is TokenType.Value
@@ -263,9 +265,6 @@ public class Parser
                 ret ParseField(group)
             is _
                 ret ParseAttributeBlock(group, ParseClassStatement)
-        
-        ; todo -     is TokenType.Interface
-        ; todo -         ret ParseInterface(modifiers)
 
     private fn ParseComment(group Group, moveNextLine bool = true) Statement
         ; ";" comment
@@ -531,6 +530,8 @@ public class Parser
                 ret ParseDelegate(group)
             is TokenType.Enum
                 ret ParseEnum(group)
+            is TokenType.Interface
+                ret ParseInterface(group)
             is TokenType.Namespace
                 ret ParseNamespace(group)
             is TokenType.Struct
@@ -539,7 +540,6 @@ public class Parser
                 ret ParseImport(group)
             is _
                 ret ParseAttributeBlock(group, ParseFileStatement)
-        ; todo - is TokenType.Interface
 
     private fn ParseFor(group Group) Statement
         ; "for" name "in" expr [":" statement]
@@ -689,11 +689,13 @@ public class Parser
         AdvanceLine(group)
         if group.CurrentParentToken is Group indentBlock and indentBlock.Type == TokenType.IndentBlock and indentBlock.Peek is Group curLine
             if curLine.Peek.Type == TokenType.Is
-                ;     "is" expr [":" statement]
+                ;     "is" expr [name] [":" statement]
                 ;         {statements}
                 var switchStmt = new Switch(start, condition){LocalName = name, LocalValue = value}
                 for isRes = curLine.Accept(TokenType.Is), isRes.Success, isRes = curLine.Accept(TokenType.Is)
                     var caseExpr = ParseExpression(curLine)
+                    if nameRes = curLine.Accept(TokenType.Identifier), nameRes.Success
+                        caseExpr = new NamedExpression(caseExpr.Position, caseExpr, curLine.Token(nameRes).ToIdentifierToken())
                     var caseStmt = new Case(curLine.Token(isRes).Position, caseExpr)
                     switchStmt.Cases.Add(caseStmt)
                     ParseStatementOrIndentBlock(curLine, caseStmt.Statements)
@@ -783,6 +785,52 @@ public class Parser
                     inits.Add(ParseInitializer(curlyGroup))
             EnsureNoExtraTokens(curlyGroup)
 
+    private fn ParseInterface(group Group) Statement
+        ; "interface" name ["{" {generics} "}"] ["has" interfaces]
+        var res = group.Accept(TokenType.Interface, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "interface", res)
+            group.Advance()
+            ret new BadStatementToken()
+        
+        var interfaceStmt = new Interface(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
+
+        ParseGenericDefinition(group, interfaceStmt.Generics)
+
+        if group.Accept(TokenType.Has).Success
+            interfaceStmt.Interfaces.Add(ParseType(group))
+            for group.Accept(TokenType.Comma).Success
+                interfaceStmt.Interfaces.Add(ParseType(group))
+
+        AdvanceLine(group)
+
+        ParseIndentBlock(group, interfaceStmt.Statements, ParseInterfaceStatement)
+
+        ret interfaceStmt
+    
+    private fn ParseInterfaceStatement(group Group) Statement
+        if !group.Tokens.Any()
+            ret ParseSpace(group)
+        if group.Peek.Type
+            is TokenType.Class
+                ret ParseClass(group)
+            is TokenType.Comment
+                ret ParseComment(group)
+            is TokenType.Delegate
+                ret ParseDelegate(group)
+            is TokenType.Enum
+                ret ParseEnum(group)
+            is TokenType.Function
+                ret ParseMethodOrPropertyDefinition(group)
+            is TokenType.Has
+                ret ParseMethodOrPropertySignature(group)
+            is TokenType.Interface
+                ret ParseInterface(group)
+            is TokenType.Struct
+                ret ParseStruct(group)
+            is _
+                ret ParseAttributeBlock(group, ParseInterfaceStatement)
+
     private fn ParseLocalConstant(group Group) Statement
         ; "val" name "=" expr
         var res = group.Accept(TokenType.Value, TokenType.Identifier)
@@ -844,8 +892,21 @@ public class Parser
         ParseStatementOrIndentBlock(group, methodStmt.Statements)
         
         ret methodStmt
+    
+    private fn ParseMethodSignature(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
+        ; "has" name ["{" generics "}"] "(" {params} ")" [type]
+        var methodSigStmt = new MethodSignature(nameIdentifierToken.Position, nameIdentifierToken, generics)
 
-    private fn ParseMethodOrProperty(group Group) Statement
+        if !ParseParameters(group, methodSigStmt.Parameters)
+            AddError("[code]", "missing parameters", nameIdentifierToken.Position)
+        
+        if group.More
+            methodSigStmt.ReturnType = ParseType(group)
+        
+        AdvanceLine(group)
+        ret methodSigStmt
+
+    private fn ParseMethodOrPropertyDefinition(group Group) Statement
         var start = group.Peek
         var res = group.Accept(TokenType.Function)
         if res.Failure
@@ -870,6 +931,22 @@ public class Parser
             ret ParseMethodDefinition(group, nameIdentifierToken, generics)
         
         ret ParsePropertyDefinition(group, nameIdentifierToken, generics)
+    
+    private fn ParseMethodOrPropertySignature(group Group) Statement
+        var res = group.Accept(TokenType.Has, TokenType.Identifier)
+        if res.Failure
+            InvalidToken(group, "method or property signature", res)
+            AdvanceLine(group)
+            ret new BadStatementToken()
+        
+        var nameIdentifierToken = group.Token(res, 1).ToIdentifierToken()
+        var generics = new List{Statement}()
+        ParseGenericDefinition(group, generics)
+
+        if group.Peek.Type == TokenType.ParenthesisGroup
+            ret ParseMethodSignature(group, nameIdentifierToken, generics)
+        
+        ret ParsePropertySignature(group, nameIdentifierToken, generics)
 
     private fn ParseMethodStatement(group Group) Statement
         if !group.Tokens.Any()
@@ -1127,6 +1204,27 @@ public class Parser
 
         ret propertyStmt
 
+    private fn ParsePropertySignature(group Group, nameIdentifierToken IdentifierToken, generics List{Statement}) Statement
+        ; "has" name ["{" {generics} "}"] type ["get" and/or "set"]
+        var type = ParseType(group)
+        var propertySigStmt = new PropertySignature(nameIdentifierToken.Position, nameIdentifierToken, type, generics)
+
+        ; get and/or set
+        if group.Accept(TokenType.Get).Success
+            propertySigStmt.GetSpecified = true
+            if group.Accept(TokenType.Comma, TokenType.Set).Success
+                propertySigStmt.SetSpecified = true
+        else if group.Accept(TokenType.Set).Success
+            propertySigStmt.SetSpecified = true
+            if group.Accept(TokenType.Comma, TokenType.Get).Success
+                propertySigStmt.GetSpecified = true
+        else
+            propertySigStmt.GetSpecified = true
+            propertySigStmt.SetSpecified = true
+
+        AdvanceLine(group)
+        ret propertySigStmt
+
     private fn ParseReturn(group Group, moveNextLine bool = true) Statement
         ; "ret" [expr]
         if res = group.Accept(TokenType.Return), res.Failure
@@ -1297,128 +1395,6 @@ public class Parser
         ParseStatementOrIndentBlock(group, usingStmt.Statements)
 
         ret usingStmt
-
-;     private fn ParseInterface(modifiers List{Modifier}) ParseResult{Statement}
-;         var res = Accept(TokenType.Interface, TokenType.Identifier)
-
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
-
-;         var intf = new Interface(GetToken(res, 1).Position, modifiers, GetToken(res, 1).Value)
-
-;         ParseGenericNames(intf.GenericNames)
-
-;         if Accept(TokenType.Has).Success
-;             var interfaceType = ParseType()
-;             if !interfaceType.Error
-;                 intf.Interfaces.Add(interfaceType.Result)
-
-;             for Accept(TokenType.Comma).Success
-;                 interfaceType = ParseType()
-;                 if !interfaceType.Error
-;                     intf.Interfaces.Add(interfaceType.Result)
-
-;         res = Accept(TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
-
-;         for Peek.Type != TokenType.Dedent
-;             var ist = ParseInterfaceStatement()
-;             if ist.Error
-;                 ret ist
-;             intf.Statements.Add(ist.Result)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
-
-;         ret new ParseResult{Statement}(intf)
-
-;     private fn ParseInterfaceStatement() ParseResult{Statement}
-;         var startToken = Peek
-;         var size = 0
-;         for Peek.Type == TokenType.EOL
-;             Next()
-;             size += 1
-
-;         if size > 0
-;             ret new ParseResult{Statement}(new Space(startToken.Position, size))
-
-;         if Peek.Type == TokenType.Comment
-;             ret ParseComment()
-
-;         var modifiers = new List{Modifier}()
-;         var modRes = ParseModifiers(modifiers)
-;         if modRes != null
-;             ret modRes
-
-;         var res = Accept(TokenType.Function, TokenType.Identifier)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in interface", res)
-
-;         var fnPos = GetToken(res).Position
-;         var name = GetToken(res, 1).Value
-
-;         if Peek.Type == TokenType.LeftParenthesis or Peek.Type == TokenType.LeftCurly
-;             ret ParseMethodSignature(modifiers, fnPos, name)
-
-;         ret ParsePropertySignature(modifiers, fnPos, name)
-
-;     private fn ParseMethodSignature(modifiers List{Modifier}, pos Position, name str) ParseResult{Statement}
-;         ; [modifiers] fn [name]([params])
-;         ; [modifiers] fn [name]([params]) [type]
-
-;         var methodSig = new MethodSignature(pos, modifiers, name)
-
-;         ParseGenericNames(methodSig.GenericNames)
-;         ParseParameters(methodSig.Parameters)
-
-;         ; return type
-;         if Peek.Type != TokenType.EOL
-;             var typeResult = ParseType()
-;             if typeResult.Error and typeResult.Result is ErrorExpression ex
-;                 ret ErrorStatement(ex)
-;             methodSig.ReturnType = typeResult.Result
-
-;         var res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in method signature", res)
-
-;         ret new ParseResult{Statement}(methodSig)
-
-;     private fn ParsePropertySignature(modifiers List{Modifier}, pos Position, name str) ParseResult{Statement}
-;         ; [modifiers] fn [name] [type]
-;         ; [modifiers] fn [name] [type] [get and/or set]
-
-;         var res AcceptResult
-
-;         var typeResult = ParseType()
-;         if typeResult.Error and typeResult.Result is ErrorExpression ex
-;             ret ErrorStatement(ex)
-
-;         var propSig = new PropertySignature(pos, modifiers, name, typeResult.Result)
-
-;         if Peek.Type == TokenType.Get or Peek.Type == TokenType.Set
-;             var getSet = Next()
-;             var other = TokenType.Set
-;             if getSet.Type == TokenType.Get
-;                 propSig.SetSpecified = false
-;             else
-;                 propSig.GetSpecified = false
-;                 other = TokenType.Get
-
-;             res = Accept(TokenType.Comma, other)
-;             if res.Success
-;                 if GetToken(res, 1).Type == TokenType.Get
-;                     propSig.GetSpecified = true
-;                 else
-;                     propSig.SetSpecified = true
-
-;         res = Accept(TokenType.EOL)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in property signature", res)
-
-;         ret new ParseResult{Statement}(propSig)
 
 ;     private fn ParseTry() ParseResult{Statement}
 ;         ; try

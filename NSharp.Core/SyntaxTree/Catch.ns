@@ -1,8 +1,7 @@
 ns NSharp.Core.SyntaxTree
 
 public class Catch is Statement
-    public fn Type ?Expression
-    public fn Name ?IdentifierToken
+    public fn Value ?Expression
     public fn Statements List{Statement}
 
     public fn new(position Position, statements ?List{Statement} = null) base(position) is Statements = statements ?? new()

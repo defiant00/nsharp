@@ -2,34 +2,13 @@ use System
 
 ns NSharp.Tests.Min
 
-class TestClass
-    fn Prop
-    fn Prop2 str
-    fn Prop3{T} T
-    fn Prop4 = "hi"
-    fn Prop5 i32 = 4
-    fn Prop6 : 12
-    fn Prop7 i32 : 42
-    fn Prop8 get
-    fn Prop9 get, set
-    fn Prop10 set
-    fn Prop11 set, get
-    fn Prop12 str get : "string"
-    fn Prop13 str get = "strVal"
-    fn Prop14
-        var x = 3
-        ret x
-    fn Prop15
-        get : x
-        set value : x = value
-    fn Prop16
-        get
-            var x = 7
-            ret x + 2
-        set value
-            var calc = value * 3
-            x = calc
-    fn Prop17
-        set v : x = v
-        get : x
-    fn Prop18 str
+interface ITest
+    has MyProp str
+    has MyMethod(x int, y int) str
+
+    fn MyActualProp str
+        if test
+            is i32
+                "yay"
+            is str myStr : myStr
+    fn MyActualMethod(x int, y int) str : "hello"
