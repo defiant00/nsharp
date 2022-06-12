@@ -960,12 +960,12 @@ public class Parser
             TokenType.For is ParseFor(group),
             TokenType.If is ParseIf(group),
             TokenType.Return is ParseReturn(group),
+            TokenType.Try is ParseTry(group),
             TokenType.Use is ParseUsing(group),
             TokenType.Value is ParseLocalConstant(group),
             TokenType.Variable is ParseLocalVariable(group),
             _ is ParseExpressionStatement(group),
         }
-        ; todo - TokenType.Try is ParseTry(),
     
     private fn ParseMethodStatementShort(group Group, moveNextLine bool) Statement is group.Peek.Type ?
     {
@@ -1319,6 +1319,40 @@ public class Parser
         var start = group.Next()
         ret new Throw(start.Position, ParseExpression(group))
 
+    private fn ParseTry(group Group) Statement
+        ; "try" [":" statement]
+        ;     {statements}
+        ; ["catch" [type [name]] [":" statement]]
+        ;     {statements}
+        ; ["finally" [":" statement]]
+        ;     {statements}
+        var start = group.Peek.Position
+        if res = group.Accept(TokenType.Try), res.Failure
+            InvalidToken(group, "try", res)
+            group.Advance()
+            ret new BadStatementToken()
+        
+        var tryStmt = new Try(start)
+        ParseStatementOrIndentBlock(group, tryStmt.Statements)
+
+        for group.CurrentParentToken is Group line and line.Type == TokenType.Line
+            if res = line.Accept(TokenType.Catch), res.Success
+                var catchStmt = new Catch(line.Token(res).Position)
+                tryStmt.Catches.Add(catchStmt)
+                if line.More and line.Peek.Type != TokenType.Colon
+                    var catchVal = ParseType(line)
+                    if nameRes = line.Accept(TokenType.Identifier), nameRes.Success
+                        catchVal = new NamedExpression(catchVal.Position, catchVal, line.Token(nameRes).ToIdentifierToken())
+                    catchStmt.Value = catchVal
+                ParseStatementOrIndentBlock(line, catchStmt.Statements)
+            else if line.Accept(TokenType.Finally).Success
+                ParseStatementOrIndentBlock(line, tryStmt.FinallyStatements)
+                break
+            else
+                break
+
+        ret tryStmt
+
     private fn ParseType(group Group) Expression
         var typeExpr Expression
         if group.Peek.Type
@@ -1395,73 +1429,3 @@ public class Parser
         ParseStatementOrIndentBlock(group, usingStmt.Statements)
 
         ret usingStmt
-
-;     private fn ParseTry() ParseResult{Statement}
-;         ; try
-;         ;     [statements]
-;         ; catch
-;         ; catch [type]
-;         ; catch [type] [name]
-;         ;     [statements]
-;         ; fin
-;         ;     [statements]
-
-;         var res = Accept(TokenType.Try, TokenType.EOL, TokenType.Indent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in try", res)
-
-;         var tryDef = new Try(GetToken(res).Position)
-
-;         for Peek.Type != TokenType.Dedent
-;             var stmt = ParseMethodStatement()
-;             if stmt.Error
-;                 ret stmt
-;             tryDef.Statements.Add(stmt.Result)
-
-;         res = Accept(TokenType.Dedent)
-;         if res.Failure
-;             ret InvalidTokenErrorStatement("Invalid token in try", res)
-
-;         var catchRes = Accept(TokenType.Catch)
-;         for catchRes.Success
-;             var catchStmt = new Catch(GetToken(catchRes).Position)
-;             tryDef.Catches.Add(catchStmt)
-
-;             if Peek.Type != TokenType.EOL
-;                 var typeRes = ParseType()
-;                 if typeRes.Error and typeRes.Result is ErrorExpression ex
-;                     ret ErrorStatement(ex)
-
-;                 catchStmt.Type = typeRes.Result
-;                 res = Accept(TokenType.Identifier)
-;                 if res.Success
-;                     catchStmt.Name = GetToken(res).Value
-
-;             res = Accept(TokenType.EOL, TokenType.Indent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in catch", res)
-
-;             for Peek.Type != TokenType.Dedent
-;                 var stmt = ParseMethodStatement()
-;                 if stmt.Error
-;                     ret stmt
-;                 catchStmt.Statements.Add(stmt.Result)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in catch", res)
-
-;             catchRes = Accept(TokenType.Catch)
-
-;         if Accept(TokenType.Finally, TokenType.EOL, TokenType.Indent).Success
-;             for Peek.Type != TokenType.Dedent
-;                 var stmt = ParseMethodStatement()
-;                 if stmt.Error
-;                     ret stmt
-;                 tryDef.FinallyStatements.Add(stmt.Result)
-
-;             res = Accept(TokenType.Dedent)
-;             if res.Failure
-;                 ret InvalidTokenErrorStatement("Invalid token in finally", res)
-
-;         ret new ParseResult{Statement}(tryDef)

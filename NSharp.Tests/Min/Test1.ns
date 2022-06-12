@@ -2,13 +2,27 @@ use System
 
 ns NSharp.Tests.Min
 
-interface ITest
-    sig MyProp str
-    sig MyMethod(x int, y int) str
+class MyClass
+    public fn Test()
+        try
+            ; stuff
+        catch
+            ; catch
+        catch Exception
+            ; another catch
+        catch Exception ex
+            ; with name
+        finally
+            ; finally?
+        
+        try : t
+        catch: c
+        catch Exception: eh
+        catch Exception ex: aha
+        finally: done
 
-    fn MyActualProp str
-        if test
-            is i32
-                "yay"
-            is str myStr : myStr
-    fn MyActualMethod(x int, y int) str : "hello"
+        try
+            ; do stuff
+        catch
+
+        ; and we go on our merry way
