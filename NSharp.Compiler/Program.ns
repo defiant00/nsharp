@@ -59,6 +59,7 @@ public static class Program
                     var loadResult = loadLang.Load(file)
                     HandleResult(loadResult)
                     if loadResult.SyntaxTree != null
+                        loadResult.SyntaxTree.Accept(new NSharp.Core.SyntaxTree.SetParentVisitor())
                         use visitor = new ToCsVisitor("{file}.cs")
                         loadResult.SyntaxTree.Accept(visitor)
 

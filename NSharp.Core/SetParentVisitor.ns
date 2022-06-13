@@ -1,0 +1,283 @@
+ns NSharp.Core.SyntaxTree
+
+public static class SetParentHelper
+    public static ext{Node} fn SetParent(child Node, visitor SetParentVisitor)
+        child.Parent = this
+        child.Accept(visitor)
+    
+    public static ext{Node} fn SetNullableParent(child ?Node, visitor SetParentVisitor)
+        if child != null
+            child.Parent = this
+            child.Accept(visitor)
+    
+    public static ext{Node} fn SetParent(child IEnumerable{Node}, visitor SetParentVisitor)
+        for item in child
+            item.Parent = this
+            item.Accept(visitor)
+
+public class SetParentVisitor has ISyntaxTreeVisitor
+    public fn Visit(item AnonymousFunction)
+        item.SetNullableParent(item.ReturnType, this)
+        item.SetParent(item.Parameters, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item Argument)
+        item.SetNullableParent(item.Name, this)
+        item.SetParent(item.Modifiers, this)
+        item.SetParent(item.Value, this)
+    
+    public fn Visit(item ArgumentModifierToken) is ; empty
+
+    public fn Visit(item Arguments)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Values, this)
+    
+    public fn Visit(item ArrayLiteral) is item.SetParent(item.Values, this)
+
+    public fn Visit(item ArrayType) is item.SetParent(item.Type, this)
+
+    public fn Visit(item Assignment)
+        item.SetParent(item.LeftOperand, this)
+        item.SetParent(item.Operator, this)
+        item.SetParent(item.RightOperand, this)
+    
+    public fn Visit(item AssignmentOperatorToken) is ; empty
+
+    public fn Visit(item Attribute)
+        item.SetNullableParent(item.Qualifier, this)
+        item.SetParent(item.Type, this)
+    
+    public fn Visit(item AttributeBlock)
+        item.SetParent(item.Attributes, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item BadExpressionToken) is ; empty
+
+    public fn Visit(item BadStatementToken) is ; empty
+
+    public fn Visit(item BaseClassToken) is ; empty
+
+    public fn Visit(item BinaryOperator)
+        item.SetParent(item.LeftOperand, this)
+        item.SetParent(item.Operator, this)
+        item.SetParent(item.RightOperand, this)
+    
+    public fn Visit(item BinaryOperatorToken) is ; empty
+
+    public fn Visit(item Block) is item.SetParent(item.Statements, this)
+    
+    public fn Visit(item BreakToken) is ; empty
+
+    public fn Visit(item Case)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item Catch)
+        item.SetNullableParent(item.Value, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item CharacterToken) is ; empty
+
+    public fn Visit(item Class)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetNullableParent(item.Base, this)
+        item.SetParent(item.Interfaces, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item CommentToken) is ; empty
+
+    public fn Visit(item Condition)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Result, this)
+    
+    public fn Visit(item Conditional)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Conditions, this)
+    
+    public fn Visit(item Constant)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Type, this)
+        item.SetNullableParent(item.Value, this)
+    
+    public fn Visit(item ConstructorCall)
+        item.SetNullableParent(item.Type, this)
+        item.SetParent(item.Arguments, this)
+        item.SetParent(item.Initializers, this)
+    
+    public fn Visit(item ConstructorDefinition)
+        item.SetParent(item.Parameters, this)
+        item.SetParent(item.BaseArguments, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item ContinueToken) is ; empty
+
+    public fn Visit(item CurrentObjectInstanceToken) is ; empty
+
+    public fn Visit(item DefaultValueToken) is ; empty
+
+    public fn Visit(item Delegate)
+        item.SetNullableParent(item.ReturnType, this)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Parameters, this)
+
+    public fn Visit(item DiscardToken) is ; empty
+
+    public fn Visit(item Enumeration)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Statements, this)
+
+    public fn Visit(item EnumerationItem)
+        item.SetParent(item.Name, this)
+        item.SetNullableParent(item.Value, this)
+        item.SetNullableParent(item.Comment, this)
+
+    public fn Visit(item Expression) is throw new InvalidItemException()
+
+    public fn Visit(item ExpressionStatement) is item.SetParent(item.Value, this)
+    
+    public fn Visit(item Field)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Type, this)
+        item.SetNullableParent(item.Value, this)
+    
+    public fn Visit(item File) is item.SetParent(item.Statements, this)
+    
+    public fn Visit(item For)
+        item.SetNullableParent(item.Name, this)
+        item.SetNullableParent(item.Init, this)
+        item.SetNullableParent(item.Condition, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item ForEach)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item Generic)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Constraints, this)
+    
+    public fn Visit(item GenericConstraintToken) is ; empty
+
+    public fn Visit(item IdentifierToken) is ; empty
+
+    public fn Visit(item If)
+        item.SetNullableParent(item.LocalName, this)
+        item.SetNullableParent(item.LocalValue, this)
+        item.SetParent(item.Condition, this)
+        item.SetParent(item.Statements, this)
+        item.SetParent(item.ElseStatements, this)
+    
+    public fn Visit(item ImportToken) is ; empty
+
+    public fn Visit(item Initializer)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Value, this)
+
+    public fn Visit(item Interface)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Interfaces, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item LiteralToken) is ; empty
+
+    public fn Visit(item LocalConstant)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Value, this)
+    
+    public fn Visit(item LocalVariable)
+        item.SetParent(item.Name, this)
+        item.SetNullableParent(item.Type, this)
+        item.SetNullableParent(item.Value, this)
+    
+    public fn Visit(item MethodDefinition)
+        item.SetNullableParent(item.ReturnType, this)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Parameters, this)
+        item.SetParent(item.Statements, this)
+    
+    public fn Visit(item MethodSignature)
+        item.SetNullableParent(item.ReturnType, this)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Parameters, this)
+    
+    public fn Visit(item NamedExpression)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Name, this)
+    
+    public fn Visit(item NamespaceToken) is ; empty
+
+    public fn Visit(item Node) is throw new InvalidItemException()
+
+    public fn Visit(item NullableType) is item.SetParent(item.Type, this)
+
+    public fn Visit(item NumberToken) is ; empty
+
+    public fn Visit(item Parameter)
+        item.SetParent(item.Modifiers, this)
+        item.SetParent(item.Name, this)
+        item.SetNullableParent(item.Type, this)
+        item.SetNullableParent(item.Value, this)
+    
+    public fn Visit(item ParameterModifierToken) is ; empty
+
+    public fn Visit(item PropertyDefinition)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetNullableParent(item.Type, this)
+        item.SetNullableParent(item.Value, this)
+        item.SetNullableParent(item.SetParameterName, this)
+        item.SetParent(item.GetStatements, this)
+        item.SetParent(item.SetStatements, this)
+    
+    public fn Visit(item PropertySignature)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Type, this)
+
+    public fn Visit(item Return) is item.SetNullableParent(item.Value, this)
+
+    public fn Visit(item SpaceToken) is ; empty
+
+    public fn Visit(item Statement) is throw new InvalidItemException()
+
+    public fn Visit(item String)
+        for line in item.Lines
+            item.SetParent(line, this)
+
+    public fn Visit(item StringToken) is ; empty
+
+    public fn Visit(item Struct)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Generics, this)
+        item.SetParent(item.Interfaces, this)
+        item.SetParent(item.Statements, this)
+
+    public fn Visit(item Switch)
+        item.SetNullableParent(item.LocalName, this)
+        item.SetNullableParent(item.LocalValue, this)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Cases, this)
+    
+    public fn Visit(item Throw) is item.SetParent(item.Value, this)
+
+    public fn Visit(item Try)
+        item.SetParent(item.Statements, this)
+        item.SetParent(item.Catches, this)
+        item.SetParent(item.FinallyStatements, this)
+    
+    public fn Visit(item UnaryOperator)
+        item.SetParent(item.Operator, this)
+        item.SetParent(item.Value, this)
+    
+    public fn Visit(item UnaryOperatorToken) is ; empty
+
+    public fn Visit(item Using)
+        item.SetParent(item.Name, this)
+        item.SetParent(item.Value, this)
+        item.SetParent(item.Statements, this)

@@ -3,7 +3,7 @@ use System
 ; namespace
 ns NSharp.Tests.Min
 
-enum Test
+public enum Test
 
     First
 
@@ -11,5 +11,5 @@ enum Test
 
 
     ; some stuff
-    Third
-    Fourth
+    Third = 3
+    Fourth ; not really
