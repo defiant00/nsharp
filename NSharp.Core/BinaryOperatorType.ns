@@ -30,27 +30,28 @@ public enum BinaryOperatorType
 public static class BinaryOperatorHelper
     public static ext{BinaryOperatorType} fn Precedence() int is this ?
         {
-            BinaryOperatorType.Dot is 12,
-            BinaryOperatorType.NullDot is 12,
+            BinaryOperatorType.Dot is 13,
+            BinaryOperatorType.NullDot is 13,
 
-            BinaryOperatorType.Is is 11,
-            BinaryOperatorType.As is 11,
+            BinaryOperatorType.As is 12,
 
-            BinaryOperatorType.Multiply is 10,
-            BinaryOperatorType.Divide is 10,
-            BinaryOperatorType.Modulus is 10,
+            BinaryOperatorType.Multiply is 11,
+            BinaryOperatorType.Divide is 11,
+            BinaryOperatorType.Modulus is 11,
 
-            BinaryOperatorType.Add is 9,
-            BinaryOperatorType.Subtract is 9,
+            BinaryOperatorType.Add is 10,
+            BinaryOperatorType.Subtract is 10,
 
-            BinaryOperatorType.LeftShift is 8,
-            BinaryOperatorType.RightShift is 8,
+            BinaryOperatorType.LeftShift is 9,
+            BinaryOperatorType.RightShift is 9,
 
-            BinaryOperatorType.BitwiseAnd is 7,
+            BinaryOperatorType.BitwiseAnd is 8,
+
+            BinaryOperatorType.BitwiseXor is 7,
 
             BinaryOperatorType.BitwiseOr is 6,
-            BinaryOperatorType.BitwiseXor is 6,
 
+            BinaryOperatorType.Is is 5,
             BinaryOperatorType.LessThan is 5,
             BinaryOperatorType.GreaterThan is 5,
             BinaryOperatorType.LessThanOrEqual is 5,
