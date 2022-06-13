@@ -254,7 +254,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteIndented("Enum: ")
         item.Name.Accept(this)
         WriteLine()
-        WriteIndentedBlock(item.Values)
+        WriteIndentedBlock(item.Statements)
 
     public fn Visit(item EnumerationItem)
         WriteIndented()

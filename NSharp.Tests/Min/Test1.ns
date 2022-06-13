@@ -2,27 +2,13 @@ use System
 
 ns NSharp.Tests.Min
 
-class MyClass
-    public fn Test()
-        try
-            ; stuff
-        catch
-            ; catch
-        catch Exception
-            ; another catch
-        catch Exception ex
-            ; with name
-        finally
-            ; finally?
-        
-        try : t
-        catch: c
-        catch Exception: eh
-        catch Exception ex: aha
-        finally: done
+enum Test
 
-        try
-            ; do stuff
-        catch
+    First
 
-        ; and we go on our merry way
+    Second
+
+
+    ; some stuff
+    Third
+    Fourth

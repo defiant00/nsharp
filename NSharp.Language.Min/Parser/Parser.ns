@@ -447,11 +447,11 @@ public class Parser
         var enumStmt = new Enumeration(group.Token(res).Position, group.Token(res, 1).ToIdentifierToken())
 
         AdvanceLine(group)
-        ParseIndentBlock(group, enumStmt.Values, ParseEnumerationItem)
+        ParseIndentBlock(group, enumStmt.Statements, ParseEnumStatement)
 
         ret enumStmt
     
-    private fn ParseEnumerationItem(group Group) Statement
+    private fn ParseEnumItem(group Group) Statement
         ; name ["=" value] [";" comment]
         var res = group.Accept(TokenType.Identifier)
         if res.Failure
@@ -470,6 +470,15 @@ public class Parser
             AdvanceLine(group)
         
         ret enumItemStmt
+    
+    private fn ParseEnumStatement(group Group) Statement
+        if !group.Tokens.Any()
+            ret ParseSpace(group)
+        if group.Peek.Type
+            is TokenType.Comment
+                ret ParseComment(group)
+            is _
+                ret ParseEnumItem(group)
 
     private fn ParseExpression(group Group) Expression
         var left = ParsePrimaryExpression(group)

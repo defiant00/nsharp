@@ -2,10 +2,10 @@ ns NSharp.Core.SyntaxTree
 
 public class Enumeration is Statement
     public fn Name IdentifierToken
-    public fn Values List{Statement}
+    public fn Statements List{Statement}
 
-    public fn new(position Position, name IdentifierToken, values ?List{Statement} = null) base(position)
+    public fn new(position Position, name IdentifierToken, statements ?List{Statement} = null) base(position)
         Name = name
-        Values = values ?? new()
+        Statements = statements ?? new()
     
     public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
