@@ -1,111 +1,33 @@
+use NSharp.Core
 use NSharp.Core.SyntaxTree
 
 ns NSharp.Compiler
 
 public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
-    public fn new(fileName str) is ; empty
+    private fn Buffer StreamWriter
+    private fn Indent int = 0
+    
+    private fn Write(line str) is Buffer.Write(line)
+    private fn WriteLine() is Buffer.WriteLine()
+    private fn WriteLine(line str) is Buffer.WriteLine(line)
 
-    public fn Dispose() is ; empty
+    private fn WriteIndent()
+        for i = 0, i < Indent, i += 1
+            Write("    ")
 
-    public fn Visit(item ArgumentModifierToken) is throw new NotImplementedException()
-    public fn Visit(item AssignmentOperatorToken) is throw new NotImplementedException()
-    public fn Visit(item BadExpressionToken) is throw new NotImplementedException()
-    public fn Visit(item BadStatementToken) is throw new NotImplementedException()
-    public fn Visit(item BaseClassToken) is throw new NotImplementedException()
-    public fn Visit(item BinaryOperatorToken) is throw new NotImplementedException()
-    public fn Visit(item BreakToken) is throw new NotImplementedException()
-    public fn Visit(item CharacterToken) is throw new NotImplementedException()
-    public fn Visit(item CommentToken) is throw new NotImplementedException()
-    public fn Visit(item ContinueToken) is throw new NotImplementedException()
-    public fn Visit(item CurrentObjectInstanceToken) is throw new NotImplementedException()
-    public fn Visit(item DefaultValueToken) is throw new NotImplementedException()
-    public fn Visit(item DiscardToken) is throw new NotImplementedException()
-    public fn Visit(item GenericConstraintToken) is throw new NotImplementedException()
-    public fn Visit(item IdentifierToken) is throw new NotImplementedException()
-    public fn Visit(item ImportToken) is throw new NotImplementedException()
-    public fn Visit(item LiteralToken) is throw new NotImplementedException()
-    public fn Visit(item NamespaceToken) is throw new NotImplementedException()
-    public fn Visit(item NumberToken) is throw new NotImplementedException()
-    public fn Visit(item ParameterModifierToken) is throw new NotImplementedException()
-    public fn Visit(item SpaceToken) is throw new NotImplementedException()
-    public fn Visit(item StringToken) is throw new NotImplementedException()
-    public fn Visit(item UnaryOperatorToken) is throw new NotImplementedException()
+    private fn WriteIndented(line str)
+        WriteIndent()
+        Write(line)
 
-    public fn Visit(item AnonymousFunction) is throw new NotImplementedException()
-    public fn Visit(item Argument) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.Arguments) is throw new NotImplementedException()
-    public fn Visit(item ArrayLiteral) is throw new NotImplementedException()
-    public fn Visit(item ArrayType) is throw new NotImplementedException()
-    public fn Visit(item Assignment) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.Attribute) is throw new NotImplementedException()
-    public fn Visit(item AttributeBlock) is throw new NotImplementedException()
-    public fn Visit(item BinaryOperator) is throw new NotImplementedException()
-    public fn Visit(item Block) is throw new NotImplementedException()
-    public fn Visit(item Case) is throw new NotImplementedException()
-    public fn Visit(item Catch) is throw new NotImplementedException()
-    public fn Visit(item Class) is throw new NotImplementedException()
-    public fn Visit(item Condition) is throw new NotImplementedException()
-    public fn Visit(item Conditional) is throw new NotImplementedException()
-    public fn Visit(item Constant) is throw new NotImplementedException()
-    public fn Visit(item ConstructorCall) is throw new NotImplementedException()
-    public fn Visit(item ConstructorDefinition) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.Delegate) is throw new NotImplementedException()
-    public fn Visit(item Enumeration) is throw new NotImplementedException()
-    public fn Visit(item EnumerationItem) is throw new NotImplementedException()
-    public fn Visit(item Expression) is throw new NotImplementedException()
-    public fn Visit(item ExpressionStatement) is throw new NotImplementedException()
-    public fn Visit(item Field) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.File) is ; empty
-    public fn Visit(item For) is throw new NotImplementedException()
-    public fn Visit(item ForEach) is throw new NotImplementedException()
-    public fn Visit(item Generic) is throw new NotImplementedException()
-    public fn Visit(item If) is throw new NotImplementedException()
-    public fn Visit(item Initializer) is throw new NotImplementedException()
-    public fn Visit(item Interface) is throw new NotImplementedException()
-    public fn Visit(item LocalConstant) is throw new NotImplementedException()
-    public fn Visit(item LocalVariable) is throw new NotImplementedException()
-    public fn Visit(item MethodDefinition) is throw new NotImplementedException()
-    public fn Visit(item MethodSignature) is throw new NotImplementedException()
-    public fn Visit(item NamedExpression) is throw new NotImplementedException()
-    public fn Visit(item Node) is throw new NotImplementedException()
-    public fn Visit(item NullableType) is throw new NotImplementedException()
-    public fn Visit(item Parameter) is throw new NotImplementedException()
-    public fn Visit(item PropertyDefinition) is throw new NotImplementedException()
-    public fn Visit(item PropertySignature) is throw new NotImplementedException()
-    public fn Visit(item Return) is throw new NotImplementedException()
-    public fn Visit(item Statement) is throw new NotImplementedException()
-    public fn Visit(item Core.SyntaxTree.String) is throw new NotImplementedException()
-    public fn Visit(item Struct) is throw new NotImplementedException()
-    public fn Visit(item Switch) is throw new NotImplementedException()
-    public fn Visit(item Throw) is throw new NotImplementedException()
-    public fn Visit(item Try) is throw new NotImplementedException()
-    public fn Visit(item UnaryOperator) is throw new NotImplementedException()
-    public fn Visit(item Using) is throw new NotImplementedException()
+    private fn WriteLineIndented(line str)
+        WriteIndent()
+        WriteLine(line)
 
-
-    ; private fn Buffer StreamWriter
-    ; private fn Indent int = 0
     ; private fn CurrentObject str = str.Empty
     ; private fn BinopParentPrecedence Stack{int} = new()
     ; private fn InFor bool
     ; private fn InExtension bool
     ; private fn ExprStmtVarStack Stack{str} = new()
-
-    ; private fn Write(line str) is Buffer.Write(line)
-    ; private fn WriteLine() is Buffer.WriteLine()
-    ; private fn WriteLine(line str) is Buffer.WriteLine(line)
-
-    ; private fn WriteIndent()
-    ;     for i = 0, i < Indent, i += 1
-    ;         Write("    ")
-
-    ; private fn WriteIndented(line str)
-    ;     WriteIndent()
-    ;     Write(line)
-
-    ; private fn WriteLineIndented(line str)
-    ;     WriteIndent()
-    ;     WriteLine(line)
 
     ; private fn WriteModifiersIndented(modifiers List{Modifier}, canBeSealed bool = false, canOverride bool = false)
     ;     WriteIndented(str.Join(" ", modifiers.Select(fn(m) is m.Type ?
@@ -152,14 +74,14 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     if ExprStmtVarStack.Any() and !IsNestedHandled(expr)
     ;         Write("{ExprStmtVarStack.Peek()}.")
     
-    ; private fn JoinItems(items IEnumerable{ISyntaxTreeItem})
-    ;     var first = true
-    ;     for item in items
-    ;         if first
-    ;             first = false
-    ;         else
-    ;             Write(", ")
-    ;         item.Accept(this)
+    private fn JoinItems(items IEnumerable{Node}, separator str = ", ")
+        var first = true
+        for item in items
+            if first
+                first = false
+            else
+                Write(separator)
+            item.Accept(this)
     
     ; private fn Escape(value str) str is new StringBuilder(value)
     ;     .Replace("{{", "{{{{")
@@ -171,16 +93,13 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     .Replace("\t", "\\t")
     ;     .ToString()
 
-    ; public fn new(fileName str)
-    ;     Buffer = new StreamWriter(fileName)
-    ;     BinopParentPrecedence.Push(-1)
+    public fn new(fileName str)
+        Buffer = new StreamWriter(fileName)
+        ; BinopParentPrecedence.Push(-1)
 
-    ; public fn Dispose() is Buffer?.Dispose()
+    public fn Dispose() is Buffer?.Dispose()
 
-    ; public fn Visit(item Expression) is Write("/* expression */")
-
-    ; public fn Visit(item Statement) is WriteLine("/* statement */")
-
+    public fn Visit(item AnonymousFunction) is throw new NotImplementedException()
     ; public fn Visit(item AnonymousFunction)
     ;     Write("(")
     ;     JoinItems(item.Parameters)
@@ -193,6 +112,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         WriteStatementBlock(item.Statements)
     ;     Indent -= 1
 
+    public fn Visit(item Argument) is throw new NotImplementedException()
     ; public fn Visit(item Argument)
     ;     if item.Name != null
     ;         Write("{item.Name}: ")
@@ -207,15 +127,30 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     ;     item.Value.Accept(this)
 
-    ; public fn Visit(item Core.Ast.Array)
-    ;     item.Type.Accept(this)
-    ;     Write("[]")
+    public fn Visit(item ArgumentModifierToken) is throw new NotImplementedException()
 
+    public fn Visit(item Core.SyntaxTree.Arguments) is throw new NotImplementedException()
+    ; public fn Visit(item MethodCall)
+    ;     if item.Expr == null and ExprStmtVarStack.Any()
+    ;         Write(ExprStmtVarStack.Peek())
+    ;     else
+    ;         item.Expr?.Accept(this)
+    ;     Write("(")
+    ;     JoinItems(item.Arguments)
+    ;     Write(")")
+
+    public fn Visit(item ArrayLiteral) is throw new NotImplementedException()
     ; public fn Visit(item ArrayLiteral)
     ;     Write("{{")
     ;     JoinItems(item.Values)
     ;     Write("}}")
 
+    public fn Visit(item ArrayType) is throw new NotImplementedException()
+    ; public fn Visit(item Core.Ast.Array)
+    ;     item.Type.Accept(this)
+    ;     Write("[]")
+
+    public fn Visit(item Assignment) is throw new NotImplementedException()
     ; public fn Visit(item Assignment)
     ;     if !InFor
     ;         WriteIndent()
@@ -241,6 +176,19 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     if !InFor
     ;         WriteLine(";")
 
+    public fn Visit(item AssignmentOperatorToken) is throw new NotImplementedException()
+
+    public fn Visit(item Core.SyntaxTree.Attribute) is throw new NotImplementedException()
+
+    public fn Visit(item AttributeBlock) is throw new NotImplementedException()
+
+    public fn Visit(item BadExpressionToken) is Write("/* bad expression */")
+
+    public fn Visit(item BadStatementToken) is WriteLineIndented("/* bad statement */")
+
+    public fn Visit(item BaseClassToken) is throw new NotImplementedException()
+
+    public fn Visit(item BinaryOperator) is throw new NotImplementedException()
     ; public fn Visit(item BinaryOperator)
     ;     var parens = item.Operator.Precedence() < BinopParentPrecedence.Peek()
     ;     if (parens)
@@ -289,10 +237,15 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     if parens
     ;         Write(")")
 
+    public fn Visit(item BinaryOperatorToken) is throw new NotImplementedException()
+
+    public fn Visit(item Block) is throw new NotImplementedException()
     ; public fn Visit(item Block) is WriteStatementBlock(item.Statements)
 
+    public fn Visit(item BreakToken) is throw new NotImplementedException()
     ; public fn Visit(item Break) is WriteLineIndented("break;")
 
+    public fn Visit(item Case) is throw new NotImplementedException()
     ; public fn Visit(item Case)
     ;     if item.Value is Discard
     ;         WriteLineIndented("default:")
@@ -307,6 +260,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;             WriteLineIndented("break;")
     ;         Indent -= 1
 
+    public fn Visit(item Catch) is throw new NotImplementedException()
     ; public fn Visit(item Catch)
     ;     WriteIndented("catch")
     ;     if item.Type != null
@@ -318,8 +272,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine()
     ;     WriteStatementBlock(item.Statements)
 
+    public fn Visit(item CharacterToken) is throw new NotImplementedException()
     ; public fn Visit(item Character) is Write("'{item.Value}'")
 
+    public fn Visit(item Class) is throw new NotImplementedException()
     ; public fn Visit(item Core.Ast.Class)
     ;     CurrentObject = item.Name
 
@@ -339,8 +295,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine()
     ;     WriteStatementBlock(item.Statements)
 
-    ; public fn Visit(item Comment) is WriteLineIndented("//{(item.IsDocumentation ? "/" : "")}{item.Value}")
+    public fn Visit(item CommentToken) is WriteLineIndented("//{item.IsDocumentation ? "/" : ""}{item.Value}")
 
+    public fn Visit(item Condition) is throw new NotImplementedException()
     ; public fn Visit(item Condition)
     ;     WriteIndent()
     ;     item.Value.Accept(this)
@@ -348,6 +305,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     item.Result.Accept(this)
     ;     WriteLine(",")
 
+    public fn Visit(item Conditional) is throw new NotImplementedException()
     ; public fn Visit(item Conditional)
     ;     item.Value.Accept(this)
     ;     if item.Conditions.Count == 2 and
@@ -371,6 +329,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Indent -= 1
     ;         WriteIndented("}}")
 
+    public fn Visit(item Constant) is throw new NotImplementedException()
     ; public fn Visit(item Constant)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" const ")
@@ -381,6 +340,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         item.Value.Accept(this)
     ;     WriteLine(";")
 
+    public fn Visit(item ConstructorCall) is throw new NotImplementedException()
     ; public fn Visit(item ConstructorCall)
     ;     Write("new ")
     ;     item.Expr.Accept(this)
@@ -396,6 +356,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;             item.InitValues[i].Accept(this)
     ;         Write("}}")
 
+    public fn Visit(item ConstructorDefinition) is throw new NotImplementedException()
     ; public fn Visit(item ConstructorDefinition)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" {CurrentObject}(")
@@ -408,12 +369,16 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine()
     ;     WriteStatementBlock(item.Statements)
 
+    public fn Visit(item ContinueToken) is throw new NotImplementedException()
     ; public fn Visit(item Continue) is WriteLineIndented("continue;")
 
+    public fn Visit(item CurrentObjectInstanceToken) is throw new NotImplementedException()
     ; public fn Visit(item CurrentObjectInstance) is Write(InExtension ? "__this" : "this")
 
+    public fn Visit(item DefaultValueToken) is throw new NotImplementedException()
     ; public fn Visit(item DefaultValue) is Write("default")
 
+    public fn Visit(item Core.SyntaxTree.Delegate) is throw new NotImplementedException()
     ; public fn Visit(item DelegateDefinition)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" delegate ")
@@ -428,8 +393,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     JoinItems(item.Parameters)
     ;     WriteLine(");")
 
+    public fn Visit(item DiscardToken) is throw new NotImplementedException()
     ; public fn Visit(item Discard) is Write("_")
 
+    public fn Visit(item Enumeration) is throw new NotImplementedException()
     ; public fn Visit(item Enumeration)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     WriteLine(" enum {item.Name}")
@@ -440,6 +407,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     Indent -= 1
     ;     WriteLineIndented("}}")
 
+    public fn Visit(item EnumerationItem) is throw new NotImplementedException()
     ; public fn Visit(item EnumerationItem)
     ;     WriteIndented(item.Name)
     ;     if item.Value != null
@@ -450,10 +418,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     else
     ;         WriteLine()
 
-    ; public fn Visit(item ErrorExpression) is Write("/* Error: {item.Value} */")
+    public fn Visit(item Expression) is throw new InvalidItemException()
 
-    ; public fn Visit(item ErrorStatement) is WriteLineIndented("/* Error: {item.Value} */")
-
+    public fn Visit(item ExpressionStatement) is throw new NotImplementedException()
     ; public fn Visit(item ExpressionStatement)
     ;     if item.Statements.Any()
     ;         WriteLineIndented("{{")
@@ -475,6 +442,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         item.Expr.Accept(this)
     ;         WriteLine(";")
 
+    public fn Visit(item Field) is throw new NotImplementedException()
     ; public fn Visit(item Field)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" ")
@@ -485,12 +453,13 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         item.Value.Accept(this)
     ;     WriteLine(";")
 
-    ; public fn Visit(item Core.Ast.File)
-    ;     WriteLineIndented("// {DateTime.Now}")
-    ;     WriteLine()
-    ;     for statement in item.Statements
-    ;         statement.Accept(this)
+    public fn Visit(item Core.SyntaxTree.File)
+        WriteLineIndented("// {DateTime.Now}")
+        WriteLine()
+        for statement in item.Statements
+            statement.Accept(this)
 
+    public fn Visit(item For) is throw new NotImplementedException()
     ; public fn Visit(item For)
     ;     if item.Init == null and item.Post == null
     ;         if item.Condition == null
@@ -512,12 +481,14 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         WriteLine(")")
     ;         WriteStatementBlock(item.Statements)
 
+    public fn Visit(item ForEach) is throw new NotImplementedException()
     ; public fn Visit(item ForEach)
     ;     WriteIndented("foreach (var {item.LocalName} in ")
     ;     item.Expr.Accept(this)
     ;     WriteLine(")")
     ;     WriteStatementBlock(item.Statements)
 
+    public fn Visit(item Generic) is throw new NotImplementedException()
     ; public fn Visit(item Generic)
     ;     if item.Expr == null and ExprStmtVarStack.Any()
     ;         Write(ExprStmtVarStack.Peek())
@@ -527,8 +498,12 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     JoinItems(item.Arguments)
     ;     Write(">")
 
-    ; public fn Visit(item Identifier) is Write(item.Value)
+    public fn Visit(item GenericConstraintToken) is throw new NotImplementedException()
 
+    public fn Visit(item IdentifierToken) is throw new NotImplementedException()
+    ; public fn Visit(item Identifier) is Write(item.Value)
+    
+    public fn Visit(item If) is throw new NotImplementedException()
     ; public fn Visit(item If)
     ;     WriteLineIndented("{{")
     ;     Indent += 1
@@ -546,30 +521,11 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     Indent -= 1
     ;     WriteLineIndented("}}")
 
-    ; public fn Visit(item ImplicitConstructorCall)
-    ;     Write("new(")
-    ;     JoinItems(item.Arguments)
-    ;     Write(")")
-    ;     if item.InitNames.Any()
-    ;         Write("{{")
-    ;         for i = 0, i < item.InitNames.Count, i += 1
-    ;             if i > 0
-    ;                 Write(", ")
-    ;             Write("{item.InitNames[i]} = ")
-    ;             item.InitValues[i].Accept(this)
-    ;         Write("}}")
-
-    ; public fn Visit(item Import) is WriteLineIndented("using {str.Join(".", item.NameParts)};")
-
-    ; public fn Visit(item Indexer)
-    ;     if item.Expr == null and ExprStmtVarStack.Any()
-    ;         Write(ExprStmtVarStack.Peek())
-    ;     else
-    ;         item.Expr?.Accept(this)
-    ;     Write("[")
-    ;     JoinItems(item.Arguments)
-    ;     Write("]")
-
+    public fn Visit(item ImportToken) is WriteLineIndented("using {str.Join(".", item.NameParts)};")
+    
+    public fn Visit(item Initializer) is throw new NotImplementedException()
+    
+    public fn Visit(item Interface) is throw new NotImplementedException()
     ; public fn Visit(item Interface)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" interface {item.Name}")
@@ -581,6 +537,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine()
     ;     WriteStatementBlock(item.Statements)
 
+    public fn Visit(item LiteralToken) is throw new NotImplementedException()
     ; public fn Visit(item LiteralToken) is Write(item.Token ?
     ;     {
     ;         LiteralType.False is "false",
@@ -589,6 +546,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         _ is "[literal]",
     ;     })
 
+    public fn Visit(item LocalConstant) is throw new NotImplementedException()
     ; public fn Visit(item LocalConstant)
     ;     WriteIndented("const ")
     ;     item.Type.Accept(this)
@@ -597,7 +555,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Write(" = ")
     ;         item.Value.Accept(this)
     ;     WriteLine(";")
-
+    
+    public fn Visit(item LocalVariable) is throw new NotImplementedException()
     ; public fn Visit(item LocalVariable)
     ;     WriteIndent()
     ;     if item.Type == null
@@ -609,16 +568,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Write(" = ")
     ;         item.Value.Accept(this)
     ;     WriteLine(";")
-
-    ; public fn Visit(item MethodCall)
-    ;     if item.Expr == null and ExprStmtVarStack.Any()
-    ;         Write(ExprStmtVarStack.Peek())
-    ;     else
-    ;         item.Expr?.Accept(this)
-    ;     Write("(")
-    ;     JoinItems(item.Arguments)
-    ;     Write(")")
-
+    
+    public fn Visit(item MethodDefinition) is throw new NotImplementedException()
     ; public fn Visit(item MethodDefinition)
     ;     WriteModifiersIndented(item.Modifiers, canOverride = true)
     ;     Write(" ")
@@ -647,7 +598,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine(")")
     ;     WriteStatementBlock(item.Statements)
     ;     InExtension = false
-
+    
+    public fn Visit(item MethodSignature) is throw new NotImplementedException()
     ; public fn Visit(item MethodSignature)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" ")
@@ -662,18 +614,21 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     JoinItems(item.Parameters)
     ;     WriteLine(");")
 
-    ; public fn Visit(item Modifier) is Write("/* modifier */")
-
+    public fn Visit(item NamedExpression) is throw new NotImplementedException()
     ; public fn Visit(item NamedExpression)
     ;     item.Expr.Accept(this)
     ;     Write(" {item.Name}")
 
-    ; public fn Visit(item Namespace) is WriteLineIndented("namespace {str.Join(".", item.NameParts)};")
+    public fn Visit(item NamespaceToken) is WriteLineIndented("namespace {str.Join(".", item.NameParts)};")
 
+    public fn Visit(item Node) is throw new InvalidItemException()
+
+    public fn Visit(item NullableType) is throw new NotImplementedException()
     ; public fn Visit(item Core.Ast.Nullable)
     ;     item.Type.Accept(this)
     ;     Write("?")
 
+    public fn Visit(item NumberToken) is throw new NotImplementedException()
     ; public fn Visit(item Number) is Write(item.Type ? {
     ;     NumberType.Binary is "0b{item.Value}",
     ;     NumberType.Decimal is item.Value,
@@ -681,6 +636,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     _ is "[{item.Type}:{item.Value}]",
     ; })
 
+    public fn Visit(item Parameter) is throw new NotImplementedException()
     ; public fn Visit(item Parameter)
     ;     var mods = str.Join(" ", item.Modifiers.Select(fn(m) is m ?
     ;     {
@@ -697,6 +653,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Write(" = ")
     ;         item.Value.Accept(this)
 
+    public fn Visit(item ParameterModifierToken) is throw new NotImplementedException()
+
+    public fn Visit(item PropertyDefinition) is throw new NotImplementedException()
     ; public fn Visit(item Property)
     ;     WriteModifiersIndented(item.Modifiers, canOverride = true)
     ;     Write(" ")
@@ -727,6 +686,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Write(";")
     ;     WriteLine()
 
+    public fn Visit(item PropertySignature) is throw new NotImplementedException()
     ; public fn Visit(item PropertySignature)
     ;     WriteModifiersIndented(item.Modifiers)
     ;     Write(" ")
@@ -738,15 +698,19 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         Write("set;")
     ;     WriteLine("}}")
 
+    public fn Visit(item Return) is throw new NotImplementedException()
     ; public fn Visit(item Return)
     ;     WriteIndented("return ")
     ;     item.Value?.Accept(this)
     ;     WriteLine(";")
 
-    ; public fn Visit(item Space)
-    ;     for i = 0, i < item.Size, i += 1
-    ;         WriteLine()
+    public fn Visit(item SpaceToken)
+        for i = 0, i < item.Size, i += 1
+            WriteLine()
 
+    public fn Visit(item Statement) is throw new InvalidItemException()
+
+    public fn Visit(item Core.SyntaxTree.String) is throw new NotImplementedException()
     ; public fn Visit(item Core.Ast.String)
     ;     Write("$\"")
 
@@ -766,8 +730,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         
     ;     Write("\"")
 
+    public fn Visit(item StringToken) is throw new NotImplementedException()
     ; public fn Visit(item StringLiteral) is Write(Escape(item.Value))
 
+    public fn Visit(item Struct) is throw new NotImplementedException()
     ; public fn Visit(item Struct)
     ;     CurrentObject = item.Name
 
@@ -781,6 +747,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     WriteLine()
     ;     WriteStatementBlock(item.Statements)
 
+    public fn Visit(item Switch) is throw new NotImplementedException()
     ; public fn Visit(item Switch)
     ;     WriteLineIndented("{{")
     ;     Indent += 1
@@ -795,10 +762,12 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     Indent -= 1
     ;     WriteLineIndented("}}")
 
+    public fn Visit(item Throw) is throw new NotImplementedException()
     ; public fn Visit(item Throw)
     ;     Write("throw ")
     ;     item.Exception.Accept(this)
 
+    public fn Visit(item Try) is throw new NotImplementedException()
     ; public fn Visit(item Try)
     ;     WriteLineIndented("try")
     ;     WriteStatementBlock(item.Statements)
@@ -808,6 +777,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;         WriteLineIndented("finally")
     ;         WriteStatementBlock(item.FinallyStatements)
 
+    public fn Visit(item UnaryOperator) is throw new NotImplementedException()
     ; public fn Visit(item UnaryOperator)
     ;     Write(item.Operator ?
     ;     {
@@ -820,6 +790,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     ;     item.Expr.Accept(this)
     ;     Write(")")
 
+    public fn Visit(item UnaryOperatorToken) is throw new NotImplementedException()
+
+    public fn Visit(item Using) is throw new NotImplementedException()
     ; public fn Visit(item Using)
     ;     if item.Statements.Any()
     ;         WriteIndented("using (var {item.LocalName} = ")

@@ -1,5 +1,6 @@
 use System
 
+; namespace
 ns NSharp.Tests.Min
 
 enum Test
