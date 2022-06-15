@@ -3,16 +3,10 @@ use System
 ; namespace
 ns NSharp.Tests.Min
 
-class TestClass{TIn, TOut} is System.String has IDisposable
-    fn Test{T}(a int, b str) str
-        (1 + 2) * 3
-        (1 * 2) + 3
-        (1 + 2) + 3
-        1 + (2 * 3)
-        1 * (2 + 3)
-        1 + (2 + 3)
-        3 as str
-        break
-        continue
-        ret
-        ret f
+class TestClass
+    fn Test()
+        var x = [1, 2, 3]
+        var s str = "hi"
+        val t = "hi"
+        y += 7
+        _
