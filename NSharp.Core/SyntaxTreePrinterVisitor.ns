@@ -125,7 +125,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         Write("]")
 
     public fn Visit(item ArrayType)
-        Write("array(")
+        Write("array_{item.Dimension}(")
         item.Type.Accept(this)
         Write(")")
 

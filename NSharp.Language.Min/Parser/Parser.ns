@@ -108,7 +108,7 @@ public class Parser
         ret argStmt
 
     private fn ParseArguments(group Group, args List{Expression}) bool
-        ; "(" [arguments] ")"
+        ; "(" {arguments} ")"
         if group.Peek.Type == TokenType.ParenthesisGroup and group.Next() is Group parenthesisGroup
             if parenthesisGroup.More
                 args.Add(ParseArgument(parenthesisGroup))
@@ -119,12 +119,12 @@ public class Parser
         ret false
 
     private fn ParseArrayType(group Group) Expression
-        ; "[]" type
+        ; "[" {,} "]" type
         if next = group.Next(), next.Type == TokenType.BracketGroup and next is Group bracketGroup
-            if !bracketGroup.Tokens.Any()
-                ret new ArrayType(bracketGroup.Position, ParseType(group))
+            if bracketGroup.Tokens.All(fn(t) is t.Type == TokenType.Comma)
+                ret new ArrayType(bracketGroup.Position, ParseType(group), bracketGroup.Tokens.Count + 1)
             else
-                AddError("[code]", "an array type shouldn't have anything in the []s", bracketGroup.Position)
+                AddError("[code]", "an array type should only have commas in the []s", bracketGroup.Position)
         ret new BadExpressionToken()
 
     private fn ParseAssignment(group Group, left Expression, moveNextLine bool = true) Statement
@@ -1074,7 +1074,7 @@ public class Parser
         if peekType = group.Peek.Type, peekType
             is TokenType.BracketGroup
                 var bracketGroup = group.Peek as Group
-                if bracketGroup.Tokens.Any()
+                if bracketGroup.Tokens.Any(fn(t) is t.Type != TokenType.Comma)
                     expr = ParseArrayLiteral(group)
                 else
                     expr = ParseArrayType(group)
