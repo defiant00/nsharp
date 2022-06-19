@@ -13,6 +13,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     private fn WriteLine() : Buffer.WriteLine()
     private fn WriteLine(line str) : Buffer.WriteLine(line)
 
+    private fn GenericNames HashSet{str} = new()
+    private fn IndexerNames HashSet{str} = new()
+
     private fn WriteIndent()
         for i = 0, i < Indent, i += 1
             Write("    ")
@@ -27,7 +30,6 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     ; private fn InFor bool
     ; private fn InExtension bool
-    ; private fn ExprStmtVarStack Stack{str} = new()
 
     private fn WriteAttributes()
         WriteIndent()
@@ -89,7 +91,32 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         .Replace("\t", "\\t")
         .ToString()
 
-    public fn new(fileName str) : Buffer = new StreamWriter(fileName)
+    public fn new(fileName str)
+        Buffer = new StreamWriter(fileName)
+
+        ; Hard-coded list of generic classes
+        GenericNames.Add("HashSet")
+        GenericNames.Add("Dictionary")
+        GenericNames.Add("List")
+        GenericNames.Add("Stack")
+        GenericNames.Add("Queue")
+        GenericNames.Add("IEnumerable")
+        GenericNames.Add("Func")
+        GenericNames.Add("Action")
+
+        ; Hard-coded list of variables that use indexers
+        IndexerNames.Add("arg")
+        IndexerNames.Add("args")
+        IndexerNames.Add("Assemblies")
+        IndexerNames.Add("Conditions")
+        IndexerNames.Add("config")
+        IndexerNames.Add("Flags")
+        IndexerNames.Add("sb")
+        IndexerNames.Add("SearchItems")
+        IndexerNames.Add("settings")
+        IndexerNames.Add("Statements")
+        IndexerNames.Add("Tokens")
+        IndexerNames.Add("Types")
 
     public fn Dispose() : Buffer?.Dispose()
 
@@ -119,15 +146,29 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         _ : "[{item.Value}] ",
     })
 
-    public fn Visit(item Core.SyntaxTree.Arguments) : throw new NotImplementedException()
-    ; public fn Visit(item MethodCall)
-    ;     if item.Expr == null and ExprStmtVarStack.Any()
-    ;         Write(ExprStmtVarStack.Peek())
-    ;     else
-    ;         item.Expr?.Accept(this)
-    ;     Write("(")
-    ;     JoinItems(item.Arguments)
-    ;     Write(")")
+    public fn Visit(item Core.SyntaxTree.Arguments)
+        ; THIS IS AN AWFUL HACK TO RESOLVE ARGUMENTS TO THE
+        ; CORRECT METHOD CALL / INDEXER / GENERIC
+
+        item.Value.Accept(this)
+
+        if item.Value is IdentifierToken it and GenericNames.Contains(it.Value)
+            Write("<")
+            JoinItems(item.Values)
+            Write(">")
+        else if (item.Value is IdentifierToken it2 and IndexerNames.Contains(it2.Value)) or
+                (
+                    item.Value is BinaryOperator bo and
+                    (bo.Operator.Value == BinaryOperatorType.Dot or bo.Operator.Value == BinaryOperatorType.NullDot) and
+                    bo.RightOperand is IdentifierToken it3 and IndexerNames.Contains(it3.Value)
+                )
+            Write("[")
+            JoinItems(item.Values)
+            Write("]")
+        else
+            Write("(")
+            JoinItems(item.Values)
+            Write(")")
 
     public fn Visit(item ArrayLiteral)
         Write("{{")
@@ -256,17 +297,14 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                 WriteLineIndented("break;")
             Indent -= 1
 
-    public fn Visit(item Catch) : throw new NotImplementedException()
-    ; public fn Visit(item Catch)
-    ;     WriteIndented("catch")
-    ;     if item.Type != null
-    ;         Write(" (")
-    ;         item.Type.Accept(this)
-    ;         if item.Name != null
-    ;             Write(" {item.Name}")
-    ;         Write(")")
-    ;     WriteLine()
-    ;     WriteStatementBlock(item.Statements)
+    public fn Visit(item Catch)
+        WriteIndented("catch")
+        if item.Value != null
+            Write(" (")
+            item.Value.Accept(this)
+            Write(")")
+        WriteLine()
+        WriteStatementBlock(item.Statements)
 
     public fn Visit(item CharacterToken) : Write("'{item.Value}'")
 
@@ -722,44 +760,44 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Indent -= 1
         WriteLineIndented("}}")
 
-    public fn Visit(item Throw) : throw new NotImplementedException()
-    ; public fn Visit(item Throw)
-    ;     Write("throw ")
-    ;     item.Exception.Accept(this)
+    public fn Visit(item Throw)
+        Write("throw ")
+        item.Value.Accept(this)
 
-    public fn Visit(item Try) : throw new NotImplementedException()
-    ; public fn Visit(item Try)
-    ;     WriteLineIndented("try")
-    ;     WriteStatementBlock(item.Statements)
-    ;     for cat in item.Catches
-    ;         cat.Accept(this)
-    ;     if item.FinallyStatements.Any()
-    ;         WriteLineIndented("finally")
-    ;         WriteStatementBlock(item.FinallyStatements)
+    public fn Visit(item Try)
+        WriteLineIndented("try")
+        WriteStatementBlock(item.Statements)
+        for c in item.Catches
+            c.Accept(this)
+        if item.FinallyStatements.Any()
+            WriteLineIndented("finally")
+            WriteStatementBlock(item.FinallyStatements)
 
-    public fn Visit(item UnaryOperator) : throw new NotImplementedException()
-    ; public fn Visit(item UnaryOperator)
-    ;     Write(item.Operator ?
-    ;     {
-    ;         UnaryOperatorType.BitwiseNot : "~",
-    ;         UnaryOperatorType.Negate : "-",
-    ;         UnaryOperatorType.Not : "!",
-    ;         _ : "[unary op]",
-    ;     })
-    ;     Write("(")
-    ;     item.Expr.Accept(this)
-    ;     Write(")")
+    public fn Visit(item UnaryOperator)
+        item.Operator.Accept(this)
+        Write("(")
+        item.Value.Accept(this)
+        Write(")")
 
-    public fn Visit(item UnaryOperatorToken) : throw new NotImplementedException()
+    public fn Visit(item UnaryOperatorToken) : Write(item.Value ?
+    {
+        UnaryOperatorType.BitwiseNot : "~",
+        UnaryOperatorType.Negate : "-",
+        UnaryOperatorType.Not : "!",
+        _ : "[unary op]",
+    })
 
-    public fn Visit(item Using) : throw new NotImplementedException()
-    ; public fn Visit(item Using)
-    ;     if item.Statements.Any()
-    ;         WriteIndented("using (var {item.LocalName} = ")
-    ;         item.LocalExpr.Accept(this)
-    ;         WriteLine(")")
-    ;         WriteStatementBlock(item.Statements)
-    ;     else
-    ;         WriteIndented("using var {item.LocalName} = ")
-    ;         item.LocalExpr.Accept(this)
-    ;         WriteLine(";")
+    public fn Visit(item Using)
+        if item.Statements.Any()
+            WriteIndented("using (var ")
+            item.Name.Accept(this)
+            Write(" = ")
+            item.Value.Accept(this)
+            WriteLine(")")
+            WriteStatementBlock(item.Statements)
+        else
+            WriteIndented("using var ")
+            item.Name.Accept(this)
+            Write(" = ")
+            item.Value.Accept(this)
+            WriteLine(";")

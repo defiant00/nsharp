@@ -485,7 +485,7 @@ public class Parser
         return ParseBinaryOperatorRightSide(group, 0, left)
     
     private fn ParseExpressionStatement(group Group, moveNextLine bool = true) Statement
-        var expr = ParseExpression(group)
+        var expr = ParseThrowOr(ParseExpression, group)
 
         if group.Peek.Type.IsAssignment()
             return ParseAssignment(group, expr, moveNextLine)
