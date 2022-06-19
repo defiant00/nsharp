@@ -89,7 +89,7 @@ public static class Helper
             ("has", TokenType.Has)
             ("new", TokenType.New)
             ("base", TokenType.Base)
-            ("ret", TokenType.Return)
+            ("return", TokenType.Return)
             ("try", TokenType.Try)
             ("catch", TokenType.Catch)
             ("fin", TokenType.Finally)

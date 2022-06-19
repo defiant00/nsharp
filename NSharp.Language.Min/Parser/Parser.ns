@@ -128,8 +128,8 @@ public class Parser
     private fn ToNextLine() is To(TokenType.EOL)
     
     private fn ParseAnonymousFunction() ParseResult{Expression}
-        ; fn([params]) is [statement]
-        ; fn([params]) [type] is [statement]
+        ; fn([params]) : [statement]
+        ; fn([params]) [type] : [statement]
         ; fn([params])
         ;     [statements]
         ; //
@@ -146,11 +146,11 @@ public class Parser
         ParseParameters(anonFn.Parameters)
 
         ; return type
-        if Peek.Type != TokenType.EOL and Peek.Type != TokenType.Is
+        if Peek.Type != TokenType.EOL and Peek.Type != TokenType.Colon
             anonFn.ReturnType = ParseType().Result
 
-        ; is [statement]
-        if Accept(TokenType.Is).Success
+        ; : [statement]
+        if Accept(TokenType.Colon).Success
             anonFn.Statements.Add(ParseMethodStatement(false).Result)
             ret new ParseResult{Expression}(anonFn)
 
@@ -423,7 +423,7 @@ public class Parser
 
     private fn ParseConditional(expr Expression) ParseResult{Expression}
         ; [expr] ? [true expr] : [false expr]
-        ; [expr] ? {[value] is [result], [value] is [result]}
+        ; [expr] ? {[value] : [result], [value] : [result]}
 
         var res = Accept(TokenType.Question)
         if res.Failure
@@ -464,7 +464,7 @@ public class Parser
             if valRes.Error
                 ret valRes
 
-            res = Accept(TokenType.Is)
+            res = Accept(TokenType.Colon)
             if res.Failure
                 ret InvalidTokenErrorExpression("Invalid token in condition", res)
 
@@ -553,8 +553,8 @@ public class Parser
         ret new ParseResult{Expression}(ctor)
 
     private fn ParseConstructorDefinition(modifiers List{Modifier}, start Token) ParseResult{Statement}
-        ; [modifiers] fn new([params]) is [statement]
-        ; [modifiers] fn new([params]) base([exprs]) is [statement]
+        ; [modifiers] fn new([params]) : [statement]
+        ; [modifiers] fn new([params]) base([exprs]) : [statement]
         ; [modifiers] fn new([params])
         ;     [statements]
         ; [modifiers] fn new([params]) base([exprs])
@@ -583,8 +583,8 @@ public class Parser
             if res.Failure
                 ret InvalidTokenErrorStatement("Invalid token in ctor", res)
 
-        ; [modifiers] fn new([params]) is [statement]
-        if Accept(TokenType.Is).Success
+        ; [modifiers] fn new([params]) : [statement]
+        if Accept(TokenType.Colon).Success
             var stmtResult = ParseMethodStatement()
             if stmtResult.Error
                 ret stmtResult
@@ -946,8 +946,8 @@ public class Parser
     private fn ParseGetSet(propDef Property) ?ParseResult{Statement}
         var res AcceptResult
         if Peek.Type == TokenType.Get
-            if Accept(TokenType.Get, TokenType.Is).Success
-                ; get is [expr]
+            if Accept(TokenType.Get, TokenType.Colon).Success
+                ; get : [expr]
 
                 var exprResult = ParseExpression()
                 if exprResult.Error and exprResult.Result is ErrorExpression exp
@@ -979,8 +979,8 @@ public class Parser
                 ret InvalidTokenErrorStatement("Invalid token in set", res)
             propDef.SetParameterName = GetToken(res, 2).Value
 
-            if Accept(TokenType.Is).Success
-                ; set(v) is [statement]
+            if Accept(TokenType.Colon).Success
+                ; set(v) : [statement]
 
                 var stmtResult = ParseMethodStatement()
                 if stmtResult.Error
@@ -1316,10 +1316,10 @@ public class Parser
 
     private fn ParseMethodDefinition(modifiers List{Modifier}, nameToken Token) ParseResult{Statement}
         ; method
-        ; [modifiers] fn [name]([params]) is [statement]
+        ; [modifiers] fn [name]([params]) : [statement]
         ; [modifiers] fn [name]([params])
         ;     [statements]
-        ; [modifiers] fn [name]([params]) [type] is [expr]
+        ; [modifiers] fn [name]([params]) [type] : [expr]
         ; [modifiers] fn [name]([params]) [type]
         ;     [statements]
 
@@ -1328,8 +1328,8 @@ public class Parser
         ParseGenericNames(methodDef.GenericNames)
         ParseParameters(methodDef.Parameters)
 
-        ; [modifiers] fn [name]([params]) is [statement]
-        if Accept(TokenType.Is).Success
+        ; [modifiers] fn [name]([params]) : [statement]
+        if Accept(TokenType.Colon).Success
             var stmtResult = ParseMethodStatement()
             if stmtResult.Error
                 ret stmtResult
@@ -1345,8 +1345,8 @@ public class Parser
                 ret ErrorStatement(ex)
             methodDef.ReturnType = typeResult.Result
 
-            ; [modifiers] fn [name]([params]) [type] is [expr]
-            if Accept(TokenType.Is).Success
+            ; [modifiers] fn [name]([params]) [type] : [expr]
+            if Accept(TokenType.Colon).Success
                 var exprResult = ParseExpression()
                 if exprResult.Error and exprResult.Result is ErrorExpression exp
                     ret ErrorStatement(exp)
@@ -1680,12 +1680,12 @@ public class Parser
         ; property
         ; [modifiers] fn [name] [type] [= [expr]]
         ; [modifiers] fn [name] [type] [get and/or set] [= [expr]]
-        ; [modifiers] fn [name] [type] is [expr]
+        ; [modifiers] fn [name] [type] : [expr]
         ; [modifiers] fn [name] [type]
         ;     [statements]
         ; [modifiers] fn [name] [type] [= [expr]]
-        ;     get is [expr]
-        ;     set is [statement]
+        ;     get : [expr]
+        ;     set : [statement]
         ; [modifiers] fn [name] [type] [= [expr]]
         ;     get
         ;         [statements]
@@ -1716,8 +1716,8 @@ public class Parser
                     propDef.GetSpecified = true
                 else
                     propDef.SetSpecified = true
-        else if Accept(TokenType.Is).Success
-            ; [is [expr]]
+        else if Accept(TokenType.Colon).Success
+            ; [: [expr]]
 
             var exprResult = ParseExpression()
             if exprResult.Error and exprResult.Result is ErrorExpression exp

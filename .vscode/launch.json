@@ -13,6 +13,7 @@
             "program": "${workspaceFolder}/NSharp.Compiler/bin/Debug/net6.0/nsc.dll",
             "args": [
                 "/compile",
+                "/tocs",
                 "/print-tokens",
                 "/print-tree",
                 "/out:../bin/test",

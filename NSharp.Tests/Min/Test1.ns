@@ -2,11 +2,8 @@ use System
 
 ns NSharp.Tests.Min
 
-public class A is NSharp.Tests.Min.B
-    ; empty
+class TestClass
+    fn Test() : Console.WriteLine("hi")
 
-class B is C
-    ; empty
-
-class C is str
-    ; empty
+    fn T2()
+        return x
