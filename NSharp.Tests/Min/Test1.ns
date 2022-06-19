@@ -4,7 +4,9 @@ use System
 ns NSharp.Tests.Min
 
 class TestClass
-    public val x f128 = 12.34
     fn Test()
-        x ? 1 : 2
-        y ? {1 : "one", 2 : "two", 3 : "three"}
+        var y char = 'c'
+        var a char = '\n'
+        var b str = new{Val = "hi"}
+        var x = new Test(ref 1)
+        var z = new Test(first = out 2){Something = "yay"}
