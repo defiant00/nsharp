@@ -1411,7 +1411,7 @@ public class Parser
                 TokenType.U64 : "UInt64",
                 TokenType.F32 : "Single",
                 TokenType.F64 : "Double",
-                TokenType.Decimal : "Decimal",
+                TokenType.F128 : "Decimal",
                 _ : "Error",
             })
         group.Advance()

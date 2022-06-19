@@ -4,7 +4,7 @@ use System
 ns NSharp.Tests.Min
 
 class TestClass
-    public val x str = "hi"
+    public val x f128 = 12.34
     fn Test()
         x ? 1 : 2
         y ? {1 : "one", 2 : "two", 3 : "three"}

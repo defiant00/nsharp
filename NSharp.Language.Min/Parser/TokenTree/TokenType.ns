@@ -39,7 +39,7 @@ public enum TokenType
     U64
     F32
     F64
-    Decimal
+    F128
     Type_End
     Namespace
     Use
