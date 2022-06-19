@@ -28,43 +28,43 @@ public enum BinaryOperatorType
 
 
 public static class BinaryOperatorHelper
-    public static ext{BinaryOperatorType} fn Precedence() int is this ?
+    public static ext{BinaryOperatorType} fn Precedence() int : this ?
         {
-            BinaryOperatorType.Dot is 13,
-            BinaryOperatorType.NullDot is 13,
+            BinaryOperatorType.Dot : 13,
+            BinaryOperatorType.NullDot : 13,
 
-            BinaryOperatorType.As is 12,
+            BinaryOperatorType.As : 12,
 
-            BinaryOperatorType.Multiply is 11,
-            BinaryOperatorType.Divide is 11,
-            BinaryOperatorType.Modulus is 11,
+            BinaryOperatorType.Multiply : 11,
+            BinaryOperatorType.Divide : 11,
+            BinaryOperatorType.Modulus : 11,
 
-            BinaryOperatorType.Add is 10,
-            BinaryOperatorType.Subtract is 10,
+            BinaryOperatorType.Add : 10,
+            BinaryOperatorType.Subtract : 10,
 
-            BinaryOperatorType.LeftShift is 9,
-            BinaryOperatorType.RightShift is 9,
+            BinaryOperatorType.LeftShift : 9,
+            BinaryOperatorType.RightShift : 9,
 
-            BinaryOperatorType.BitwiseAnd is 8,
+            BinaryOperatorType.BitwiseAnd : 8,
 
-            BinaryOperatorType.BitwiseXor is 7,
+            BinaryOperatorType.BitwiseXor : 7,
 
-            BinaryOperatorType.BitwiseOr is 6,
+            BinaryOperatorType.BitwiseOr : 6,
 
-            BinaryOperatorType.Is is 5,
-            BinaryOperatorType.LessThan is 5,
-            BinaryOperatorType.GreaterThan is 5,
-            BinaryOperatorType.LessThanOrEqual is 5,
-            BinaryOperatorType.GreaterThanOrEqual is 5,
+            BinaryOperatorType.Is : 5,
+            BinaryOperatorType.LessThan : 5,
+            BinaryOperatorType.GreaterThan : 5,
+            BinaryOperatorType.LessThanOrEqual : 5,
+            BinaryOperatorType.GreaterThanOrEqual : 5,
 
-            BinaryOperatorType.Equal is 4,
-            BinaryOperatorType.NotEqual is 4,
+            BinaryOperatorType.Equal : 4,
+            BinaryOperatorType.NotEqual : 4,
 
-            BinaryOperatorType.And is 3,
+            BinaryOperatorType.And : 3,
 
-            BinaryOperatorType.Or is 2,
+            BinaryOperatorType.Or : 2,
 
-            BinaryOperatorType.NullCoalesce is 1,
+            BinaryOperatorType.NullCoalesce : 1,
 
-            _ is -1,
+            _ : -1,
         }

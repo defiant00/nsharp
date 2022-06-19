@@ -26,22 +26,22 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Modifiers, this)
         item.SetParent(item.Value, this)
     
-    public fn Visit(item ArgumentModifierToken) is ; empty
+    public fn Visit(item ArgumentModifierToken) : ; empty
 
     public fn Visit(item Arguments)
         item.SetParent(item.Value, this)
         item.SetParent(item.Values, this)
     
-    public fn Visit(item ArrayLiteral) is item.SetParent(item.Values, this)
+    public fn Visit(item ArrayLiteral) : item.SetParent(item.Values, this)
 
-    public fn Visit(item ArrayType) is item.SetParent(item.Type, this)
+    public fn Visit(item ArrayType) : item.SetParent(item.Type, this)
 
     public fn Visit(item Assignment)
         item.SetParent(item.LeftOperand, this)
         item.SetParent(item.Operator, this)
         item.SetParent(item.RightOperand, this)
     
-    public fn Visit(item AssignmentOperatorToken) is ; empty
+    public fn Visit(item AssignmentOperatorToken) : ; empty
 
     public fn Visit(item Attribute)
         item.SetNullableParent(item.Qualifier, this)
@@ -51,22 +51,22 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Attributes, this)
         item.SetParent(item.Statements, this)
     
-    public fn Visit(item BadExpressionToken) is ; empty
+    public fn Visit(item BadExpressionToken) : ; empty
 
-    public fn Visit(item BadStatementToken) is ; empty
+    public fn Visit(item BadStatementToken) : ; empty
 
-    public fn Visit(item BaseClassToken) is ; empty
+    public fn Visit(item BaseClassToken) : ; empty
 
     public fn Visit(item BinaryOperator)
         item.SetParent(item.LeftOperand, this)
         item.SetParent(item.Operator, this)
         item.SetParent(item.RightOperand, this)
     
-    public fn Visit(item BinaryOperatorToken) is ; empty
+    public fn Visit(item BinaryOperatorToken) : ; empty
 
-    public fn Visit(item Block) is item.SetParent(item.Statements, this)
+    public fn Visit(item Block) : item.SetParent(item.Statements, this)
     
-    public fn Visit(item BreakToken) is ; empty
+    public fn Visit(item BreakToken) : ; empty
 
     public fn Visit(item Case)
         item.SetParent(item.Value, this)
@@ -76,7 +76,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetNullableParent(item.Value, this)
         item.SetParent(item.Statements, this)
     
-    public fn Visit(item CharacterToken) is ; empty
+    public fn Visit(item CharacterToken) : ; empty
 
     public fn Visit(item Class)
         item.SetParent(item.Name, this)
@@ -85,7 +85,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Interfaces, this)
         item.SetParent(item.Statements, this)
     
-    public fn Visit(item CommentToken) is ; empty
+    public fn Visit(item CommentToken) : ; empty
 
     public fn Visit(item Condition)
         item.SetParent(item.Value, this)
@@ -110,11 +110,11 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.BaseArguments, this)
         item.SetParent(item.Statements, this)
     
-    public fn Visit(item ContinueToken) is ; empty
+    public fn Visit(item ContinueToken) : ; empty
 
-    public fn Visit(item CurrentObjectInstanceToken) is ; empty
+    public fn Visit(item CurrentObjectInstanceToken) : ; empty
 
-    public fn Visit(item DefaultValueToken) is ; empty
+    public fn Visit(item DefaultValueToken) : ; empty
 
     public fn Visit(item Delegate)
         item.SetNullableParent(item.ReturnType, this)
@@ -122,7 +122,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Generics, this)
         item.SetParent(item.Parameters, this)
 
-    public fn Visit(item DiscardToken) is ; empty
+    public fn Visit(item DiscardToken) : ; empty
 
     public fn Visit(item Enumeration)
         item.SetParent(item.Name, this)
@@ -133,16 +133,16 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetNullableParent(item.Value, this)
         item.SetNullableParent(item.Comment, this)
 
-    public fn Visit(item Expression) is throw new InvalidItemException()
+    public fn Visit(item Expression) : throw new InvalidItemException()
 
-    public fn Visit(item ExpressionStatement) is item.SetParent(item.Value, this)
+    public fn Visit(item ExpressionStatement) : item.SetParent(item.Value, this)
     
     public fn Visit(item Field)
         item.SetParent(item.Name, this)
         item.SetParent(item.Type, this)
         item.SetNullableParent(item.Value, this)
     
-    public fn Visit(item File) is item.SetParent(item.Statements, this)
+    public fn Visit(item File) : item.SetParent(item.Statements, this)
     
     public fn Visit(item For)
         item.SetNullableParent(item.Name, this)
@@ -159,9 +159,9 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Name, this)
         item.SetParent(item.Constraints, this)
     
-    public fn Visit(item GenericConstraintToken) is ; empty
+    public fn Visit(item GenericConstraintToken) : ; empty
 
-    public fn Visit(item IdentifierToken) is ; empty
+    public fn Visit(item IdentifierToken) : ; empty
 
     public fn Visit(item If)
         item.SetNullableParent(item.LocalName, this)
@@ -170,7 +170,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Statements, this)
         item.SetParent(item.ElseStatements, this)
     
-    public fn Visit(item ImportToken) is ; empty
+    public fn Visit(item ImportToken) : ; empty
 
     public fn Visit(item Initializer)
         item.SetParent(item.Name, this)
@@ -182,7 +182,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Interfaces, this)
         item.SetParent(item.Statements, this)
     
-    public fn Visit(item LiteralToken) is ; empty
+    public fn Visit(item LiteralToken) : ; empty
 
     public fn Visit(item LocalConstant)
         item.SetParent(item.Name, this)
@@ -210,13 +210,13 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Value, this)
         item.SetParent(item.Name, this)
     
-    public fn Visit(item NamespaceToken) is ; empty
+    public fn Visit(item NamespaceToken) : ; empty
 
-    public fn Visit(item Node) is throw new InvalidItemException()
+    public fn Visit(item Node) : throw new InvalidItemException()
 
-    public fn Visit(item NullableType) is item.SetParent(item.Type, this)
+    public fn Visit(item NullableType) : item.SetParent(item.Type, this)
 
-    public fn Visit(item NumberToken) is ; empty
+    public fn Visit(item NumberToken) : ; empty
 
     public fn Visit(item Parameter)
         item.SetParent(item.Modifiers, this)
@@ -224,7 +224,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetNullableParent(item.Type, this)
         item.SetNullableParent(item.Value, this)
     
-    public fn Visit(item ParameterModifierToken) is ; empty
+    public fn Visit(item ParameterModifierToken) : ; empty
 
     public fn Visit(item PropertyDefinition)
         item.SetParent(item.Name, this)
@@ -240,17 +240,17 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Generics, this)
         item.SetParent(item.Type, this)
 
-    public fn Visit(item Return) is item.SetNullableParent(item.Value, this)
+    public fn Visit(item Return) : item.SetNullableParent(item.Value, this)
 
-    public fn Visit(item SpaceToken) is ; empty
+    public fn Visit(item SpaceToken) : ; empty
 
-    public fn Visit(item Statement) is throw new InvalidItemException()
+    public fn Visit(item Statement) : throw new InvalidItemException()
 
     public fn Visit(item String)
         for line in item.Lines
             item.SetParent(line, this)
 
-    public fn Visit(item StringToken) is ; empty
+    public fn Visit(item StringToken) : ; empty
 
     public fn Visit(item Struct)
         item.SetParent(item.Name, this)
@@ -264,7 +264,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Value, this)
         item.SetParent(item.Cases, this)
     
-    public fn Visit(item Throw) is item.SetParent(item.Value, this)
+    public fn Visit(item Throw) : item.SetParent(item.Value, this)
 
     public fn Visit(item Try)
         item.SetParent(item.Statements, this)
@@ -275,7 +275,7 @@ public class SetParentVisitor has ISyntaxTreeVisitor
         item.SetParent(item.Operator, this)
         item.SetParent(item.Value, this)
     
-    public fn Visit(item UnaryOperatorToken) is ; empty
+    public fn Visit(item UnaryOperatorToken) : ; empty
 
     public fn Visit(item Using)
         item.SetParent(item.Name, this)

@@ -7,7 +7,7 @@ public class Class
     public fn Emitting bool
     public fn Imports List{str}
     public fn Namespace str
-    public fn Name str is TreeItem.Name.Value
+    public fn Name str : TreeItem.Name.Value
     public fn TreeItem Core.SyntaxTree.Class
     public fn Type BuildType
 

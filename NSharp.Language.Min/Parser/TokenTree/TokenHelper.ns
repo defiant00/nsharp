@@ -4,96 +4,96 @@ use NSharp.Core.SyntaxTree
 ns NSharp.Language.Min.TokenTree
 
 public static class TokenHelper
-    public static ext{TokenType} fn IsAssignment() bool is this > TokenType.Assignment_Start and this < TokenType.Assignment_End
-    public static ext{TokenType} fn IsOperatorCanThrow() bool is this > TokenType.Operator_Can_Throw_Start and this < TokenType.Operator_Can_Throw_End
-    public static ext{TokenType} fn IsLineContinuationPostfix() bool is this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
-    public static ext{TokenType} fn IsLineContinuationPrefix() bool is this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
-    public static ext{TokenType} fn IsArgumentModifier() bool is this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
-    public static ext{TokenType} fn IsParameterModifier() bool is this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
-    public static ext{TokenType} fn IsType() bool is this > TokenType.Type_Start and this < TokenType.Type_End
-    public static ext{TokenType} fn IsBlock() bool is this > TokenType.Block_Start and this < TokenType.Block_End
-    public static ext{TokenType} fn IsGroup() bool is this > TokenType.Group_Start and this < TokenType.Group_End
-    public static ext{TokenType} fn NeedsDedent() bool is this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
-    public static ext{TokenType} fn IsUnaryOperator() bool is this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
+    public static ext{TokenType} fn IsAssignment() bool : this > TokenType.Assignment_Start and this < TokenType.Assignment_End
+    public static ext{TokenType} fn IsOperatorCanThrow() bool : this > TokenType.Operator_Can_Throw_Start and this < TokenType.Operator_Can_Throw_End
+    public static ext{TokenType} fn IsLineContinuationPostfix() bool : this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
+    public static ext{TokenType} fn IsLineContinuationPrefix() bool : this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
+    public static ext{TokenType} fn IsArgumentModifier() bool : this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
+    public static ext{TokenType} fn IsParameterModifier() bool : this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
+    public static ext{TokenType} fn IsType() bool : this > TokenType.Type_Start and this < TokenType.Type_End
+    public static ext{TokenType} fn IsBlock() bool : this > TokenType.Block_Start and this < TokenType.Block_End
+    public static ext{TokenType} fn IsGroup() bool : this > TokenType.Group_Start and this < TokenType.Group_End
+    public static ext{TokenType} fn NeedsDedent() bool : this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
+    public static ext{TokenType} fn IsUnaryOperator() bool : this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
 
-    public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType is this ?
+    public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType : this ?
         {
-            TokenType.Out is ArgumentModifierType.Out,
-            TokenType.Reference is ArgumentModifierType.Reference,
-            _ is throw new Exception(Resources.FormatFatal(0x0001, this)),
+            TokenType.Out : ArgumentModifierType.Out,
+            TokenType.Reference : ArgumentModifierType.Reference,
+            _ : throw new Exception(Resources.FormatFatal(0x0001, this)),
         }
     
-    public static ext{TokenType} fn ToParameterModifier() ParameterModifierType is this ?
+    public static ext{TokenType} fn ToParameterModifier() ParameterModifierType : this ?
         {
-            TokenType.Out is ParameterModifierType.Out,
-            TokenType.Reference is ParameterModifierType.Reference,
-            TokenType.Variable is ParameterModifierType.Parameters,
-            _ is throw new Exception(Resources.FormatFatal(0x0002, this)),
+            TokenType.Out : ParameterModifierType.Out,
+            TokenType.Reference : ParameterModifierType.Reference,
+            TokenType.Variable : ParameterModifierType.Parameters,
+            _ : throw new Exception(Resources.FormatFatal(0x0002, this)),
         }
 
-    public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType is this ?
+    public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType : this ?
         {
-            TokenType.Subtract is UnaryOperatorType.Negate,
-            TokenType.Not is UnaryOperatorType.Not,
-            TokenType.BitwiseNot is UnaryOperatorType.BitwiseNot,
-            _ is throw new Exception(Resources.FormatFatal(0x0003, this)),
+            TokenType.Subtract : UnaryOperatorType.Negate,
+            TokenType.Not : UnaryOperatorType.Not,
+            TokenType.BitwiseNot : UnaryOperatorType.BitwiseNot,
+            _ : throw new Exception(Resources.FormatFatal(0x0003, this)),
         }
 
-    public static ext{TokenType} fn ToBinaryOperator() BinaryOperatorType is this ?
+    public static ext{TokenType} fn ToBinaryOperator() BinaryOperatorType : this ?
         {
-            TokenType.Dot is BinaryOperatorType.Dot,
-            TokenType.NullDot is BinaryOperatorType.NullDot,
+            TokenType.Dot : BinaryOperatorType.Dot,
+            TokenType.NullDot : BinaryOperatorType.NullDot,
 
-            TokenType.Is is BinaryOperatorType.Is,
-            TokenType.As is BinaryOperatorType.As,
+            TokenType.Is : BinaryOperatorType.Is,
+            TokenType.As : BinaryOperatorType.As,
 
-            TokenType.Multiply is BinaryOperatorType.Multiply,
-            TokenType.Divide is BinaryOperatorType.Divide,
-            TokenType.Modulus is BinaryOperatorType.Modulus,
+            TokenType.Multiply : BinaryOperatorType.Multiply,
+            TokenType.Divide : BinaryOperatorType.Divide,
+            TokenType.Modulus : BinaryOperatorType.Modulus,
 
-            TokenType.Add is BinaryOperatorType.Add,
-            TokenType.Subtract is BinaryOperatorType.Subtract,
+            TokenType.Add : BinaryOperatorType.Add,
+            TokenType.Subtract : BinaryOperatorType.Subtract,
 
-            TokenType.LeftShift is BinaryOperatorType.LeftShift,
-            TokenType.RightShift is BinaryOperatorType.RightShift,
+            TokenType.LeftShift : BinaryOperatorType.LeftShift,
+            TokenType.RightShift : BinaryOperatorType.RightShift,
 
-            TokenType.BitwiseAnd is BinaryOperatorType.BitwiseAnd,
+            TokenType.BitwiseAnd : BinaryOperatorType.BitwiseAnd,
 
-            TokenType.BitwiseOr is BinaryOperatorType.BitwiseOr,
-            TokenType.BitwiseXor is BinaryOperatorType.BitwiseXor,
+            TokenType.BitwiseOr : BinaryOperatorType.BitwiseOr,
+            TokenType.BitwiseXor : BinaryOperatorType.BitwiseXor,
 
-            TokenType.LessThan is BinaryOperatorType.LessThan,
-            TokenType.GreaterThan is BinaryOperatorType.GreaterThan,
-            TokenType.LessThanOrEqual is BinaryOperatorType.LessThanOrEqual,
-            TokenType.GreaterThanOrEqual is BinaryOperatorType.GreaterThanOrEqual,
+            TokenType.LessThan : BinaryOperatorType.LessThan,
+            TokenType.GreaterThan : BinaryOperatorType.GreaterThan,
+            TokenType.LessThanOrEqual : BinaryOperatorType.LessThanOrEqual,
+            TokenType.GreaterThanOrEqual : BinaryOperatorType.GreaterThanOrEqual,
 
-            TokenType.Equal is BinaryOperatorType.Equal,
-            TokenType.NotEqual is BinaryOperatorType.NotEqual,
+            TokenType.Equal : BinaryOperatorType.Equal,
+            TokenType.NotEqual : BinaryOperatorType.NotEqual,
 
-            TokenType.And is BinaryOperatorType.And,
+            TokenType.And : BinaryOperatorType.And,
 
-            TokenType.Or is BinaryOperatorType.Or,
+            TokenType.Or : BinaryOperatorType.Or,
 
-            TokenType.NullCoalesce is BinaryOperatorType.NullCoalesce,
+            TokenType.NullCoalesce : BinaryOperatorType.NullCoalesce,
 
-            _ is BinaryOperatorType.None,
+            _ : BinaryOperatorType.None,
         }
 
-    public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType is this ?
+    public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType : this ?
         {
-            TokenType.Assign is AssignmentOperatorType.Assign,
-            TokenType.AddAssign is AssignmentOperatorType.Add,
-            TokenType.SubtractAssign is AssignmentOperatorType.Subtract,
-            TokenType.MultiplyAssign is AssignmentOperatorType.Multiply,
-            TokenType.DivideAssign is AssignmentOperatorType.Divide,
-            TokenType.ModulusAssign is AssignmentOperatorType.Modulus,
-            TokenType.BitwiseAndAssign is AssignmentOperatorType.BitwiseAnd,
-            TokenType.BitwiseOrAssign is AssignmentOperatorType.BitwiseOr,
-            TokenType.BitwiseXorAssign is AssignmentOperatorType.BitwiseXor,
-            TokenType.LeftShiftAssign is AssignmentOperatorType.LeftShift,
-            TokenType.RightShiftAssign is AssignmentOperatorType.RightShift,
-            TokenType.NullCoalesceAssign is AssignmentOperatorType.NullCoalesce,
-            _ is throw new Exception(Resources.FormatFatal(0x0004, this)),
+            TokenType.Assign : AssignmentOperatorType.Assign,
+            TokenType.AddAssign : AssignmentOperatorType.Add,
+            TokenType.SubtractAssign : AssignmentOperatorType.Subtract,
+            TokenType.MultiplyAssign : AssignmentOperatorType.Multiply,
+            TokenType.DivideAssign : AssignmentOperatorType.Divide,
+            TokenType.ModulusAssign : AssignmentOperatorType.Modulus,
+            TokenType.BitwiseAndAssign : AssignmentOperatorType.BitwiseAnd,
+            TokenType.BitwiseOrAssign : AssignmentOperatorType.BitwiseOr,
+            TokenType.BitwiseXorAssign : AssignmentOperatorType.BitwiseXor,
+            TokenType.LeftShiftAssign : AssignmentOperatorType.LeftShift,
+            TokenType.RightShiftAssign : AssignmentOperatorType.RightShift,
+            TokenType.NullCoalesceAssign : AssignmentOperatorType.NullCoalesce,
+            _ : throw new Exception(Resources.FormatFatal(0x0004, this)),
         }
 
     public static var KeywordTokens Dictionary{str, TokenType}
@@ -147,7 +147,7 @@ public static class TokenHelper
         KeywordTokens.Add("has", TokenType.Has)
         KeywordTokens.Add("new", TokenType.New)
         KeywordTokens.Add("base", TokenType.Base)
-        KeywordTokens.Add("ret", TokenType.Return)
+        KeywordTokens.Add("return", TokenType.Return)
         KeywordTokens.Add("try", TokenType.Try)
         KeywordTokens.Add("catch", TokenType.Catch)
         KeywordTokens.Add("finally", TokenType.Finally)

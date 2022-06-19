@@ -1,6 +1,0 @@
-ns NSharp.Core.SyntaxTree
-
-public class BadExpressionToken is Expression
-    public fn new() base(default) is ; empty
-    
-    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)

@@ -5,6 +5,6 @@ public class LocalVariable is Statement
     public fn Type ?Expression
     public fn Value ?Expression
 
-    public fn new(position Position, name IdentifierToken) base(position) is Name = name
+    public fn new(position Position, name IdentifierToken) base(position) : Name = name
     
-    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

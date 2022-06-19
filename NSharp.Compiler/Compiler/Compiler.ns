@@ -6,9 +6,9 @@ ns NSharp.Compiler
 public class Compiler has IDisposable
     private fn State State
 
-    public fn new(outFile str) is State = new(outFile)
+    public fn new(outFile str) : State = new(outFile)
 
-    public fn Dispose() is State.Dispose()
+    public fn Dispose() : State.Dispose()
 
     public fn Add(file Core.SyntaxTree.File)
         file.Accept(new ToCompileTreeVisitor(State))
@@ -16,7 +16,7 @@ public class Compiler has IDisposable
     public fn Compile() List{Diagnostic}
         ; Setup the assembly and class headers.
         CompilePass1.Run(State)
-        ret State.Diagnostics
+        return State.Diagnostics
     
     public fn Save()
         new SavePass1().Run(State)

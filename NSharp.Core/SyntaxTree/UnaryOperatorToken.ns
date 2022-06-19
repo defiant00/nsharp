@@ -1,0 +1,8 @@
+ns NSharp.Core.SyntaxTree
+
+public class UnaryOperatorToken is Node
+    public fn Value UnaryOperatorType
+
+    public fn new(position Position, value UnaryOperatorType) base(position) : Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

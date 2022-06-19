@@ -1,0 +1,8 @@
+ns NSharp.Core.SyntaxTree
+
+public class ParameterModifierToken is Node
+    public fn Value ParameterModifierType
+
+    public fn new(position Position, value ParameterModifierType) base(position) : Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

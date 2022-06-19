@@ -1,0 +1,8 @@
+ns NSharp.Core.SyntaxTree
+
+public class BinaryOperatorToken is Node
+    public fn Value BinaryOperatorType
+
+    public fn new(position Position, value BinaryOperatorType) base(position) : Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

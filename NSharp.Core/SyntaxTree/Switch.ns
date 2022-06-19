@@ -10,4 +10,4 @@ public class Switch is Statement
         Value = value
         Cases = cases ?? new()
     
-    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

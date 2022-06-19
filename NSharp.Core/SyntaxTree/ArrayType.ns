@@ -8,4 +8,4 @@ public class ArrayType is Expression
         Type = type
         Dimension = dimension
     
-    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

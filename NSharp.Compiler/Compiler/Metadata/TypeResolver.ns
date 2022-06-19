@@ -11,7 +11,7 @@ public class TypeResolver has IDisposable
     private fn Assemblies Dictionary{str, Assembly} = new()
     private fn Types Dictionary{str, Type} = new()
 
-    public fn new(state State) is State = state
+    public fn new(state State) : State = state
 
     public fn Dispose()
         for asm in Assemblies.Values
@@ -22,7 +22,7 @@ public class TypeResolver has IDisposable
             throw new Exception(Resources.FormatFatal(0x0002, name))
         Types[name] = type
     
-    public fn AddAssemblyPath(path str) is AssemblyPaths.Add(path)
+    public fn AddAssemblyPath(path str) : AssemblyPaths.Add(path)
 
     public fn AddAssemblyRef(name str)
         for path in AssemblyPaths
@@ -30,7 +30,7 @@ public class TypeResolver has IDisposable
                 var fullPath = Path.Combine(path, "{name}.{extension}")
                 if File.Exists(fullPath)
                     AddAssemblyFileRef(fullPath)
-                    ret
+                    return
 
     public fn AddAssemblyFileRef(fileName str)
         ; load the assembly
@@ -40,7 +40,7 @@ public class TypeResolver has IDisposable
         
         Assemblies[asm.Name] = asm
     
-    public fn GetOrAddTypeRef(name str) TypeReferenceHandle is GetOrAddType(name)?.TypeReferenceHandle ?? default
+    public fn GetOrAddTypeRef(name str) TypeReferenceHandle : GetOrAddType(name)?.TypeReferenceHandle ?? default
 
     public fn GetOrAddType(name str, nspace ?str = null, imports ?IEnumerable{str} = null) ?Type
         var type ?Type
@@ -67,7 +67,7 @@ public class TypeResolver has IDisposable
         
         if type == null
             State.AddDiagnostic(Severity.Error, 0x0000, name)
-            ret null
+            return null
         
         if type.IsReference
             var refType = type as ReferenceTypeBase
@@ -92,4 +92,4 @@ public class TypeResolver has IDisposable
         else if type.Handle.IsNil
             CompilePass1.ProcessClass(State, (type as BuildType).Class)
         
-        ret type
+        return type

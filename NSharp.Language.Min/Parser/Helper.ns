@@ -18,10 +18,10 @@ public static class Helper
                 sb.Remove(i - 1, 2)
                 sb.Insert(i - 1, escaped ?
                 {
-                    'n' is '\n',
-                    'r' is '\r',
-                    't' is '\t',
-                    _ is escaped,
+                    'n' : '\n',
+                    'r' : '\r',
+                    't' : '\t',
+                    _ : escaped,
                 })
 
-        ret sb.ToString()
+        return sb.ToString()

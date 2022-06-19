@@ -1,0 +1,8 @@
+ns NSharp.Core.SyntaxTree
+
+public class LiteralToken is Expression
+    public fn Value LiteralType
+
+    public fn new(position Position, value LiteralType) base(position) : Value = value
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

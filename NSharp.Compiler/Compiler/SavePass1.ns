@@ -42,7 +42,7 @@ public class SavePass1
                 state.IlBuilder,
                 debugDirectoryBuilder = debugDirBuilder,
                 entryPoint = state.EntryPoint,
-                deterministicIdProvider = fn(x) is contentId)
+                deterministicIdProvider = fn(x) : contentId)
             var peBlob = new BlobBuilder()
             var blobContentId = peBuilder.Serialize(peBlob)
             peBlob.WriteContentTo(peStream)

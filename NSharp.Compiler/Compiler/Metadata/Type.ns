@@ -3,9 +3,9 @@ use System.Reflection.Metadata
 ns NSharp.Compiler.Metadata
 
 public abstract class Type
-    public open fn IsReference bool is false
+    public open fn IsReference bool : false
     public fn Handle EntityHandle
-    public fn TypeDefinitionHandle TypeDefinitionHandle is Handle as TypeDefinitionHandle
-    public fn TypeReferenceHandle TypeReferenceHandle is Handle as TypeReferenceHandle
+    public fn TypeDefinitionHandle TypeDefinitionHandle : Handle as TypeDefinitionHandle
+    public fn TypeReferenceHandle TypeReferenceHandle : Handle as TypeReferenceHandle
     public fn Namespace str = str.Empty
     public fn Name str = str.Empty

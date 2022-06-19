@@ -4,11 +4,11 @@ ns NSharp.Language.Min.TokenTree
 
 public struct AcceptResult
     public fn Success bool = true
-    public fn Failure bool is !Success
+    public fn Failure bool : !Success
     public fn StartingIndex int
     public fn Count int = 0
     public fn SearchItems []TokenType
-    public fn MissedTokenType TokenType is SearchItems[Count]
+    public fn MissedTokenType TokenType : SearchItems[Count]
 
     public fn new(startingIndex int, items []TokenType)
         StartingIndex = startingIndex
@@ -19,7 +19,7 @@ public class Group is Token
     public fn Tokens List{Token} = new()
     public fn CurrentIndex int = 0
 
-    public fn new(position Position, type TokenType, parent ?Group = null) base(position, type) is Parent = parent
+    public fn new(position Position, type TokenType, parent ?Group = null) base(position, type) : Parent = parent
 
     public over fn Print(indent int)
         PrintIndent(indent)
@@ -27,16 +27,16 @@ public class Group is Token
         for token in Tokens
             token.Print(indent + 1)
 
-    public fn More bool is CurrentIndex < Tokens.Count
+    public fn More bool : CurrentIndex < Tokens.Count
 
-    public fn Peek Token is More ? Tokens[CurrentIndex] : MISSING_TOKEN
+    public fn Peek Token : More ? Tokens[CurrentIndex] : MISSING_TOKEN
 
     public fn Next() Token
         var token = Peek
         CurrentIndex += 1
-        ret token
+        return token
     
-    public fn Advance(count int = 1) is CurrentIndex += count
+    public fn Advance(count int = 1) : CurrentIndex += count
     
     public fn Accept(var tokenTypes []TokenType) AcceptResult
         var result = new AcceptResult(CurrentIndex, tokenTypes)
@@ -44,13 +44,13 @@ public class Group is Token
             if current = Next(), current.Type != tokenType
                 CurrentIndex = result.StartingIndex
                 result.Success = false
-                ret result
+                return result
             result.Count += 1
-        ret result
+        return result
     
-    public fn Token(result AcceptResult, index int = 0) Token is Tokens[result.StartingIndex + index]
+    public fn Token(result AcceptResult, index int = 0) Token : Tokens[result.StartingIndex + index]
 
     public fn ErrorToken(result AcceptResult) Token
-        ret result.StartingIndex + result.Count < Tokens.Count ?
+        return result.StartingIndex + result.Count < Tokens.Count ?
             Tokens[result.StartingIndex + result.Count] :
             MISSING_TOKEN

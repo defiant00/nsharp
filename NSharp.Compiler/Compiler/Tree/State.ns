@@ -26,9 +26,9 @@ public class State has IDisposable
         OutFilePath = outFilePath
         FileName = Path.GetFileName(outFilePath)
     
-    public fn Dispose() is TypeResolver.Dispose()
+    public fn Dispose() : TypeResolver.Dispose()
 
-    public fn AddDiagnostic(severity Severity, index int, var args []str) is AddDiagnostic(severity, index, default, args)
+    public fn AddDiagnostic(severity Severity, index int, var args []str) : AddDiagnostic(severity, index, default, args)
 
     public fn AddDiagnostic(severity Severity, index int, position Position, var args []str)
         var key str

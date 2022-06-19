@@ -42,7 +42,7 @@ fn(name): Console.WriteLine("Hello {name}")
 ```
 fn(x)
     var y = x * 2 + 7
-    ret y
+    return y
 /fn
 ```
 \* _Anonymous functions_ are the only multi-line expression, which is why they require an ending `/fn`.
@@ -111,7 +111,7 @@ public static class MyClass
     public ext{str} fn Lower str: str.ToLower(this)
 
     public ext{str} fn Greet() str
-        ret "Hello {this}!"
+        return "Hello {this}!"
 ```
 
 ---
@@ -204,7 +204,7 @@ public fn MyMethod()
 
 ; returns the string "hello"
 public fn MyMethod() str
-    ret "hello"
+    return "hello"
 ```
 
 ---

@@ -42,7 +42,7 @@ public static class CompilePass1
         var targetFrameworkCtorSig = new BlobBuilder()
         new BlobEncoder(targetFrameworkCtorSig)
             .MethodSignature(isInstanceMethod = true)
-            .Parameters(1, fn(r) is r.Void(), fn(p) is p.AddParameter().Type().String())
+            .Parameters(1, fn(r) : r.Void(), fn(p) : p.AddParameter().Type().String())
 
         var targetFrameworkMemberRef = state.PeMetadataBuilder.AddMemberReference(
             targetFrameworkTypeRef,
@@ -53,12 +53,12 @@ public static class CompilePass1
         var targetFrameworkAttribute = new BlobBuilder()
         new BlobEncoder(targetFrameworkAttribute)
             .CustomAttributeSignature(
-                fn(fa) is fa.AddArgument().Scalar().Constant(".NETCoreApp,Version=v6.0"),
-                fn(na) is na.Count(1).AddArgument(
+                fn(fa) : fa.AddArgument().Scalar().Constant(".NETCoreApp,Version=v6.0"),
+                fn(na) : na.Count(1).AddArgument(
                     false,
-                    fn(t) is t.ScalarType().String(),
-                    fn(n) is n.Name("FrameworkDisplayName"),
-                    fn(l) is l.Scalar().Constant("")
+                    fn(t) : t.ScalarType().String(),
+                    fn(n) : n.Name("FrameworkDisplayName"),
+                    fn(l) : l.Scalar().Constant("")
                 )
             )
         
@@ -83,7 +83,7 @@ public static class CompilePass1
     
     public static fn ProcessClass(state State, cl Class)
         if !cl.Type.Handle.IsNil
-            ret
+            return
         
         if cl.Emitting
             throw new Exception(Resources.FormatFatal(0x0000, "{cl.Namespace}.{cl.Name}"))

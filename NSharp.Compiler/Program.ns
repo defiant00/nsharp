@@ -169,18 +169,18 @@ public static class Program
 
     private static fn SetConsoleColor(severity Severity)
         Console.ForegroundColor = severity ? {
-            Severity.Message is ConsoleColor.Cyan,
-            Severity.Warning is ConsoleColor.Yellow,
-            Severity.Error is ConsoleColor.Red,
-            Severity.Fatal is ConsoleColor.Red,
-            _ is ConsoleColor.White,
+            Severity.Message : ConsoleColor.Cyan,
+            Severity.Warning : ConsoleColor.Yellow,
+            Severity.Error : ConsoleColor.Red,
+            Severity.Fatal : ConsoleColor.Red,
+            _ : ConsoleColor.White,
         }
 
     private static fn HandleCompileResult(diagnostics List{Diagnostic})
         for diagnostic in diagnostics
             SetConsoleColor(diagnostic.Severity)
             Console.WriteLine("{diagnostic.Code} {diagnostic.Message} {diagnostic.Position}")
-        if diagnostics.All(fn(d) is d.Severity < Severity.Error)
+        if diagnostics.All(fn(d) : d.Severity < Severity.Error)
             Console.ResetColor()
             Console.WriteLine(Resources.GetString("Compiler.Success"))
 
@@ -210,4 +210,4 @@ public static class Program
         if lang == null
             lang = new Min(args.Flags, config)
 
-        ret lang
+        return lang

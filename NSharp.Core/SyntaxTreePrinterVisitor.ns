@@ -3,9 +3,9 @@ ns NSharp.Core.SyntaxTree
 public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     private fn Indent int
 
-    private fn Write(value System.Object) is Console.Write(value)
-    private fn WriteLine() is Console.WriteLine()
-    private fn WriteLine(line str) is Console.WriteLine(line)
+    private fn Write(value System.Object) : Console.Write(value)
+    private fn WriteLine() : Console.WriteLine()
+    private fn WriteLine(line str) : Console.WriteLine(line)
 
     private fn WriteIndented()
         for i = 0, i < Indent, i += 1
@@ -40,57 +40,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
                 Write(separator)
             item.Accept(this)
 
-    public fn Visit(item ArgumentModifierToken) is Write(item.Value)
-
-    public fn Visit(item AssignmentOperatorToken) is Write("{item.Value}-Assign")
-
-    public fn Visit(item BadExpressionToken) is Write("[bad expr]")
-
-    public fn Visit(item BadStatementToken) is WriteLineIndented("[bad stmt]")
-
-    public fn Visit(item BaseClassToken) is Write("[base]")
-
-    public fn Visit(item BinaryOperatorToken) is Write(item.Value)
-
-    public fn Visit(item BreakToken) is WriteLineIndented("Break")
-
-    public fn Visit(item CharacterToken) is Write("'{item.Value}'")
-
-    public fn Visit(item CommentToken) is WriteLineIndented("Comment{(item.IsDocumentation ? " (doc)" : "")}: {item.Value}")
-
-    public fn Visit(item ContinueToken) is WriteLineIndented("Continue")
-
-    public fn Visit(item CurrentObjectInstanceToken) is Write("[this]")
-
-    public fn Visit(item DefaultValueToken) is Write("[default]")
-
-    public fn Visit(item DiscardToken) is Write("[discard]")
-
-    public fn Visit(item GenericConstraintToken) is Write(item.Value)
-
-    public fn Visit(item IdentifierToken) is Write(item.Value)
-
-    public fn Visit(item ImportToken) is WriteLineIndented("Import: {str.Join(".", item.NameParts)}")
-
-    public fn Visit(item LiteralToken) is Write(item.Value)
-
-    public fn Visit(item NamespaceToken) is WriteLineIndented("Namespace: {str.Join(".", item.NameParts)}")
-
-    public fn Visit(item NumberToken) is Write(item.Type ? {
-        NumberType.Binary is "bin({item.Value})",
-        NumberType.Decimal is item.Value,
-        NumberType.Hexadecimal is "hex({item.Value})",
-        _ is "[{item.Type}]({item.Value})",
-    })
-
-    public fn Visit(item ParameterModifierToken) is Write(item.Value)
-
-    public fn Visit(item SpaceToken) is WriteLineIndented("Space: {item.Size}")
-
-    public fn Visit(item StringToken) is Write(item.Value)
-
-    public fn Visit(item UnaryOperatorToken) is Write(item.Value)
-
     public fn Visit(item AnonymousFunction)
         WriteLine()
         Indent += 1
@@ -112,6 +61,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         JoinItems(item.Modifiers, " ")
         Write(" ")
         item.Value.Accept(this)
+    
+    public fn Visit(item ArgumentModifierToken) : Write(item.Value)
     
     public fn Visit(item Arguments)
         item.Value.Accept(this)
@@ -138,6 +89,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         item.RightOperand.Accept(this)
         WriteLine()
 
+    public fn Visit(item AssignmentOperatorToken) : Write("{item.Value}-Assign")
+
     public fn Visit(item Attribute)
         if item.Qualifier != null
             item.Qualifier.Accept(this)
@@ -150,6 +103,12 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
         WriteIndentedBlock(item.Statements)
 
+    public fn Visit(item BadExpressionToken) : Write("[bad expr]")
+
+    public fn Visit(item BadStatementToken) : WriteLineIndented("[bad stmt]")
+
+    public fn Visit(item BaseClassToken) : Write("[base]")
+
     public fn Visit(item BinaryOperator)
         Write("(")
         item.LeftOperand.Accept(this)
@@ -159,9 +118,13 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         item.RightOperand.Accept(this)
         Write(")")
 
+    public fn Visit(item BinaryOperatorToken) : Write(item.Value)
+
     public fn Visit(item Block)
         WriteLineIndented("Block")
         WriteIndentedBlock(item.Statements)
+
+    public fn Visit(item BreakToken) : WriteLineIndented("Break")
 
     public fn Visit(item Case)
         WriteIndented("Case: ")
@@ -175,6 +138,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
         WriteIndentedBlock(item.Statements)
 
+    public fn Visit(item CharacterToken) : Write("'{item.Value}'")
+
     public fn Visit(item Class)
         WriteIndented("Class: ")
         item.Name.Accept(this)
@@ -187,6 +152,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             JoinItems(item.Interfaces)
         WriteLine()
         WriteIndentedBlock(item.Statements)
+
+    public fn Visit(item CommentToken) : WriteLineIndented("Comment{(item.IsDocumentation ? " (doc)" : "")}: {item.Value}")
 
     public fn Visit(item Condition)
         item.Value.Accept(this)
@@ -237,6 +204,12 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         WriteLine()
         WriteIndentedBlock(item.Statements)
 
+    public fn Visit(item ContinueToken) : WriteLineIndented("Continue")
+
+    public fn Visit(item CurrentObjectInstanceToken) : Write("[this]")
+
+    public fn Visit(item DefaultValueToken) : Write("[default]")
+
     public fn Visit(item Core.SyntaxTree.Delegate)
         WriteIndented("Delegate: ")
         if item.ReturnType == null
@@ -249,6 +222,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         Write("(")
         JoinItems(item.Parameters)
         WriteLine(")")
+
+    public fn Visit(item DiscardToken) : Write("[discard]")
 
     public fn Visit(item Enumeration)
         WriteIndented("Enum: ")
@@ -270,7 +245,7 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         else
             WriteLine()
 
-    public fn Visit(item Expression) is throw new InvalidItemException()
+    public fn Visit(item Expression) : throw new InvalidItemException()
 
     public fn Visit(item ExpressionStatement)
         WriteIndented("Expr stmt: ")
@@ -320,6 +295,10 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             Write(" ")
             JoinItems(item.Constraints, " ")
 
+    public fn Visit(item GenericConstraintToken) : Write(item.Value)
+
+    public fn Visit(item IdentifierToken) : Write(item.Value)
+
     public fn Visit(item If)
         WriteIndented("If ")
         if item.LocalName != null and item.LocalValue != null
@@ -333,6 +312,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         if item.ElseStatements.Any()
             WriteLineIndented("Else")
             WriteIndentedBlock(item.ElseStatements)
+
+    public fn Visit(item ImportToken) : WriteLineIndented("Import: {str.Join(".", item.NameParts)}")
 
     public fn Visit(item Initializer)
         item.Name.Accept(this)
@@ -348,6 +329,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             JoinItems(item.Interfaces)
         WriteLine()
         WriteIndentedBlock(item.Statements)
+
+    public fn Visit(item LiteralToken) : Write(item.Value)
 
     public fn Visit(item LocalConstant)
         WriteIndented("Const: ")
@@ -401,12 +384,21 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         Write(" ")
         item.Name.Accept(this)
 
-    public fn Visit(item Node) is throw new InvalidItemException()
+    public fn Visit(item NamespaceToken) : WriteLineIndented("Namespace: {str.Join(".", item.NameParts)}")
+
+    public fn Visit(item Node) : throw new InvalidItemException()
 
     public fn Visit(item NullableType)
         Write("nullable(")
         item.Type.Accept(this)
         Write(")")
+    
+    public fn Visit(item NumberToken) : Write(item.Type ? {
+        NumberType.Binary : "bin({item.Value})",
+        NumberType.Decimal : item.Value,
+        NumberType.Hexadecimal : "hex({item.Value})",
+        _ : "[{item.Type}]({item.Value})",
+    })
 
     public fn Visit(item Parameter)
         JoinItems(item.Modifiers, " ")
@@ -417,6 +409,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         if item.Value != null
             Write(" = ")
             item.Value.Accept(this)
+
+    public fn Visit(item ParameterModifierToken) : Write(item.Value)
 
     public fn Visit(item PropertyDefinition)
         WriteIndented("Property: ")
@@ -456,7 +450,9 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
             item.Value.Accept(this)
         WriteLine()
 
-    public fn Visit(item Statement) is throw new InvalidItemException()
+    public fn Visit(item SpaceToken) : WriteLineIndented("Space: {item.Size}")
+
+    public fn Visit(item Statement) : throw new InvalidItemException()
 
     public fn Visit(item Core.SyntaxTree.String)
         Write("\"")
@@ -474,6 +470,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
                 else
                     value.Accept(this)
         Write("\"")
+
+    public fn Visit(item StringToken) : Write(item.Value)
 
     public fn Visit(item Struct)
         WriteIndented("Struct: ")
@@ -515,6 +513,8 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         Write("(")
         item.Value.Accept(this)
         Write(")")
+
+    public fn Visit(item UnaryOperatorToken) : Write(item.Value)
 
     public fn Visit(item Using)
         WriteIndented("Using: ")

@@ -6,7 +6,7 @@ ns NSharp.Compiler.Metadata
 
 public class Assembly has IDisposable
     public fn Name str
-    public fn PublicKey []byte is Meta.GetBlobBytes(Definition.PublicKey)
+    public fn PublicKey []byte : Meta.GetBlobBytes(Definition.PublicKey)
     public fn Handle AssemblyReferenceHandle
     public fn Meta MetadataReader
     public fn TypeResolver TypeResolver
@@ -38,4 +38,4 @@ public class Assembly has IDisposable
             if type.IsForwarder
                 new ExportedType(this, type)
     
-    public fn Dispose() is Stream.Dispose()
+    public fn Dispose() : Stream.Dispose()

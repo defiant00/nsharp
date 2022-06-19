@@ -4,12 +4,12 @@ public abstract class Node
     public fn Parent ?Node
     public fn Position Position
 
-    public fn new(position Position) is Position = position
+    public fn new(position Position) : Position = position
 
-    public open fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public open fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)
 
     public fn ParentSkipAttributes ?Node
         var cur = Parent
         for cur != null and cur is AttributeBlock
             cur = cur.Parent
-        ret cur
+        return cur

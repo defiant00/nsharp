@@ -7,7 +7,7 @@ public class IndentationLevel
     public fn Level int
     public fn FunctionToken ?Token
 
-    public fn new(level int) is Level = level
+    public fn new(level int) : Level = level
 
 public class Lexer
     public fn Tokens List{Token} = new()
@@ -63,33 +63,33 @@ public class Lexer
         Diagnostics.Add(new Diagnostic(Severity.Error, code, message, position))
 
     ; Identifiers can start with a letter, _, or ` to indicate an identifier that matches a keyword
-    private fn IsValidIdentifierStart(c char) bool is char.IsLetter(c) or c == '_' or c == Constant.IDENTIFIER_INDICATOR
+    private fn IsValidIdentifierStart(c char) bool : char.IsLetter(c) or c == '_' or c == Constant.IDENTIFIER_INDICATOR
 
     ; Identifiers can contain letters, numbers, and _
-    private fn IsValidIdentifier(c char) bool is char.IsLetter(c) or c == '_' or char.IsDigit(c)
+    private fn IsValidIdentifier(c char) bool : char.IsLetter(c) or c == '_' or char.IsDigit(c)
 
-    private fn IsValidOperator(c char) bool is OPERATOR_CHARACTERS.IndexOf(c) >= 0
+    private fn IsValidOperator(c char) bool : OPERATOR_CHARACTERS.IndexOf(c) >= 0
 
-    private fn IsLineEnd(c char) bool is c == EOL or c == '\r' or c == '\n'
+    private fn IsLineEnd(c char) bool : c == EOL or c == '\r' or c == '\n'
 
-    private fn IsValidBinary(c char) bool is c == '0' or c == '1'
+    private fn IsValidBinary(c char) bool : c == '0' or c == '1'
 
-    private fn IsValidHex(c char) bool is char.IsDigit(c) or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F')
+    private fn IsValidHex(c char) bool : char.IsDigit(c) or (c >= 'a' and c <= 'f') or (c >= 'A' and c <= 'F')
 
-    private fn CurrentPosition Position is new Position() { Line = LineNumber, Column = StartIndex + 1 }
+    private fn CurrentPosition Position : new Position() { Line = LineNumber, Column = StartIndex + 1 }
 
-    private fn CurrentValue str is Line.Substring(StartIndex, CurrentLength)
+    private fn CurrentValue str : Line.Substring(StartIndex, CurrentLength)
 
-    private fn CurrentLength int is CurrentIndex - StartIndex
+    private fn CurrentLength int : CurrentIndex - StartIndex
 
     private fn Next() char
         var next = Peek()
         CurrentIndex += 1
-        ret next
+        return next
     
-    private fn Peek(offset int = 0) char is ((CurrentIndex + offset) >= Line.Length) ? EOL : Line[CurrentIndex + offset]
+    private fn Peek(offset int = 0) char : ((CurrentIndex + offset) >= Line.Length) ? EOL : Line[CurrentIndex + offset]
 
-    private fn Backup() is CurrentIndex -= 1
+    private fn Backup() : CurrentIndex -= 1
 
     private fn Discard(offset int = 0)
         CurrentIndex += offset
@@ -97,13 +97,13 @@ public class Lexer
 
     private fn Accept(valid str) bool
         if valid.IndexOf(Next()) >= 0
-            ret true
+            return true
         Backup()
-        ret false
+        return false
 
-    private fn EmitEol() is HeldEols += 1
+    private fn EmitEol() : HeldEols += 1
     
-    private fn EmitIndent(indent int) is HeldIndents.Enqueue(indent)
+    private fn EmitIndent(indent int) : HeldIndents.Enqueue(indent)
 
     private fn EmitHeld(needsDedent bool)
         ; Emit any held tokens.
@@ -196,7 +196,7 @@ public class Lexer
                     Backup()
                     Discard()
                     EmitEol()
-                    ret null
+                    return null
                 is ' '
                     indent += 1
                 is '\t'
@@ -205,7 +205,7 @@ public class Lexer
                     Backup()
                     Discard()
                     EmitIndent(indent)
-                    ret LexStatement
+                    return LexStatement
 
     private fn LexStatement() ?StateFunction
         for
@@ -218,22 +218,22 @@ public class Lexer
                 is '\n'
                     Discard()
                     EmitEol()
-                    ret null
+                    return null
                 is ';'
-                    ret LexComment
+                    return LexComment
                 is '\''
-                    ret LexCharacter
+                    return LexCharacter
                 is '"'
-                    ret LexString
+                    return LexString
                 is _
                     if peekVal == '}' and StringTerminators.Any() and StringTerminators.Peek() == TokenType.RightCurly
-                        ret LexString
+                        return LexString
                     else if IsValidIdentifierStart(peekVal)
-                        ret LexIdentifier
+                        return LexIdentifier
                     else if char.IsDigit(peekVal)
-                        ret LexNumber
+                        return LexNumber
                     else if IsValidOperator(peekVal)
-                        ret LexOperator
+                        return LexOperator
                     else
                         AddError(CurrentPosition, "code", "Invalid character '{peekVal}'")
                         Discard(1)
@@ -244,12 +244,12 @@ public class Lexer
 
         if c = Next(), IsLineEnd(c)
             AddError(CurrentPosition, "code", "unclosed '")
-            ret LexStatement
+            return LexStatement
         else if c == '\\'
             c = Next()
             if IsLineEnd(c)
                 AddError(CurrentPosition, "code", "unclosed '")
-                ret LexStatement
+                return LexStatement
 
         if Peek() != '\''
             AddError(CurrentPosition, "code", "unclosed '")
@@ -257,7 +257,7 @@ public class Lexer
             Emit(TokenType.CharacterLiteral)
             Discard(1)
 
-        ret LexStatement
+        return LexStatement
 
     private fn LexComment() ?StateFunction
         ; discard the ;
@@ -266,7 +266,7 @@ public class Lexer
         CurrentIndex = Line.Length
         Emit(TokenType.Comment)
         EmitEol()
-        ret null
+        return null
 
     private fn LexIdentifier() ?StateFunction
         ; discard any leading whitespace
@@ -289,7 +289,7 @@ public class Lexer
             var tokenType TokenType
             var found = TokenHelper.KeywordTokens.TryGetValue(CurrentValue, out tokenType)
             Emit(found ? tokenType : TokenType.Identifier)
-        ret LexStatement
+        return LexStatement
 
     private fn LexNumber() ?StateFunction
         ; discard any leading whitespace
@@ -303,14 +303,14 @@ public class Lexer
                 for c = Peek(), IsValidBinary(c), c = Peek()
                     Next()
                 Emit(TokenType.NumberLiteral)
-                ret LexStatement
+                return LexStatement
             else if Peek() == 'x'
                 ; hex
                 Next()
                 for c = Peek(), IsValidHex(c), c = Peek()
                     Next()
                 Emit(TokenType.NumberLiteral)
-                ret LexStatement
+                return LexStatement
         for c = Peek(), char.IsDigit(c), c = Peek()
             Next()
         if Accept(".")
@@ -322,7 +322,7 @@ public class Lexer
             if !foundDigitsAfterDecimal
                 Backup()
         Emit(TokenType.NumberLiteral)
-        ret LexStatement
+        return LexStatement
 
     private fn LexOperator() ?StateFunction
         ; discard any leading whitespace
@@ -441,7 +441,7 @@ public class Lexer
                 AddError(CurrentPosition, "code", "invalid operator character {Peek()}")
                 Next()
 
-        ret LexStatement
+        return LexStatement
 
     private fn LexString() ?StateFunction
         ; discard any leading whitespace
@@ -476,4 +476,4 @@ public class Lexer
                 break
             Next()
 
-        ret LexStatement
+        return LexStatement

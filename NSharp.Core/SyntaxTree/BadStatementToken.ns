@@ -1,0 +1,6 @@
+ns NSharp.Core.SyntaxTree
+
+public class BadStatementToken is Statement
+    public fn new() base(default) : ; empty
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

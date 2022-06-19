@@ -3,6 +3,6 @@ ns NSharp.Core.SyntaxTree
 public class String is Expression
     public fn Lines List{List{Expression}}
 
-    public fn new(position Position, lines ?List{List{Expression}} = null) base(position) is Lines = lines ?? new()
+    public fn new(position Position, lines ?List{List{Expression}} = null) base(position) : Lines = lines ?? new()
     
-    public over fn Accept(visitor ISyntaxTreeVisitor) is visitor.Visit(this)
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

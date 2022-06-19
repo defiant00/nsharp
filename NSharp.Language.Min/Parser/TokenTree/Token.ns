@@ -21,19 +21,19 @@ public open class Token
         Type = type
         Value = value
 
-    public fn Precedence() int is Type.ToBinaryOperator().Precedence()
+    public fn Precedence() int : Type.ToBinaryOperator().Precedence()
 
-    public fn ToArgumentModifierToken() ArgumentModifierToken is new ArgumentModifierToken(Position, Type.ToArgumentModifier())
-    public fn ToAssignmentOperatorToken() AssignmentOperatorToken is new AssignmentOperatorToken(Position, Type.ToAssignmentOperator())
-    public fn ToBinaryOperatorToken() BinaryOperatorToken is new BinaryOperatorToken(Position, Type.ToBinaryOperator())
-    public fn ToIdentifierToken() IdentifierToken is new IdentifierToken(Position, Value)
-    public fn ToParameterModifierToken() ParameterModifierToken is new ParameterModifierToken(Position, Type.ToParameterModifier())
-    public fn ToUnaryOperatorToken() UnaryOperatorToken is new UnaryOperatorToken(Position, Type.ToUnaryOperator())
+    public fn ToArgumentModifierToken() ArgumentModifierToken : new ArgumentModifierToken(Position, Type.ToArgumentModifier())
+    public fn ToAssignmentOperatorToken() AssignmentOperatorToken : new AssignmentOperatorToken(Position, Type.ToAssignmentOperator())
+    public fn ToBinaryOperatorToken() BinaryOperatorToken : new BinaryOperatorToken(Position, Type.ToBinaryOperator())
+    public fn ToIdentifierToken() IdentifierToken : new IdentifierToken(Position, Value)
+    public fn ToParameterModifierToken() ParameterModifierToken : new ParameterModifierToken(Position, Type.ToParameterModifier())
+    public fn ToUnaryOperatorToken() UnaryOperatorToken : new UnaryOperatorToken(Position, Type.ToUnaryOperator())
 
-    public fn IsBlock() bool is Type.IsBlock()
-    public fn IsGroup() bool is Type.IsGroup()
+    public fn IsBlock() bool : Type.IsBlock()
+    public fn IsGroup() bool : Type.IsGroup()
 
-    public open over fn ToString() str is "{Type} {Position} '{Value}'"
+    public open over fn ToString() str : "{Type} {Position} '{Value}'"
 
     protected fn PrintIndent(indent int)
         for i = 0, i < indent, i += 1
@@ -47,13 +47,13 @@ public open class Token
         var current = this
         for current != null and !current.IsBlock()
             current = current.Parent
-        ret current as ?Group
+        return current as ?Group
     
     public fn FirstGroup(tokenType TokenType) ?Group
         var current = this
         for current != null and current.Type != tokenType
             current = current.Parent
-        ret current as ?Group
+        return current as ?Group
     
     public fn AdvanceParent()
         if Parent != null and Parent.IsBlock()
@@ -61,4 +61,4 @@ public open class Token
         else
             throw new Exception("parent isn't block")
     
-    public fn CurrentParentToken Token is Parent != null ? Parent.Peek : MISSING_TOKEN
+    public fn CurrentParentToken Token : Parent != null ? Parent.Peek : MISSING_TOKEN
