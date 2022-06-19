@@ -595,7 +595,7 @@ public class Parser
 
     private fn ParseGenericArguments(group Group, expr Expression) Expression
         ; "{" {arguments} "}"
-        var argsExpr = new Arguments(group.Peek.Position, expr)
+        var argsExpr = new Arguments(group.Peek.Position, expr){Flag = 'g'}
         if group.Peek.Type == TokenType.CurlyGroup and group.Next() is Group curlyGroup
             if curlyGroup.More
                 argsExpr.Values.Add(ParseType(curlyGroup))
@@ -765,7 +765,7 @@ public class Parser
 
     private fn ParseIndexer(group Group, expr Expression) Expression
         ; "[" {arguments} "]"
-        var argsExpr = new Arguments(group.Peek.Position, expr)
+        var argsExpr = new Arguments(group.Peek.Position, expr){Flag = 'i'}
         if next = group.Next(), next.Type == TokenType.BracketGroup and next is Group bracketGroup
             if bracketGroup.More
                 argsExpr.Values.Add(ParseExpression(bracketGroup))

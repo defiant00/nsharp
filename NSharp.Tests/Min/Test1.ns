@@ -5,8 +5,6 @@ ns NSharp.Tests.Min
 
 class TestClass
     fn Test()
-        var y char = 'c'
-        var a char = '\n'
-        var b str = new{Val = "hi"}
-        var x = new Test(ref 1)
-        var z = new Test(first = out 2){Something = "yay"}
+        var x List{str} = new
+        var y = x[3]
+        x[3](1, 2)

@@ -4,6 +4,9 @@ public class Arguments is Expression
     public fn Value Expression
     public fn Values List{Expression}
 
+    ; todo - remove this
+    public fn Flag char = ' '
+
     public fn new(position Position, value Expression, values ?List{Expression} = null) base(position)
         Value = value
         Values = values ?? new()

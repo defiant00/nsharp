@@ -13,9 +13,6 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     private fn WriteLine() : Buffer.WriteLine()
     private fn WriteLine(line str) : Buffer.WriteLine(line)
 
-    private fn GenericNames HashSet{str} = new()
-    private fn IndexerNames HashSet{str} = new()
-
     private fn WriteIndent()
         for i = 0, i < Indent, i += 1
             Write("    ")
@@ -91,32 +88,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         .Replace("\t", "\\t")
         .ToString()
 
-    public fn new(fileName str)
-        Buffer = new StreamWriter(fileName)
-
-        ; Hard-coded list of generic classes
-        GenericNames.Add("HashSet")
-        GenericNames.Add("Dictionary")
-        GenericNames.Add("List")
-        GenericNames.Add("Stack")
-        GenericNames.Add("Queue")
-        GenericNames.Add("IEnumerable")
-        GenericNames.Add("Func")
-        GenericNames.Add("Action")
-
-        ; Hard-coded list of variables that use indexers
-        IndexerNames.Add("arg")
-        IndexerNames.Add("args")
-        IndexerNames.Add("Assemblies")
-        IndexerNames.Add("Conditions")
-        IndexerNames.Add("config")
-        IndexerNames.Add("Flags")
-        IndexerNames.Add("sb")
-        IndexerNames.Add("SearchItems")
-        IndexerNames.Add("settings")
-        IndexerNames.Add("Statements")
-        IndexerNames.Add("Tokens")
-        IndexerNames.Add("Types")
+    public fn new(fileName str) : Buffer = new StreamWriter(fileName)
 
     public fn Dispose() : Buffer?.Dispose()
 
@@ -147,21 +119,13 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     })
 
     public fn Visit(item Core.SyntaxTree.Arguments)
-        ; THIS IS AN AWFUL HACK TO RESOLVE ARGUMENTS TO THE
-        ; CORRECT METHOD CALL / INDEXER / GENERIC
-
         item.Value.Accept(this)
 
-        if item.Value is IdentifierToken it and GenericNames.Contains(it.Value)
+        if item.Flag == 'g'
             Write("<")
             JoinItems(item.Values)
             Write(">")
-        else if (item.Value is IdentifierToken it2 and IndexerNames.Contains(it2.Value)) or
-                (
-                    item.Value is BinaryOperator bo and
-                    (bo.Operator.Value == BinaryOperatorType.Dot or bo.Operator.Value == BinaryOperatorType.NullDot) and
-                    bo.RightOperand is IdentifierToken it3 and IndexerNames.Contains(it3.Value)
-                )
+        else if item.Flag == 'i'
             Write("[")
             JoinItems(item.Values)
             Write("]")
