@@ -7,7 +7,6 @@ ns NSharp.Compiler
 public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     private fn Buffer StreamWriter
     private fn Indent int = 0
-    private fn Attributes Stack{Expression} = new()
     
     private fn Write(line str) : Buffer.Write(line)
     private fn WriteLine() : Buffer.WriteLine()
@@ -25,41 +24,79 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteIndent()
         WriteLine(line)
 
-    ; private fn InFor bool
-    ; private fn InExtension bool
+    private fn InExtension bool
 
-    private fn WriteAttributes()
+    private fn GetAttributes(item Node) List{Expression}
+        var attrs = new List{Expression}()
+        var cur = item.Parent
+        for cur != null and cur is AttributeBlock ab
+            attrs.AddRange(ab.Attributes)
+            cur = cur.Parent
+        return attrs
+
+    private fn WriteAttributes(attrs List{Expression}, item Node)
+        var canBeSealed = item is Core.SyntaxTree.Class
+        var canOverride = item is MethodDefinition or item is PropertyDefinition
+
+        var isAbstract = false
+        var isExtension = false
+        var isInternal = false
+        var isOpen = false
+        var isOverride = false
+        var isPrivate = false
+        var isProtected = false
+        var isPublic = false
+        var isStatic = false
+
+        for a in attrs
+            var attr = a as Core.SyntaxTree.Attribute
+            if attr.Type is IdentifierToken it
+                if it.Value
+                    is "abstract"
+                        isAbstract = true
+                    is "internal"
+                        isInternal = true
+                    is "open"
+                        isOpen = true
+                    is "over"
+                        isOverride = true
+                    is "private"
+                        isPrivate = true
+                    is "protected"
+                        isProtected = true
+                    is "public"
+                        isPublic = true
+                    is "static"
+                        isStatic = true
+            else if attr.Type is Core.SyntaxTree.Arguments args and
+                    args.Value is IdentifierToken ident and
+                    ident.Value == "ext"
+                isExtension = true
+
         WriteIndent()
-        for a in Attributes
-            a.Accept(this)
-            Write(" ")
-    ; private fn WriteModifiersIndented(modifiers List{Modifier}, canBeSealed bool = false, canOverride bool = false)
-    ;     WriteIndented(str.Join(" ", modifiers.Select(fn(m) is m.Type ?
-    ;     {
-    ;         ModifierType.Abstract is "abstract",
-    ;         ModifierType.Extension is "",
-    ;         ModifierType.Internal is "internal",
-    ;         ModifierType.Open is "",
-    ;         ModifierType.Override is "override",
-    ;         ModifierType.Private is "private",
-    ;         ModifierType.Protected is "protected",
-    ;         ModifierType.Public is "public",
-    ;         ModifierType.Static is "static",
-    ;         _ is " [modifier] ",
-    ;     })))
-    ;     if modifiers.Any(fn(m) is m.Type == ModifierType.Open)
-    ;         if canOverride
-    ;                 and !modifiers.Any(fn(m) is m.Type == ModifierType.Override)
-    ;                 and !modifiers.Any(fn(m) is m.Type == ModifierType.Static)
-    ;             Write(" virtual")
-    ;     else if canBeSealed
-    ;             and !modifiers.Any(fn(m) is m.Type == ModifierType.Abstract)
-    ;             and !modifiers.Any(fn(m) is m.Type == ModifierType.Static)
-    ;         Write(" sealed")
-    ;     else if canOverride
-    ;             and modifiers.Any(fn(m) is m.Type == ModifierType.Override)
-    ;             and !modifiers.Any(fn(m) is m.Type == ModifierType.Open)
-    ;         Write(" sealed")
+        if isPublic
+            Write(" public")
+        else if isProtected
+            Write(" protected")
+        else if isPrivate
+            Write(" private")
+        
+        if isStatic or isExtension
+            Write(" static")
+        
+        if isInternal
+            Write(" internal")
+        
+        if isAbstract
+            Write(" abstract")
+        
+        if isOpen
+            if canOverride and !isOverride and !isStatic
+                Write(" virtual")
+        else if canBeSealed and !isAbstract and !isStatic
+            Write(" sealed")
+        else if canOverride and isOverride and !isOpen
+            Write(" sealed")
 
     private fn WriteStatementBlock(statements List{Statement})
         WriteLineIndented("{{")
@@ -68,6 +105,16 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             stmt.Accept(this)
         Indent -= 1
         WriteLineIndented("}}")
+    
+    private fn WriteStatementBlockOrLambda(statements List{Statement})
+        if statements.Count == 1 and statements[0] is ExpressionStatement es
+            Write(" => ")
+            es.Value.Accept(this)
+            WriteLine(";")
+        else
+            WriteLine()
+            WriteStatementBlock(statements)
+
     
     private fn JoinItems(items IEnumerable{Node}, separator str = ", ")
         var first = true
@@ -170,23 +217,11 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             _ : " [none] ",
         })
 
-    public fn Visit(item Core.SyntaxTree.Attribute)
-        if item.Qualifier != null
-            Write("[")
-            item.Qualifier.Accept(this)
-            Write(":")
-            item.Type.Accept(this)
-            Write("]")
-        else
-            item.Type.Accept(this)
+    public fn Visit(item Core.SyntaxTree.Attribute) : throw new InvalidItemException()
 
     public fn Visit(item AttributeBlock)
-        for a in item.Attributes
-            Attributes.Push(a)
         for s in item.Statements
             s.Accept(this)
-        for i = 0, i < item.Attributes.Count, i += 1
-            Attributes.Pop()
 
     public fn Visit(item BadExpressionToken) : Write("/* bad expression */")
 
@@ -273,7 +308,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item CharacterToken) : Write("'{item.Value}'")
 
     public fn Visit(item Class)
-        WriteAttributes()
+        WriteAttributes(GetAttributes(item), item)
         Write(" class ")
         item.Name.Accept(this)
         if item.Generics.Any()
@@ -326,7 +361,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             WriteIndented("}}")
 
     public fn Visit(item Constant)
-        WriteAttributes()
+        WriteAttributes(GetAttributes(item), item)
         Write(" const ")
         item.Type.Accept(this)
         Write(" ")
@@ -348,7 +383,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write("}}")
 
     public fn Visit(item ConstructorDefinition)
-        WriteAttributes()
+        WriteAttributes(GetAttributes(item), item)
         Write(" ")
         var parent = item.ParentSkipAttributes
         if parent is Class cl
@@ -364,35 +399,35 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write(" : base(")
             JoinItems(item.BaseArguments)
             Write(")")
-        WriteLine()
-        WriteStatementBlock(item.Statements)
+        WriteStatementBlockOrLambda(item.Statements)
 
     public fn Visit(item ContinueToken) : WriteLineIndented("continue;")
 
-    public fn Visit(item CurrentObjectInstanceToken) : throw new NotImplementedException()
-    ; public fn Visit(item CurrentObjectInstance) is Write(InExtension ? "__this" : "this")
+    public fn Visit(item CurrentObjectInstanceToken) : Write(InExtension ? "__this" : "this")
 
     public fn Visit(item DefaultValueToken) : Write("default")
 
-    public fn Visit(item Core.SyntaxTree.Delegate) : throw new NotImplementedException()
-    ; public fn Visit(item DelegateDefinition)
-    ;     WriteModifiersIndented(item.Modifiers)
-    ;     Write(" delegate ")
-    ;     if item.ReturnType == null
-    ;         Write("void")
-    ;     else
-    ;         item.ReturnType.Accept(this)
-    ;     Write(" {item.Name}")
-    ;     if item.GenericNames.Any()
-    ;         Write("<{str.Join(", ", item.GenericNames)}>")
-    ;     Write("(")
-    ;     JoinItems(item.Parameters)
-    ;     WriteLine(");")
+    public fn Visit(item Core.SyntaxTree.Delegate)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" delegate ")
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" ")
+        item.Name.Accept(this)
+        if item.Generics.Any()
+            Write("<")
+            JoinItems(item.Generics)
+            Write(">")
+        Write("(")
+        JoinItems(item.Parameters)
+        WriteLine(");")
 
     public fn Visit(item DiscardToken) : Write("_")
 
     public fn Visit(item Enumeration)
-        WriteAttributes()
+        WriteAttributes(GetAttributes(item), item)
         Write(" enum ")
         item.Name.Accept(this)
         WriteLine()
@@ -418,7 +453,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(";")
 
     public fn Visit(item Field)
-        WriteAttributes()
+        WriteAttributes(GetAttributes(item), item)
         Write(" ")
         item.Type.Accept(this)
         Write(" ")
@@ -434,34 +469,28 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         for statement in item.Statements
             statement.Accept(this)
 
-    public fn Visit(item For) : throw new NotImplementedException()
-    ; public fn Visit(item For)
-    ;     if item.Init == null and item.Post == null
-    ;         if item.Condition == null
-    ;             WriteLineIndented("while (true)")
-    ;         else
-    ;             WriteIndented("while (")
-    ;             item.Condition.Accept(this)
-    ;             WriteLine(")")
-    ;         WriteStatementBlock(item.Statements)
-    ;     else
-    ;         WriteIndented("for (var {item.LocalName} = ")
-    ;         item.Init?.Accept(this)
-    ;         Write("; ")
-    ;         item.Condition?.Accept(this)
-    ;         Write("; ")
-    ;         InFor = true
-    ;         item.Post?.Accept(this)
-    ;         InFor = false
-    ;         WriteLine(")")
-    ;         WriteStatementBlock(item.Statements)
+    public fn Visit(item For)
+        WriteIndented("for (")
+        if item.Name != null and item.Init != null
+            Write("var ")
+            item.Name.Accept(this)
+            Write(" = ")
+            item.Init.Accept(this)
+        Write(";")
+        if item.Condition != null
+            item.Condition.Accept(this)
+        else
+            Write("true")
+        WriteLine(";)")
+        WriteStatementBlock(item.Statements)
 
-    public fn Visit(item ForEach) : throw new NotImplementedException()
-    ; public fn Visit(item ForEach)
-    ;     WriteIndented("foreach (var {item.LocalName} in ")
-    ;     item.Expr.Accept(this)
-    ;     WriteLine(")")
-    ;     WriteStatementBlock(item.Statements)
+    public fn Visit(item ForEach)
+        WriteIndented("foreach (var ")
+        item.Name.Accept(this)
+        Write(" in ")
+        item.Value.Accept(this)
+        WriteLine(")")
+        WriteStatementBlock(item.Statements)
 
     ; generic constraints are not supported
     public fn Visit(item Generic) : item.Name.Accept(this)
@@ -497,17 +526,19 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         Write(" = ")
         item.Value.Accept(this)
     
-    public fn Visit(item Interface) : throw new NotImplementedException()
-    ; public fn Visit(item Interface)
-    ;     WriteModifiersIndented(item.Modifiers)
-    ;     Write(" interface {item.Name}")
-    ;     if item.GenericNames.Any()
-    ;         Write("<{str.Join(", ", item.GenericNames)}>")
-    ;     if item.Interfaces.Any()
-    ;         Write(": ")
-    ;         JoinItems(item.Interfaces)
-    ;     WriteLine()
-    ;     WriteStatementBlock(item.Statements)
+    public fn Visit(item Interface)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" interface ")
+        item.Name.Accept(this)
+        if item.Generics.Any()
+            Write("<")
+            JoinItems(item.Generics)
+            Write(">")
+        if item.Interfaces.Any()
+            Write(": ")
+            JoinItems(item.Interfaces)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
 
     public fn Visit(item LiteralToken) : Write(item.Value ? {
         LiteralType.False : "false",
@@ -537,7 +568,8 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(";")
     
     public fn Visit(item MethodDefinition)
-        WriteAttributes()
+        var attrs = GetAttributes(item)
+        WriteAttributes(attrs, item)
         Write(" ")
         if item.ReturnType == null
             Write("void")
@@ -551,37 +583,44 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
             Write(">")
         Write("(")
         var first = true
-        ; var extension = item.Modifiers.FirstOrDefault(fn(m) is m.Type == ModifierType.Extension)
-        ; if extension is Modifier mod and mod.Argument != null
-        ;     first = false
-        ;     Write("this ")
-        ;     mod.Argument.Accept(this)
-        ;     Write(" __this")
-        ;     InExtension = true
+        var extension = attrs.FirstOrDefault(fn(a) : a is Core.SyntaxTree.Attribute attr and
+            attr.Type is Core.SyntaxTree.Arguments args and
+            args.Values.Count == 1 and
+            args.Value is IdentifierToken it and
+            it.Value == "ext"
+        )
+        if extension is Core.SyntaxTree.Attribute attr and attr.Type is Core.SyntaxTree.Arguments args
+            first = false
+            Write("this ")
+            args.Values[0].Accept(this)
+            Write(" __this")
+            InExtension = true
         for p in item.Parameters
             if first
                 first = false
             else
                 Write(", ")
             p.Accept(this)
-        WriteLine(")")
-        WriteStatementBlock(item.Statements)
-        ; InExtension = false
+        Write(")")
+        WriteStatementBlockOrLambda(item.Statements)
+        InExtension = false
     
-    public fn Visit(item MethodSignature) : throw new NotImplementedException()
-    ; public fn Visit(item MethodSignature)
-    ;     WriteModifiersIndented(item.Modifiers)
-    ;     Write(" ")
-    ;     if item.ReturnType == null
-    ;         Write("void")
-    ;     else
-    ;         item.ReturnType.Accept(this)
-    ;     Write(" {item.Name}")
-    ;     if item.GenericNames.Any()
-    ;         Write("<{str.Join(", ", item.GenericNames)}>")
-    ;     Write("(")
-    ;     JoinItems(item.Parameters)
-    ;     WriteLine(");")
+    public fn Visit(item MethodSignature)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" ")
+        if item.ReturnType == null
+            Write("void")
+        else
+            item.ReturnType.Accept(this)
+        Write(" ")
+        item.Name.Accept(this)
+        if item.Generics.Any()
+            Write("<")
+            JoinItems(item.Generics)
+            Write(">")
+        Write("(")
+        JoinItems(item.Parameters)
+        WriteLine(");")
 
     public fn Visit(item NamedExpression)
         item.Value.Accept(this)
@@ -619,48 +658,50 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         _ : "[{item.Value}]",
     })
 
-    public fn Visit(item PropertyDefinition) : throw new NotImplementedException()
-    ; public fn Visit(item Property)
-    ;     WriteModifiersIndented(item.Modifiers, canOverride = true)
-    ;     Write(" ")
-    ;     item.Type.Accept(this)
-    ;     WriteLine(" {item.Name}")
+    public fn Visit(item PropertyDefinition)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" ")
+        item.Type?.Accept(this)
+        Write(" ")
+        item.Name.Accept(this)
+        WriteLine()
 
-    ;     WriteLineIndented("{{")
-    ;     Indent += 1
+        WriteLineIndented("{{")
+        Indent += 1
 
-    ;     if item.GetStatements.Any()
-    ;         WriteLineIndented("get")
-    ;         WriteStatementBlock(item.GetStatements)
-    ;     else if item.GetSpecified and !item.SetStatements.Any()
-    ;         WriteLineIndented("get;")
+        if item.GetStatements.Any()
+            WriteIndented("get")
+            WriteStatementBlockOrLambda(item.GetStatements)
+        else if item.GetSpecified
+            WriteLineIndented("get;")
         
-    ;     if item.SetStatements.Any()
-    ;         WriteLineIndented("set")
-    ;         WriteStatementBlock(item.SetStatements)
-    ;     else if item.SetSpecified and !item.GetStatements.Any()
-    ;         WriteLineIndented("set;")
+        if item.SetStatements.Any()
+            WriteIndented("set")
+            WriteStatementBlockOrLambda(item.SetStatements)
+        else if item.SetSpecified
+            WriteLineIndented("set;")
         
-    ;     Indent -= 1
-    ;     WriteIndented("}}")
+        Indent -= 1
+        WriteIndented("}}")
 
-    ;     if item.Value != null
-    ;         Write(" = ")
-    ;         item.Value.Accept(this)
-    ;         Write(";")
-    ;     WriteLine()
+        if item.Value != null
+            Write(" = ")
+            item.Value.Accept(this)
+            Write(";")
+        WriteLine()
 
-    public fn Visit(item PropertySignature) : throw new NotImplementedException()
-    ; public fn Visit(item PropertySignature)
-    ;     WriteModifiersIndented(item.Modifiers)
-    ;     Write(" ")
-    ;     item.Type.Accept(this)
-    ;     Write(" {item.Name} {{")
-    ;     if item.GetSpecified
-    ;         Write("get;")
-    ;     if item.SetSpecified
-    ;         Write("set;")
-    ;     WriteLine("}}")
+    public fn Visit(item PropertySignature)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" ")
+        item.Type.Accept(this)
+        Write(" ")
+        item.Name.Accept(this)
+        Write(" {{")
+        if item.GetSpecified
+            Write("get;")
+        if item.SetSpecified
+            Write("set;")
+        WriteLine("}}")
 
     public fn Visit(item Return)
         WriteIndented("return ")
@@ -694,19 +735,19 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item StringToken) : Write(Escape(item.Value))
 
-    public fn Visit(item Struct) : throw new NotImplementedException()
-    ; public fn Visit(item Struct)
-    ;     CurrentObject = item.Name
-
-    ;     WriteModifiersIndented(item.Modifiers)
-    ;     Write(" struct {item.Name}")
-    ;     if item.GenericNames.Any()
-    ;         Write("<{str.Join(", ", item.GenericNames)}>")
-    ;     if item.Interfaces.Any()
-    ;         Write(" : ")
-    ;         JoinItems(item.Interfaces)
-    ;     WriteLine()
-    ;     WriteStatementBlock(item.Statements)
+    public fn Visit(item Struct)
+        WriteAttributes(GetAttributes(item), item)
+        Write(" struct ")
+        item.Name.Accept(this)
+        if item.Generics.Any()
+            Write("<")
+            JoinItems(item.Generics)
+            Write(">")
+        if item.Interfaces.Any()
+            Write(" : ")
+            JoinItems(item.Interfaces)
+        WriteLine()
+        WriteStatementBlock(item.Statements)
 
     public fn Visit(item Switch)
         WriteLineIndented("{{")

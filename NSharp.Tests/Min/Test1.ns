@@ -3,8 +3,9 @@ use System
 ; namespace
 ns NSharp.Tests.Min
 
-class TestClass
-    fn Test()
-        var x List{str} = new
-        var y = x[3]
-        x[3](1, 2)
+open class MyClass
+    fn NormalFunc() : 3
+    fn Thing str : "hi"
+    fn Other str
+        get : "hey"
+        set value : thing = value + "ha"
