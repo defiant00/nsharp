@@ -644,6 +644,7 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item Parameter)
         JoinItems(item.Modifiers, " ")
+        Write(" ")
         item.Type?.Accept(this)
         Write(" ")
         item.Name.Accept(this)

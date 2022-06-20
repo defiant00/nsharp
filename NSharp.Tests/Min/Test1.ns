@@ -4,8 +4,5 @@ use System
 ns NSharp.Tests.Min
 
 open class MyClass
-    fn NormalFunc() : 3
-    fn Thing str : "hi"
-    fn Other str
-        get : "hey"
-        set value : thing = value + "ha"
+    fn Test(x var []str)
+        ; yay?
