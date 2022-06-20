@@ -349,11 +349,10 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                 c2.Value is LiteralToken lt2 and
                 lt2.Value == LiteralType.False
             ; ternary
-            Write(" ? (")
+            Write(" ? ")
             c1.Result.Accept(this)
-            Write(") : (")
+            Write(" : ")
             c2.Result.Accept(this)
-            Write(")")
         else
             WriteLine(" switch")
             WriteLineIndented("{{")
