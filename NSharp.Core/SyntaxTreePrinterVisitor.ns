@@ -8,8 +8,9 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
     private fn WriteLine(line str) : Console.WriteLine(line)
 
     private fn WriteIndented()
-        for i = 0, i < Indent, i += 1
+        for i = 0, i < Indent
             Write("  ")
+            i += 1
 
     private fn WriteIndented(line str)
         WriteIndented()

@@ -1,5 +1,5 @@
 ns NSharp.Core
 
 public interface ILanguage
-    public fn Load(fileName str) LoadResult
-    public fn Save(fileName str, item SyntaxTree.File) SaveResult
+    public sig Load(fileName str) LoadResult
+    public sig Save(fileName str, item SyntaxTree.File) SaveResult

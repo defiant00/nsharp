@@ -38,7 +38,7 @@ public class Group is Token
     
     public fn Advance(count int = 1) : CurrentIndex += count
     
-    public fn Accept(var tokenTypes []TokenType) AcceptResult
+    public fn Accept(tokenTypes var []TokenType) AcceptResult
         var result = new AcceptResult(CurrentIndex, tokenTypes)
         for tokenType in tokenTypes
             if current = Next(), current.Type != tokenType

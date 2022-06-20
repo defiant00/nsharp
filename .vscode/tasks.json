@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "${workspaceFolder}/lib/nsc.dll",
-                "/compile",
+                "compile",
                 "/tocs",
                 "${workspaceFolder}/NSharp.Compiler/",
                 "${workspaceFolder}/NSharp.Core/",

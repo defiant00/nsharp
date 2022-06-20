@@ -36,8 +36,9 @@ public open class Token
     public open over fn ToString() str : "{Type} {Position} '{Value}'"
 
     protected fn PrintIndent(indent int)
-        for i = 0, i < indent, i += 1
+        for i = 0, i < indent
             Console.Write("| ")
+            i += 1
 
     public open fn Print(indent int)
         PrintIndent(indent)

@@ -27,8 +27,9 @@ public class Parser
         group.AdvanceParent()
     
     private fn EnsureNoExtraTokens(group Group)
-        for i = group.CurrentIndex, i < group.Tokens.Count, i += 1
+        for i = group.CurrentIndex, i < group.Tokens.Count
             AddError("[code]", "extra token {group.Tokens[i]}", group.Tokens[i].Position)
+            i += 1
 
     public fn Parse(fileName str) Core.SyntaxTree.File
         var builder = new TokenTreeBuilder(fileName, Settings, Result.Diagnostics)
@@ -701,7 +702,7 @@ public class Parser
                 ;     "is" expr [name] [":" statement]
                 ;         {statements}
                 var switchStmt = new Switch(start, condition){LocalName = name, LocalValue = value}
-                for isRes = curLine.Accept(TokenType.Is), isRes.Success, isRes = curLine.Accept(TokenType.Is)
+                for isRes = curLine.Accept(TokenType.Is), isRes.Success
                     var caseExpr = ParseExpression(curLine)
                     if nameRes = curLine.Accept(TokenType.Identifier), nameRes.Success
                         caseExpr = new NamedExpression(caseExpr.Position, caseExpr, curLine.Token(nameRes).ToIdentifierToken())
@@ -713,6 +714,8 @@ public class Parser
                         curLine = pt
                     else
                         break
+                    
+                    isRes = curLine.Accept(TokenType.Is)
 
                 AdvanceLine(indentBlock)
                 return switchStmt
@@ -743,10 +746,9 @@ public class Parser
             importToken.Position = group.Token(res).Position
             importToken.NameParts.Add(group.Token(res, 1).Value)
 
-        for res = group.Accept(TokenType.Dot, TokenType.Identifier),
-                res.Success,
-                res = group.Accept(TokenType.Dot, TokenType.Identifier)
+        for res = group.Accept(TokenType.Dot, TokenType.Identifier), res.Success
             importToken.NameParts.Add(group.Token(res, 1).Value)
+            res = group.Accept(TokenType.Dot, TokenType.Identifier)
 
         AdvanceLine(group)
 
@@ -996,10 +998,9 @@ public class Parser
             namespaceToken.Position = group.Token(res).Position
             namespaceToken.NameParts.Add(group.Token(res, 1).Value)
         
-        for res = group.Accept(TokenType.Dot, TokenType.Identifier),
-                res.Success,
-                res = group.Accept(TokenType.Dot, TokenType.Identifier)
+        for res = group.Accept(TokenType.Dot, TokenType.Identifier), res.Success
             namespaceToken.NameParts.Add(group.Token(res, 1).Value)
+            res = group.Accept(TokenType.Dot, TokenType.Identifier)
         
         AdvanceLine(group)
 
@@ -1272,9 +1273,9 @@ public class Parser
         if next = group.Next(), next.Type == TokenType.StringGroup and next is Group stringGroup
             var stringExpr = new Core.SyntaxTree.String(group.Peek.Position)
             stringExpr.Lines.Add(ParseStringLine(stringGroup))
-            for res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup), res.Success,
-                    res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup)
+            for res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup), res.Success
                 stringExpr.Lines.Add(ParseStringLine(group.Token(res, 1) as Group))
+                res = group.Accept(TokenType.DoubleDot, TokenType.StringGroup)
             return stringExpr
         return new BadExpressionToken()
     

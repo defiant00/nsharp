@@ -13,8 +13,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     private fn WriteLine(line str) : Buffer.WriteLine(line)
 
     private fn WriteIndent()
-        for i = 0, i < Indent, i += 1
+        for i = 0, i < Indent
             Write("    ")
+            i += 1
 
     private fn WriteIndented(line str)
         WriteIndent()
@@ -192,8 +193,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     public fn Visit(item ArrayType)
         item.Type.Accept(this)
         Write("[")
-        for i = 1, i < item.Dimension, i += 1
+        for i = 1, i < item.Dimension
             Write(",")
+            i += 1
         Write("]")
 
     public fn Visit(item Assignment)
@@ -712,8 +714,9 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
         WriteLine(";")
 
     public fn Visit(item SpaceToken)
-        for i = 0, i < item.Size, i += 1
+        for i = 0, i < item.Size
             WriteLine()
+            i += 1
 
     public fn Visit(item Statement) : throw new InvalidItemException()
 

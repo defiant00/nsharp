@@ -35,8 +35,9 @@ public class Lexer
         IndentationLevels.Push(new IndentationLevel(0))
 
         use reader = new StreamReader(fileName)
-        for line = reader.ReadLine(), line != null, line = reader.ReadLine()
+        for line = reader.ReadLine(), line != null
             LexLine(line)
+            line = reader.ReadLine()
         EmitIndent(0)
         EmitHeld(false)
 
@@ -135,8 +136,9 @@ public class Lexer
                 if !IndentationLevels.Any() or currentIndent != indent
                     AddError(CurrentPosition, "code", "mismatched indentation level")
         ; add any remaining EOLs
-        for i = 1, i < HeldEols, i += 1
+        for i = 1, i < HeldEols
             Tokens.Add(new Token(CurrentPosition, TokenType.EOL, str.Empty))
+            i += 1
         HeldEols = 0
         
         if emitFinalDedent
@@ -278,8 +280,9 @@ public class Lexer
         if isIdentifier
             Discard()
 
-        for c = Peek(), IsValidIdentifier(c), c = Peek()
+        for c = Peek(), IsValidIdentifier(c)
             Next()
+            c = Peek()
 
         if CurrentLength == 0
             AddError(CurrentPosition, "code", "an identifier must have a value")
@@ -300,24 +303,28 @@ public class Lexer
             if Peek() == 'b'
                 ; binary
                 Next()
-                for c = Peek(), IsValidBinary(c), c = Peek()
+                for c = Peek(), IsValidBinary(c)
                     Next()
+                    c = Peek()
                 Emit(TokenType.NumberLiteral)
                 return LexStatement
             else if Peek() == 'x'
                 ; hex
                 Next()
-                for c = Peek(), IsValidHex(c), c = Peek()
+                for c = Peek(), IsValidHex(c)
                     Next()
+                    c = Peek()
                 Emit(TokenType.NumberLiteral)
                 return LexStatement
-        for c = Peek(), char.IsDigit(c), c = Peek()
+        for c = Peek(), char.IsDigit(c)
             Next()
+            c = Peek()
         if Accept(".")
             var foundDigitsAfterDecimal = false
-            for c = Peek(), char.IsDigit(c), c = Peek()
+            for c = Peek(), char.IsDigit(c)
                 Next()
                 foundDigitsAfterDecimal = true
+                c = Peek()
             ; Put the decimal back if there are no numbers after it
             if !foundDigitsAfterDecimal
                 Backup()

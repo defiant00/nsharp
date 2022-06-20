@@ -19,8 +19,8 @@ public static class Resources
     public static fn GetError(index int) str : GetString(GetErrorKey(index))
     public static fn GetFatal(index int) str : GetString(GetFatalKey(index))
 
-    public static fn FormatString(key str, var args []System.Object) str : str.Format(GetString(key), args)
-    public static fn FormatMessage(index int, var args []System.Object) str : FormatString(GetMessageKey(index), args)
-    public static fn FormatWarning(index int, var args []System.Object) str : FormatString(GetWarningKey(index), args)
-    public static fn FormatError(index int, var args []System.Object) str : FormatString(GetErrorKey(index), args)
-    public static fn FormatFatal(index int, var args []System.Object) str : FormatString(GetFatalKey(index), args)
+    public static fn FormatString(key str, args var []System.Object) str : str.Format(GetString(key), args)
+    public static fn FormatMessage(index int, args var []System.Object) str : FormatString(GetMessageKey(index), args)
+    public static fn FormatWarning(index int, args var []System.Object) str : FormatString(GetWarningKey(index), args)
+    public static fn FormatError(index int, args var []System.Object) str : FormatString(GetErrorKey(index), args)
+    public static fn FormatFatal(index int, args var []System.Object) str : FormatString(GetFatalKey(index), args)
