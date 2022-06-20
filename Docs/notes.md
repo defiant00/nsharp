@@ -7,6 +7,7 @@ compile steps:
 4. generate methods, properties, and fields
 
 * Chars unescape on parse, escape on output
+* Unicode escape/unescape
 * rework nullable and get rid of null?
 * Events
 * yield, async, await
