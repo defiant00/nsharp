@@ -1,6 +1,6 @@
 ns NSharp.Core.SyntaxTree
 
 public class DiscardToken is Expression
-    public fn new(position Position) base(position) : ; empty
+    public fn new(position Position) base(position)
     
     public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

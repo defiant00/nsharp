@@ -5,7 +5,7 @@ use NSharp.Core.SyntaxTree
 ns NSharp.Compiler
 
 public class ToCompileTreeVisitor has ISyntaxTreeVisitor
-    public fn new(state State) : ; empty
+    public fn new(state State)
 
     public fn Visit(item AnonymousFunction) : throw new NotImplementedException()
     public fn Visit(item Argument) : throw new NotImplementedException()

@@ -10,9 +10,9 @@ public abstract class Result
 
 public class LoadResult is Result
     public fn SyntaxTree ?SyntaxTree.File
-    public fn new(fileName str) base(fileName) : ; empty
+    public fn new(fileName str) base(fileName)
 
 
 public class SaveResult is Result
     public fn Success bool
-    public fn new(fileName str) base(fileName) : ; empty
+    public fn new(fileName str) base(fileName)

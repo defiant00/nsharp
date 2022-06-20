@@ -1,6 +1,5 @@
 ns NSharp.Core
 
 public class InvalidItemException is Exception
-    public fn new() : ; empty
-
-    public fn new(value str) base(value) : ; empty
+    public fn new()
+    public fn new(value str) base(value)
