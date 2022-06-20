@@ -95,8 +95,11 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
                 Write(" virtual")
         else if canBeSealed and !isAbstract and !isStatic
             Write(" sealed")
-        else if canOverride and isOverride and !isOpen
+        else if canOverride and isOverride
             Write(" sealed")
+        
+        if isOverride
+            Write(" override")
 
     private fn WriteStatementBlock(statements List{Statement})
         WriteLineIndented("{{")
