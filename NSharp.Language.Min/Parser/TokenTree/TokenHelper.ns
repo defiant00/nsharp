@@ -4,26 +4,27 @@ use NSharp.Core.SyntaxTree
 ns NSharp.Language.Min.TokenTree
 
 public static class TokenHelper
-    public static ext{TokenType} fn IsAssignment() bool : this > TokenType.Assignment_Start and this < TokenType.Assignment_End
-    public static ext{TokenType} fn IsOperatorCanThrow() bool : this > TokenType.Operator_Can_Throw_Start and this < TokenType.Operator_Can_Throw_End
-    public static ext{TokenType} fn IsLineContinuationPostfix() bool : this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
-    public static ext{TokenType} fn IsLineContinuationPrefix() bool : this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
-    public static ext{TokenType} fn IsArgumentModifier() bool : this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
-    public static ext{TokenType} fn IsParameterModifier() bool : this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
-    public static ext{TokenType} fn IsType() bool : this > TokenType.Type_Start and this < TokenType.Type_End
-    public static ext{TokenType} fn IsBlock() bool : this > TokenType.Block_Start and this < TokenType.Block_End
-    public static ext{TokenType} fn IsGroup() bool : this > TokenType.Group_Start and this < TokenType.Group_End
-    public static ext{TokenType} fn NeedsDedent() bool : this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
-    public static ext{TokenType} fn IsUnaryOperator() bool : this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
+    public ext{TokenType}
+        fn IsAssignment() bool : this > TokenType.Assignment_Start and this < TokenType.Assignment_End
+        fn IsOperatorCanThrow() bool : this > TokenType.Operator_Can_Throw_Start and this < TokenType.Operator_Can_Throw_End
+        fn IsLineContinuationPostfix() bool : this > TokenType.Line_Continuation_Postfix_Start and this < TokenType.Line_Continuation_Postfix_End
+        fn IsLineContinuationPrefix() bool : this > TokenType.Line_Continuation_Prefix_Start and this < TokenType.Line_Continuation_Prefix_End
+        fn IsArgumentModifier() bool : this > TokenType.Argument_Modifier_Start and this < TokenType.Argument_Modifier_End
+        fn IsParameterModifier() bool : this > TokenType.Parameter_Modifier_Start and this < TokenType.Parameter_Modifier_End
+        fn IsType() bool : this > TokenType.Type_Start and this < TokenType.Type_End
+        fn IsBlock() bool : this > TokenType.Block_Start and this < TokenType.Block_End
+        fn IsGroup() bool : this > TokenType.Group_Start and this < TokenType.Group_End
+        fn NeedsDedent() bool : this > TokenType.Token_Needs_Dedent_Start and this < TokenType.Token_Needs_Dedent_End
+        fn IsUnaryOperator() bool : this > TokenType.Unary_Operator_Start and this < TokenType.Unary_Operator_End
 
-    public static ext{TokenType} fn ToArgumentModifier() ArgumentModifierType : this ?
+        fn ToArgumentModifier() ArgumentModifierType : this ?
         {
             TokenType.Out : ArgumentModifierType.Out,
             TokenType.Reference : ArgumentModifierType.Reference,
             _ : throw new Exception(Resources.FormatFatal(0x0001, this)),
         }
     
-    public static ext{TokenType} fn ToParameterModifier() ParameterModifierType : this ?
+        fn ToParameterModifier() ParameterModifierType : this ?
         {
             TokenType.Out : ParameterModifierType.Out,
             TokenType.Reference : ParameterModifierType.Reference,
@@ -31,7 +32,7 @@ public static class TokenHelper
             _ : throw new Exception(Resources.FormatFatal(0x0002, this)),
         }
 
-    public static ext{TokenType} fn ToUnaryOperator() UnaryOperatorType : this ?
+        fn ToUnaryOperator() UnaryOperatorType : this ?
         {
             TokenType.Subtract : UnaryOperatorType.Negate,
             TokenType.Not : UnaryOperatorType.Not,
@@ -39,7 +40,7 @@ public static class TokenHelper
             _ : throw new Exception(Resources.FormatFatal(0x0003, this)),
         }
 
-    public static ext{TokenType} fn ToBinaryOperator() BinaryOperatorType : this ?
+        fn ToBinaryOperator() BinaryOperatorType : this ?
         {
             TokenType.Dot : BinaryOperatorType.Dot,
             TokenType.NullDot : BinaryOperatorType.NullDot,
@@ -79,7 +80,7 @@ public static class TokenHelper
             _ : BinaryOperatorType.None,
         }
 
-    public static ext{TokenType} fn ToAssignmentOperator() AssignmentOperatorType : this ?
+        fn ToAssignmentOperator() AssignmentOperatorType : this ?
         {
             TokenType.Assign : AssignmentOperatorType.Assign,
             TokenType.AddAssign : AssignmentOperatorType.Add,
@@ -99,7 +100,7 @@ public static class TokenHelper
     public static var KeywordTokens Dictionary{str, TokenType}
 
     static fn new()
-        KeywordTokens = new()
+        KeywordTokens = new
         KeywordTokens.Add("ns", TokenType.Namespace)
         KeywordTokens.Add("use", TokenType.Use)
         KeywordTokens.Add("if", TokenType.If)

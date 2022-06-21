@@ -4,7 +4,7 @@ use NSharp.Core
 ns NSharp.Language.Min
 
 public static class Helper
-    public static ext{str} fn Unescape() str
+    public ext{str} fn Unescape() str
         var sb = new StringBuilder(this)
 
         ; Replace doubled '{', '}', and '"'

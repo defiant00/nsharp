@@ -3,54 +3,54 @@ use NSharp.Core
 ns NSharp.Language.Min.TokenTree
 
 public struct AcceptResult
-    public fn Success bool = true
-    public fn Failure bool : !Success
-    public fn StartingIndex int
-    public fn Count int = 0
-    public fn SearchItems array{TokenType}
-    public fn MissedTokenType TokenType : SearchItems[Count]
+    public
+        fn Success bool = true
+        fn Failure bool : !Success
+        fn StartingIndex int
+        fn Count int = 0
+        fn SearchItems array{TokenType}
+        fn MissedTokenType TokenType : SearchItems[Count]
 
-    public fn new(startingIndex int, items array{TokenType})
-        StartingIndex = startingIndex
-        SearchItems = items
+        fn new(startingIndex int, items array{TokenType})
+            StartingIndex = startingIndex
+            SearchItems = items
 
 
 public class Group is Token
-    public fn Tokens List{Token} = new()
-    public fn CurrentIndex int = 0
+    public
+        fn Tokens List{Token} = new()
+        fn CurrentIndex int = 0
 
-    public fn new(position Position, type TokenType, parent ?Group = null) base(position, type) : Parent = parent
+        fn new(position Position, type TokenType, parent ?Group = null) base(position, type) : Parent = parent
 
-    public over fn Print(indent int)
-        PrintIndent(indent)
-        Console.WriteLine("{Type} {Position}")
-        for token in Tokens
-            token.Print(indent + 1)
+        over fn Print(indent int)
+            PrintIndent(indent)
+            Console.WriteLine("{Type} {Position}")
+            for token in Tokens : token.Print(indent + 1)
 
-    public fn More bool : CurrentIndex < Tokens.Count
+        fn More bool : CurrentIndex < Tokens.Count
 
-    public fn Peek Token : More ? Tokens[CurrentIndex] : MISSING_TOKEN
+        fn Peek Token : More ? Tokens[CurrentIndex] : MISSING_TOKEN
 
-    public fn Next() Token
-        var token = Peek
-        CurrentIndex += 1
-        return token
-    
-    public fn Advance(count int = 1) : CurrentIndex += count
-    
-    public fn Accept(tokenTypes var array{TokenType}) AcceptResult
-        var result = new AcceptResult(CurrentIndex, tokenTypes)
-        for tokenType in tokenTypes
-            if current = Next(), current.Type != tokenType
-                CurrentIndex = result.StartingIndex
-                result.Success = false
-                return result
-            result.Count += 1
-        return result
-    
-    public fn Token(result AcceptResult, index int = 0) Token : Tokens[result.StartingIndex + index]
+        fn Next() Token
+            var token = Peek
+            CurrentIndex += 1
+            return token
+        
+        fn Advance(count int = 1) : CurrentIndex += count
+        
+        fn Accept(tokenTypes var array{TokenType}) AcceptResult
+            var result = new AcceptResult(CurrentIndex, tokenTypes)
+            for tokenType in tokenTypes
+                if current = Next(), current.Type != tokenType
+                    CurrentIndex = result.StartingIndex
+                    result.Success = false
+                    return result
+                result.Count += 1
+            return result
+        
+        fn Token(result AcceptResult, index int = 0) Token : Tokens[result.StartingIndex + index]
 
-    public fn ErrorToken(result AcceptResult) Token
-        return result.StartingIndex + result.Count < Tokens.Count ?
-            Tokens[result.StartingIndex + result.Count] :
-            MISSING_TOKEN
+        fn ErrorToken(result AcceptResult) Token : result.StartingIndex + result.Count < Tokens.Count ?
+                Tokens[result.StartingIndex + result.Count] :
+                MISSING_TOKEN
