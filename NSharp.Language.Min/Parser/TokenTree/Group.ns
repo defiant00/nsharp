@@ -7,10 +7,10 @@ public struct AcceptResult
     public fn Failure bool : !Success
     public fn StartingIndex int
     public fn Count int = 0
-    public fn SearchItems []TokenType
+    public fn SearchItems array{TokenType}
     public fn MissedTokenType TokenType : SearchItems[Count]
 
-    public fn new(startingIndex int, items []TokenType)
+    public fn new(startingIndex int, items array{TokenType})
         StartingIndex = startingIndex
         SearchItems = items
 
@@ -38,7 +38,7 @@ public class Group is Token
     
     public fn Advance(count int = 1) : CurrentIndex += count
     
-    public fn Accept(tokenTypes var []TokenType) AcceptResult
+    public fn Accept(tokenTypes var array{TokenType}) AcceptResult
         var result = new AcceptResult(CurrentIndex, tokenTypes)
         for tokenType in tokenTypes
             if current = Next(), current.Type != tokenType

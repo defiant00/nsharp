@@ -5,7 +5,7 @@ use NSharp.Core
 ns NSharp.Compiler.Metadata
 
 public class TypeResolver has IDisposable
-    private fn AssemblyFileExtensions []str get = ["dll", "exe"]
+    private fn AssemblyFileExtensions array{str} get = ["dll", "exe"]
     private fn State State
     private fn AssemblyPaths List{str} = new()
     private fn Assemblies Dictionary{str, Assembly} = new()

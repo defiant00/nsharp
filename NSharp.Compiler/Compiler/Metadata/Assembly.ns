@@ -6,7 +6,7 @@ ns NSharp.Compiler.Metadata
 
 public class Assembly has IDisposable
     public fn Name str
-    public fn PublicKey []byte : Meta.GetBlobBytes(Definition.PublicKey)
+    public fn PublicKey array{byte} : Meta.GetBlobBytes(Definition.PublicKey)
     public fn Handle AssemblyReferenceHandle
     public fn Meta MetadataReader
     public fn TypeResolver TypeResolver

@@ -11,7 +11,7 @@ public static class Program
     private val EDIT_SETTINGS str = ".nsedit"
     private val LANGUAGE_KEY str = "language"
 
-    public static fn Main(args []str)
+    public static fn Main(args array{str})
         Console.WriteLine(Resources.GetString("Compiler.Intro"))
 
         var stopwatch = new Stopwatch()

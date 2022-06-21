@@ -274,6 +274,7 @@ var multiline = "Hello {name}" ..
 * Extension is a modifier, and can be set on both methods and properties. While the same visibility rules apply as C#, you do not have to declare the instance variable, but can instead use `this`, or no qualifier - the same as in an actual instance method.
 * `use`, the equivalent of C#'s `using`, does not have specific requirements beyond being a dotted set of identifiers. When resolving identifiers, the name is checked with the `use` value prepended. This means that you can just as easily `use` a specific class, namespace, or even enumeration.
 * Constructors are declared with the name `new`, not the class name.
-* Types such as array or nullable come before their base type. Nullable int is `?int`, array of strings is `[]str`.
+* The nullable type indicator comes before the base type, eg `?int`.
+* Arrays are treated like any other generic type: `array{type}`. Multi-dimensional arrays are represented by name, with the format `array_dim{type}`, eg `array_3{str}` for a three dimensional array of strings.
 * Names come before types, such as `myName str` or `guests List{str}`.
 * And and or are spelled `and` and `or`, not `&&` and `||`.

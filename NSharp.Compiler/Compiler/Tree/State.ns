@@ -28,9 +28,9 @@ public class State has IDisposable
     
     public fn Dispose() : TypeResolver.Dispose()
 
-    public fn AddDiagnostic(severity Severity, index int, args var []str) : AddDiagnostic(severity, index, default, args)
+    public fn AddDiagnostic(severity Severity, index int, args var array{str}) : AddDiagnostic(severity, index, default, args)
 
-    public fn AddDiagnostic(severity Severity, index int, position Position, args var []str)
+    public fn AddDiagnostic(severity Severity, index int, position Position, args var array{str})
         var key str
         if severity
             is Severity.Message
