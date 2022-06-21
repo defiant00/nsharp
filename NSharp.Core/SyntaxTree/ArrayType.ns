@@ -1,0 +1,9 @@
+ns NSharp.Core.SyntaxTree
+
+public class ArrayType is Expression
+    public fn Type Expression
+    public fn Dimension ?Expression
+
+    public fn new(position Position, type Expression) base(position) : Type = type
+    
+    public over fn Accept(visitor ISyntaxTreeVisitor) : visitor.Visit(this)

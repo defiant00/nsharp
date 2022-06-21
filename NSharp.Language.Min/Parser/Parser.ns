@@ -90,6 +90,19 @@ public class Parser
             return arrayExpr
         return new BadExpressionToken()
     
+    private fn ParseArrayType(group Group) Expression
+        if res = group.Accept(TokenType.Array, TokenType.CurlyGroup), res.Failure
+            InvalidToken(group, "array type", res)
+            group.Advance()
+            return new BadExpressionToken()
+        else
+            var cGroup = group.Token(res, 1) as Group
+            var arrayTypeExpr = new ArrayType(group.Token(res).Position, ParseType(cGroup))
+            if cGroup.Accept(TokenType.Comma).Success
+                arrayTypeExpr.Dimension = ParseExpression(cGroup)
+            EnsureNoExtraTokens(cGroup)
+            return arrayTypeExpr
+    
     private fn ParseArgument(group Group) Expression
         ; [name "="] ["out" | "ref"] expression
         var startPos = group.Peek.Position
@@ -1038,8 +1051,10 @@ public class Parser
     private fn ParsePrimaryExpression(group Group) Expression
         var expr Expression
         if peekType = group.Peek.Type, peekType
+            is TokenType.Array
+                expr = ParseArrayType(group)
             is TokenType.BracketGroup
-                    expr = ParseArrayLiteral(group)
+                expr = ParseArrayLiteral(group)
             is TokenType.Function
             is TokenType.FunctionBlock
                 expr = ParseAnonymousFunction(group)
@@ -1326,6 +1341,8 @@ public class Parser
     private fn ParseType(group Group) Expression
         var typeExpr Expression
         if group.Peek.Type
+            is TokenType.Array
+                typeExpr = ParseArrayType(group)
             is TokenType.Identifier
                 typeExpr = ParseIdentifier(group)
             is TokenType.Question
@@ -1337,8 +1354,7 @@ public class Parser
                     AddError("code", "invalid token in type: {group.Peek}", group.Peek.Position)
                     return new BadExpressionToken()
         
-        var loop = true
-        for loop
+        for loop = true, loop
             if group.Peek.Type == TokenType.CurlyGroup
                 typeExpr = ParseGenericArguments(group, typeExpr)
             else if res = group.Accept(TokenType.Dot, TokenType.Identifier), res.Success

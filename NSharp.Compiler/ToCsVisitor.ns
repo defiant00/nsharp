@@ -169,37 +169,35 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
     })
 
     public fn Visit(item Core.SyntaxTree.Arguments)
-        if item.Flag == 'g' and item.Value is IdentifierToken it and item.Values.Any() and
-                (it.Value == "array" or it.Value.StartsWith("array_"))
-            item.Values[0].Accept(this)
+        item.Value.Accept(this)
+
+        if item.Flag == 'g'
+            Write("<")
+            JoinItems(item.Values)
+            Write(">")
+        else if item.Flag == 'i'
             Write("[")
-            var dim = 1
-            if it.Value.StartsWith("array_")
-                dim = Convert.ToInt32(it.Value.Substring(6))
-            for i = 1, i < dim
-                Write(",")
-                i += 1
+            JoinItems(item.Values)
             Write("]")
         else
-            item.Value.Accept(this)
-
-            if item.Flag == 'g'
-                Write("<")
-                JoinItems(item.Values)
-                Write(">")
-            else if item.Flag == 'i'
-                Write("[")
-                JoinItems(item.Values)
-                Write("]")
-            else
-                Write("(")
-                JoinItems(item.Values)
-                Write(")")
+            Write("(")
+            JoinItems(item.Values)
+            Write(")")
 
     public fn Visit(item ArrayLiteral)
         Write("{{")
         JoinItems(item.Values)
         Write("}}")
+
+    public fn Visit(item ArrayType)
+        item.Type.Accept(this)
+        Write("[")
+        var dim = 1
+        if item.Dimension is NumberToken nt : dim = Convert.ToInt32(nt.Value)
+        for i = 1, i < dim
+            Write(",")
+            i += 1
+        Write("]")
 
     public fn Visit(item Assignment)
         WriteIndent()
@@ -380,14 +378,20 @@ public class ToCsVisitor has ISyntaxTreeVisitor, IDisposable
 
     public fn Visit(item ConstructorCall)
         Write("new ")
-        item.Type?.Accept(this)
-        Write("(")
-        JoinItems(item.Arguments)
-        Write(")")
-        if item.Initializers.Any()
-            Write("{{")
-            JoinItems(item.Initializers)
-            Write("}}")
+        if item.Type is ArrayType arr
+            arr.Type.Accept(this)
+            Write("[")
+            JoinItems(item.Arguments)
+            Write("]")
+        else
+            item.Type?.Accept(this)
+            Write("(")
+            JoinItems(item.Arguments)
+            Write(")")
+            if item.Initializers.Any()
+                Write("{{")
+                JoinItems(item.Initializers)
+                Write("}}")
 
     public fn Visit(item ConstructorDefinition)
         WriteAttributes(GetAttributes(item), item)

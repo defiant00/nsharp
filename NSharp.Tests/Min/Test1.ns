@@ -6,5 +6,7 @@ ns NSharp.Tests.Min
 open class MyClass
     fn Test()
         var x array{str}
-        var y array_2{str}
+        var y array{str, 3}
         var z List{str}
+        var a = new array{str}(5)
+        var b = new array{int, 3}(1, 2, 3)

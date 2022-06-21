@@ -140,6 +140,7 @@ public static class TokenHelper
         KeywordTokens.Add("sig", TokenType.Signature)
         KeywordTokens.Add("fn", TokenType.Function)
         KeywordTokens.Add("del", TokenType.Delegate)
+        KeywordTokens.Add("array", TokenType.Array)
         KeywordTokens.Add("var", TokenType.Variable)
         KeywordTokens.Add("val", TokenType.Value)
         KeywordTokens.Add("get", TokenType.Get)

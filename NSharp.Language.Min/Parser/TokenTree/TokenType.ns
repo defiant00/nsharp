@@ -66,6 +66,7 @@ public enum TokenType
     Interface
     Signature
     Delegate
+    Array
     Value
     Get
     Set

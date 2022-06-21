@@ -34,6 +34,8 @@ public class SetParentVisitor has ISyntaxTreeVisitor
     
     public fn Visit(item ArrayLiteral) : item.SetParent(item.Values, this)
 
+    public fn Visit(item ArrayType) : item.SetParent(item.Type, this)
+
     public fn Visit(item Assignment)
         item.SetParent(item.LeftOperand, this)
         item.SetParent(item.Operator, this)
