@@ -122,8 +122,7 @@ public class Parser
     private fn ParseAssignment(group Group, left Expression, moveNextLine bool = true) Statement
         var op = group.Next().ToAssignmentOperatorToken()
         var right = ParseExpression(group)
-        if moveNextLine
-            AdvanceLine(group)
+        if moveNextLine : AdvanceLine(group)
         return new Assignment(left.Position, left, op, right)
     
     private fn ParseAttribute(group Group) Expression
@@ -131,8 +130,7 @@ public class Parser
         var start = group.Peek.Position
         var res = group.Accept(TokenType.Identifier, TokenType.Colon)
         var attributeExpr = new Core.SyntaxTree.Attribute(start, ParsePrimaryExpression(group))
-        if res.Success
-            attributeExpr.Qualifier = group.Token(res).ToIdentifierToken()
+        if res.Success : attributeExpr.Qualifier = group.Token(res).ToIdentifierToken()
         return attributeExpr
 
     private fn ParseAttributeBlock(group Group, stmtFn Func{Group, Statement}) Statement
@@ -151,8 +149,7 @@ public class Parser
                 AdvanceLine(currentLine)
                 if currentLine.CurrentParentToken is Group nextLine
                     ; {attrs}
-                    if nextLine.Type == TokenType.Line
-                        currentLine = nextLine
+                    if nextLine.Type == TokenType.Line : currentLine = nextLine
                     else if nextLine.Type == TokenType.IndentBlock
                         ParseIndentBlock(nextLine, attributeBlockStmt.Statements, stmtFn)
                         return attributeBlockStmt
@@ -170,8 +167,7 @@ public class Parser
 
             ; If this is a binary operator that binds at least as tightly as the
             ; current operator then consume it, otherwise we're done.
-            if tokenPrecedence < leftPrecedence
-                return left
+            if tokenPrecedence < leftPrecedence : return left
 
             var op = group.Next()
             var right = op.Type.IsOperatorCanThrow() ? ParseThrowOr(ParsePrimaryExpression, group) : ParsePrimaryExpression(group)
@@ -199,8 +195,7 @@ public class Parser
 
     private fn ParseBreak(group Group, moveNextLine bool = true) Statement
         if res = group.Accept(TokenType.Break), res.Success
-            if moveNextLine
-                AdvanceLine(group)
+            if moveNextLine : AdvanceLine(group)
             return new BreakToken(group.Token(res).Position)
         else
             InvalidToken(group, "break", res)
@@ -219,8 +214,7 @@ public class Parser
 
         ParseGenericDefinition(group, classStmt.Generics)
 
-        if group.Accept(TokenType.Is).Success
-            classStmt.Base = ParseType(group)
+        if group.Accept(TokenType.Is).Success : classStmt.Base = ParseType(group)
 
         if group.Accept(TokenType.Has).Success
             classStmt.Interfaces.Add(ParseType(group))
@@ -234,29 +228,18 @@ public class Parser
         return classStmt
     
     private fn ParseClassStatement(group Group) Statement
-        if !group.Tokens.Any()
-            return ParseSpace(group)
+        if !group.Tokens.Any() : return ParseSpace(group)
         if group.Peek.Type
-            is TokenType.Class
-                return ParseClass(group)
-            is TokenType.Comment
-                return ParseComment(group)
-            is TokenType.Delegate
-                return ParseDelegate(group)
-            is TokenType.Enum
-                return ParseEnum(group)
-            is TokenType.Function
-                return ParseMethodOrPropertyDefinition(group)
-            is TokenType.Interface
-                return ParseInterface(group)
-            is TokenType.Struct
-                return ParseStruct(group)
-            is TokenType.Value
-                return ParseConstant(group)
-            is TokenType.Variable
-                return ParseField(group)
-            is _
-                return ParseAttributeBlock(group, ParseClassStatement)
+            is TokenType.Class : return ParseClass(group)
+            is TokenType.Comment : return ParseComment(group)
+            is TokenType.Delegate : return ParseDelegate(group)
+            is TokenType.Enum : return ParseEnum(group)
+            is TokenType.Function : return ParseMethodOrPropertyDefinition(group)
+            is TokenType.Interface : return ParseInterface(group)
+            is TokenType.Struct : return ParseStruct(group)
+            is TokenType.Value : return ParseConstant(group)
+            is TokenType.Variable : return ParseField(group)
+            is _ : return ParseAttributeBlock(group, ParseClassStatement)
 
     private fn ParseComment(group Group, moveNextLine bool = true) Statement
         ; ";" comment
@@ -269,8 +252,7 @@ public class Parser
             if commentStmt.Value.StartsWith(";")
                 commentStmt.Value = commentStmt.Value.Substring(1)
                 commentStmt.IsDocumentation = true
-            if moveNextLine
-                AdvanceLine(group)
+            if moveNextLine : AdvanceLine(group)
             return commentStmt
     
     private fn ParseCondition(group Group) Statement
@@ -342,8 +324,7 @@ public class Parser
             ParseType(group)
         )
 
-        if group.Accept(TokenType.Assign).Success
-            constStmt.Value = ParseExpression(group)
+        if group.Accept(TokenType.Assign).Success : constStmt.Value = ParseExpression(group)
         
         AdvanceLine(group)
         return constStmt
@@ -391,8 +372,7 @@ public class Parser
 
     private fn ParseContinue(group Group, moveNextLine bool = true) Statement
         if res = group.Accept(TokenType.Continue), res.Success
-            if moveNextLine
-                AdvanceLine(group)
+            if moveNextLine : AdvanceLine(group)
             return new ContinueToken(group.Token(res).Position)
         else
             InvalidToken(group, "continue", res)
@@ -414,18 +394,15 @@ public class Parser
         if !ParseParameters(group, delegateStmt.Parameters)
             AddError("[code]", "missing parameters", delegateStmt.Position)
         
-        if group.More
-            delegateStmt.ReturnType = ParseType(group)
+        if group.More : delegateStmt.ReturnType = ParseType(group)
         
         AdvanceLine(group)
         return delegateStmt
 
     private fn ParseElse(group Group, ifStmt If)
         if group.Accept(TokenType.Else).Success
-            if group.Peek.Type == TokenType.If
-                ifStmt.ElseStatements.Add(ParseIf(group))
-            else
-                ParseStatementOrIndentBlock(group, ifStmt.ElseStatements)
+            if group.Peek.Type == TokenType.If : ifStmt.ElseStatements.Add(ParseIf(group))
+            else : ParseStatementOrIndentBlock(group, ifStmt.ElseStatements)
 
     private fn ParseEnum(group Group) Statement
         ; "enum" name
@@ -453,13 +430,10 @@ public class Parser
         
         var enumItemStmt = new EnumerationItem(group.Token(res).Position, group.Token(res).ToIdentifierToken())
 
-        if group.Accept(TokenType.Assign).Success
-            enumItemStmt.Value = ParseExpression(group)
+        if group.Accept(TokenType.Assign).Success : enumItemStmt.Value = ParseExpression(group)
         
-        if group.Peek.Type == TokenType.Comment
-            enumItemStmt.Comment = ParseComment(group)
-        else
-            AdvanceLine(group)
+        if group.Peek.Type == TokenType.Comment : enumItemStmt.Comment = ParseComment(group)
+        else : AdvanceLine(group)
         
         return enumItemStmt
     
