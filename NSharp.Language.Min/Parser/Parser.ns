@@ -119,15 +119,6 @@ public class Parser
             return true
         return false
 
-    private fn ParseArrayType(group Group) Expression
-        ; "[" {,} "]" type
-        if next = group.Next(), next.Type == TokenType.BracketGroup and next is Group bracketGroup
-            if bracketGroup.Tokens.All(fn(t) : t.Type == TokenType.Comma)
-                return new ArrayType(bracketGroup.Position, ParseType(group), bracketGroup.Tokens.Count + 1)
-            else
-                AddError("[code]", "an array type should only have commas in the []s", bracketGroup.Position)
-        return new BadExpressionToken()
-
     private fn ParseAssignment(group Group, left Expression, moveNextLine bool = true) Statement
         var op = group.Next().ToAssignmentOperatorToken()
         var right = ParseExpression(group)
@@ -1074,11 +1065,7 @@ public class Parser
         var expr Expression
         if peekType = group.Peek.Type, peekType
             is TokenType.BracketGroup
-                var bracketGroup = group.Peek as Group
-                if bracketGroup.Tokens.Any(fn(t) : t.Type != TokenType.Comma)
                     expr = ParseArrayLiteral(group)
-                else
-                    expr = ParseArrayType(group)
             is TokenType.Function
             is TokenType.FunctionBlock
                 expr = ParseAnonymousFunction(group)
@@ -1114,8 +1101,7 @@ public class Parser
                         _ : new BadExpressionToken()
                     }
         
-        var loop = true
-        for loop
+        for loop = true, loop
             if res = group.Accept(TokenType.Dot, TokenType.Identifier), res.Success
                 expr = new BinaryOperator(expr.Position, expr,
                     group.Token(res).ToBinaryOperatorToken(),
@@ -1366,8 +1352,6 @@ public class Parser
     private fn ParseType(group Group) Expression
         var typeExpr Expression
         if group.Peek.Type
-            is TokenType.BracketGroup
-                return ParseArrayType(group)
             is TokenType.Identifier
                 typeExpr = ParseIdentifier(group)
             is TokenType.Question

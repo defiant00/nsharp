@@ -6,7 +6,6 @@ public interface ISyntaxTreeVisitor
     public sig Visit(item ArgumentModifierToken)
     public sig Visit(item Arguments)
     public sig Visit(item ArrayLiteral)
-    public sig Visit(item ArrayType)
     public sig Visit(item Assignment)
     public sig Visit(item AssignmentOperatorToken)
     public sig Visit(item Attribute)

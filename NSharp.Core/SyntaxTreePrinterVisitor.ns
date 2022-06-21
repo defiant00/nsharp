@@ -76,11 +76,6 @@ public class SyntaxTreePrinterVisitor has ISyntaxTreeVisitor
         JoinItems(item.Values)
         Write("]")
 
-    public fn Visit(item ArrayType)
-        Write("array_{item.Dimension}(")
-        item.Type.Accept(this)
-        Write(")")
-
     public fn Visit(item Assignment)
         WriteIndented("Assignment: ")
         item.LeftOperand.Accept(this)

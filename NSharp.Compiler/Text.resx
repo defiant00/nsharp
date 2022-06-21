@@ -13,7 +13,7 @@
     <value>File '{0}' does not exist.</value>
   </data>
   <data name="Compiler.Intro" xml:space="preserve">
-    <value>N# Compiler v0.2.0</value>
+    <value>N# Compiler v0.2.1</value>
   </data>
   <data name="Compiler.NoCommandFound" xml:space="preserve">
     <value>No command found.</value>

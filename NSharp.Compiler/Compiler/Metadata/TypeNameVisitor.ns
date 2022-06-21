@@ -20,7 +20,6 @@ public class TypeNameVisitor has ISyntaxTreeVisitor
     public fn Visit(item ArgumentModifierToken) : throw new NotImplementedException()
     public fn Visit(item Core.SyntaxTree.Arguments) : throw new NotImplementedException()
     public fn Visit(item ArrayLiteral) : throw new NotImplementedException()
-    public fn Visit(item ArrayType) : throw new NotImplementedException()
     public fn Visit(item Assignment) : throw new NotImplementedException()
     public fn Visit(item AssignmentOperatorToken) : throw new NotImplementedException()
     public fn Visit(item Core.SyntaxTree.Attribute) : throw new NotImplementedException()

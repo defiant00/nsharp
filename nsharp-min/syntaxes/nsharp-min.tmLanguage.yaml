@@ -37,11 +37,11 @@ repository:
       name: keyword.control.nsharp-min
     - match: \b(?:public|protected|private|internal|static|abstract|open|over|ext|ref|out)\b
       name: storage.modifier.nsharp-min
-    - match: \b(?:class|struct|enum|interface|del|fn|sig|var|val|has)\b
+    - match: \b(?:class|struct|enum|interface|del|fn|sig|var|val|array|array_\d+)\b
       name: storage.type.nsharp-min
     - match: \b(?:base)\b
       name: support.function.nsharp-min
-    - match: \b(?:ns|use|get|set)\b
+    - match: \b(?:ns|use|get|set|has)\b
       name: keyword.other.nsharp-min
     - match: /fn
       name: keyword.other.nsharp-min

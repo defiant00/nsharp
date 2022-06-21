@@ -4,5 +4,7 @@ use System
 ns NSharp.Tests.Min
 
 open class MyClass
-    fn Test(x var []str)
-        ; yay?
+    fn Test()
+        var x array{str}
+        var y array_2{str}
+        var z List{str}
